@@ -1,0 +1,378 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\TrainerController;
+use App\Http\Controllers\TrainingScheduleController;
+use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\ReportController;
+
+use App\Http\Controllers\ElearningCourseController;
+use App\Http\Controllers\ElearningLessonController;
+use App\Http\Controllers\LessonBlockController;
+use App\Http\Controllers\ElearningEnrollmentController;
+use App\Http\Controllers\ElearningLessonResourceController;
+use App\Http\Controllers\ElearningQuizController;
+use App\Http\Controllers\ElearningQuizQuestionController;
+use App\Http\Controllers\ElearningQuizAttemptController;
+
+use App\Http\Controllers\ParticipantDashboardController;
+use App\Http\Controllers\ParticipantQuizController;
+use App\Http\Controllers\ElearningCertificateController;
+use App\Http\Controllers\TrainerPortalController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\DemoController;
+use App\Http\Controllers\PublicController;
+use App\Http\Controllers\PublicEnrollmentController;
+use App\Http\Controllers\BlogController;
+use App\Http\Controllers\TestimonialController;
+
+/*
+|--------------------------------------------------------------------------
+| Public Website Routes (no auth required)
+|--------------------------------------------------------------------------
+*/
+Route::name('public.')->group(function () {
+    Route::get('/',                             [PublicController::class, 'home'])              ->name('home');
+    Route::get('/courses',                      [PublicController::class, 'courses'])           ->name('courses');
+    Route::get('/courses/{slug}',               [PublicController::class, 'courseDetail'])      ->name('course.detail');
+    Route::get('/training-calendar',            [PublicController::class, 'calendar'])          ->name('calendar');
+    Route::get('/blog',                         [PublicController::class, 'blog'])              ->name('blog');
+    Route::get('/blog/{slug}',                  [PublicController::class, 'blogDetail'])        ->name('blog.detail');
+    Route::get('/reviews',                      [PublicController::class, 'testimonials'])      ->name('testimonials');
+    Route::post('/reviews/submit',              [PublicController::class, 'testimonialSubmit']) ->name('testimonials.submit');
+    Route::get('/verify',                       [PublicController::class, 'verifyCertificate']) ->name('verify-certificate');
+
+    // Public enrollment flow
+    Route::get('/enroll/{scheduleId}',          [PublicEnrollmentController::class, 'show'])    ->name('enroll');
+    Route::post('/enroll/{scheduleId}',         [PublicEnrollmentController::class, 'store'])   ->name('enroll.store');
+    Route::get('/enroll/{enrollmentId}/success',[PublicEnrollmentController::class, 'success']) ->name('enroll.success');
+    Route::get('/enroll/{enrollmentId}/payment',[PublicEnrollmentController::class, 'payment']) ->name('enroll.payment');
+});
+
+Route::get('/dashboard-redirect', function () {
+    if (auth()->check()) {
+        $user = auth()->user();
+        return match($user->role) {
+            'trainer'     => redirect()->route('trainer.dashboard'),
+            'participant' => redirect()->route('participant.my-courses'),
+            default       => redirect()->route('dashboard'),
+        };
+    }
+    return redirect()->route('login');
+});
+
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'admin'])
+    ->name('dashboard');
+
+// Stop impersonating — auth only (the "current user" is the learner during impersonation)
+Route::post('/stop-impersonating', [\App\Http\Controllers\ElearningEnrollmentController::class, 'stopImpersonating'])
+    ->middleware('auth')
+    ->name('impersonation.stop');
+
+Route::middleware('auth')->group(function () {
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Participant My Courses
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/my-courses', [ParticipantDashboardController::class, 'myCourses'])
+        ->name('participant.my-courses');
+
+    // Certificate download — accessible to both participants (own cert) and admins
+    Route::get('/elearning/enrollments/{enrollment}/certificate', [ElearningCertificateController::class, 'generate'])
+        ->name('elearning.certificate.generate');
+
+    Route::get('/my-courses/{enrollment}', [ParticipantDashboardController::class, 'courseDetails'])
+        ->name('participant.course-details');
+
+    Route::get('/my-elearning/{enrollment}', [ParticipantDashboardController::class, 'elearningDetails'])
+        ->name('participant.elearning-details');
+
+    Route::get('/my-elearning/{enrollment}/lessons/{lesson}', [ParticipantDashboardController::class, 'showLesson'])
+        ->name('participant.lesson.show');
+
+    Route::post('/my-elearning/{enrollment}/lessons/{lesson}/complete', [ParticipantDashboardController::class, 'markLessonComplete'])
+        ->name('participant.lesson.complete');
+
+    Route::get('/my-elearning/{enrollment}/quizzes/{quiz}', [ParticipantQuizController::class, 'start'])
+        ->name('participant.quiz.start');
+
+    Route::post('/my-elearning/{enrollment}/quizzes/{quiz}/submit', [ParticipantQuizController::class, 'submit'])
+        ->name('participant.quiz.submit');
+
+    Route::get('/my-certificates', [ParticipantDashboardController::class, 'myCertificates'])
+        ->name('participant.my-certificates');
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| Trainer Portal Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'trainer'])->prefix('trainer')->name('trainer.')->group(function () {
+
+    Route::get('/dashboard', [TrainerPortalController::class, 'dashboard'])
+        ->name('dashboard');
+
+    Route::get('/schedules', [TrainerPortalController::class, 'schedules'])
+        ->name('schedules');
+
+    Route::get('/schedules/{schedule}', [TrainerPortalController::class, 'participants'])
+        ->name('schedule.participants');
+
+    Route::post('/enrollments/{enrollment}/attendance', [TrainerPortalController::class, 'updateAttendance'])
+        ->name('attendance.update');
+
+    Route::post('/enrollments/{enrollment}/completion', [TrainerPortalController::class, 'updateCompletion'])
+        ->name('completion.update');
+
+    Route::get('/schedules/{schedule}/attendance', [TrainerPortalController::class, 'attendanceSheet'])
+        ->name('schedule.attendance');
+    Route::post('/schedules/{schedule}/attendance/save', [TrainerPortalController::class, 'attendanceSave'])
+        ->name('schedule.attendance.save');
+});
+
+require __DIR__.'/auth.php';
+
+/*
+|--------------------------------------------------------------------------
+| Public Routes (no auth required)
+|--------------------------------------------------------------------------
+*/
+// Manual training public registration
+Route::get('/register-training/{schedule_id}', [EnrollmentController::class, 'publicCreate']);
+Route::post('/register-training/{schedule_id}', [EnrollmentController::class, 'publicStore']);
+
+// eLearning public registration
+Route::get('/elearning-register/{course}', [ElearningEnrollmentController::class, 'publicRegister'])
+    ->name('elearning.public.register');
+Route::post('/elearning-register/{course}', [ElearningEnrollmentController::class, 'publicRegisterStore'])
+    ->name('elearning.public.register.store');
+// Manual training certificate verification (public)
+Route::get('/verify-certificate', [EnrollmentController::class, 'verifyForm']);
+Route::post('/verify-certificate', [EnrollmentController::class, 'verifyCertificate']);
+Route::get('/verify-certificate/{certificate_number}', [EnrollmentController::class, 'verifyByNumber']);
+
+// eLearning certificate verification (public — QR codes on PDF certificates point here)
+Route::get('/elearning/verify-certificate', function (\Illuminate\Http\Request $request) {
+    $enrollment = \App\Models\ElearningEnrollment::where('certificate_number', $request->query('cert'))
+        ->firstOrFail();
+    return view('elearning.certificates.verify', compact('enrollment'));
+})->name('elearning.certificate.verify.public');
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes (auth + admin middleware)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+
+    // Courses
+    Route::get('/courses', [CourseController::class, 'index']);
+    Route::get('/courses/create', [CourseController::class, 'create']);
+    Route::post('/courses/store', [CourseController::class, 'store']);
+    Route::get('/courses/edit/{id}', [CourseController::class, 'edit']);
+    Route::post('/courses/update/{id}', [CourseController::class, 'update']);
+    Route::get('/courses/delete/{id}', [CourseController::class, 'delete']);
+
+    // Trainers
+    Route::get('/trainers', [TrainerController::class, 'index']);
+    Route::get('/trainers/create', [TrainerController::class, 'create']);
+    Route::post('/trainers/store', [TrainerController::class, 'store']);
+    Route::get('/trainers/edit/{id}', [TrainerController::class, 'edit']);
+    Route::post('/trainers/update/{id}', [TrainerController::class, 'update']);
+    Route::get('/trainers/delete/{id}', [TrainerController::class, 'delete']);
+
+    // Training Schedules
+    Route::get('/training-schedules', [TrainingScheduleController::class, 'index']);
+    Route::get('/training-schedules/create', [TrainingScheduleController::class, 'create']);
+    Route::post('/training-schedules/store', [TrainingScheduleController::class, 'store']);
+    Route::get('/training-schedules/edit/{id}', [TrainingScheduleController::class, 'edit']);
+    Route::post('/training-schedules/update/{id}', [TrainingScheduleController::class, 'update']);
+    Route::get('/training-schedules/delete/{id}', [TrainingScheduleController::class, 'delete']);
+
+    // Enrollments
+    Route::get('/enrollments', [EnrollmentController::class, 'index']);
+    Route::get('/enrollments/create', [EnrollmentController::class, 'create']);
+    Route::post('/enrollments/store', [EnrollmentController::class, 'store']);
+    Route::get('/enrollments/edit/{id}', [EnrollmentController::class, 'edit']);
+    Route::post('/enrollments/update/{id}', [EnrollmentController::class, 'update']);
+    Route::get('/enrollments/delete/{id}', [EnrollmentController::class, 'delete']);
+
+    // Certificates (admin management)
+    Route::get('/enrollments/generate-certificate/{id}', [EnrollmentController::class, 'generateCertificate']);
+    Route::get('/enrollments/certificate/{id}', [EnrollmentController::class, 'certificate']);
+    Route::get('/enrollments/certificate-pdf/{id}', [EnrollmentController::class, 'certificatePdf']);
+    Route::get('/certificates', [CertificateController::class, 'index']);
+    Route::post('/certificates/filter', [CertificateController::class, 'filter']);
+    Route::get('/certificates/generate/{id}', [CertificateController::class, 'generateForm']);
+    Route::post('/certificates/generate/{id}', [CertificateController::class, 'generate']);
+    Route::get('/certificates/schedule/{id}', [CertificateController::class, 'showBySchedule']);
+    Route::get('/certificates/delete/{id}', [CertificateController::class, 'delete']);
+    Route::get('/certificates/view/{id}', [CertificateController::class, 'view']);
+    Route::get('/certificates/pdf/{id}', [CertificateController::class, 'pdf']);
+
+    // Invoices
+    Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
+    Route::post('/invoices/store', [InvoiceController::class, 'store'])->name('invoices.store');
+    Route::get('/invoices/view/{id}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::get('/invoices/pdf/{id}', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
+    Route::get('/invoices/edit/{id}', [InvoiceController::class, 'edit'])->name('invoices.edit');
+    Route::post('/invoices/update/{id}', [InvoiceController::class, 'update'])->name('invoices.update');
+    Route::get('/invoices/email/{id}', [InvoiceController::class, 'email'])->name('invoices.email');
+    Route::get('/invoices/delete/{id}', [InvoiceController::class, 'delete'])->name('invoices.delete');
+    Route::get('/invoices/{id}/send-email', [InvoiceController::class, 'sendEmail'])->name('invoices.sendEmail');
+    Route::get('/invoices/enrollment/{id}/details', [InvoiceController::class, 'getEnrollmentDetails'])->name('invoices.enrollment.details');
+    Route::get('/invoices/enrollment/{id}', [InvoiceController::class, 'getEnrollmentDetails']);
+
+    // Reports
+    Route::get('/reports/training', [ReportController::class, 'training']);
+    Route::get('/reports/participants', [ReportController::class, 'participants']);
+    Route::get('/reports/certificates', [ReportController::class, 'certificates']);
+    Route::get('/reports/payments', [ReportController::class, 'payments']);
+
+    // Attendance (admin)
+    Route::get('/attendance/{schedule}', [AttendanceController::class, 'sheet'])->name('attendance.sheet');
+    Route::post('/attendance/{schedule}/save', [AttendanceController::class, 'save'])->name('attendance.save');
+
+    // User Management
+    Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [UserManagementController::class, 'create'])->name('users.create');
+    Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
+    Route::post('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
+    Route::post('/users/{user}/toggle-active', [UserManagementController::class, 'toggleActive'])->name('users.toggle-active');
+
+    // Settings
+    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+    // Demo / Test Environment (admin only)
+    Route::prefix('admin/elearning')->name('demo.')->group(function () {
+        Route::get('/demo-check',                          [DemoController::class, 'check'])          ->name('check');
+        Route::post('/demo/reset',                         [DemoController::class, 'resetDemo'])      ->name('reset');
+        Route::post('/demo/mark-complete/{enrollmentId}',  [DemoController::class, 'markComplete'])   ->name('mark-complete');
+        Route::post('/demo/pass-quiz/{enrollmentId}',      [DemoController::class, 'passQuiz'])       ->name('pass-quiz');
+        Route::post('/demo/fail-quiz/{enrollmentId}',      [DemoController::class, 'failQuiz'])       ->name('fail-quiz');
+        Route::post('/demo/recalculate/{enrollmentId}',    [DemoController::class, 'recalculate'])    ->name('recalculate');
+        Route::post('/demo/reset-journey',                 [DemoController::class, 'resetDemoJourney'])->name('reset-journey');
+    });
+
+}); // end admin middleware group
+
+/*
+|--------------------------------------------------------------------------
+| Elearning Admin Routes (auth + admin)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'admin'])->prefix('elearning')->name('elearning.')->group(function () {
+
+    Route::resource('courses', ElearningCourseController::class);
+
+    Route::get('courses/{course}/lessons', [ElearningLessonController::class, 'index'])->name('lessons.index');
+    Route::get('courses/{course}/lessons/create', [ElearningLessonController::class, 'create'])->name('lessons.create');
+    Route::post('courses/{course}/lessons', [ElearningLessonController::class, 'store'])->name('lessons.store');
+    Route::get('courses/{course}/lessons/{lesson}/edit', [ElearningLessonController::class, 'edit'])->name('lessons.edit');
+    Route::put('courses/{course}/lessons/{lesson}', [ElearningLessonController::class, 'update'])->name('lessons.update');
+    Route::delete('courses/{course}/lessons/{lesson}', [ElearningLessonController::class, 'destroy'])->name('lessons.destroy');
+
+    // Lesson Block Builder routes
+    Route::post('courses/{course}/lessons/{lesson}/blocks',                     [LessonBlockController::class, 'store'])   ->name('blocks.store');
+    Route::put('courses/{course}/lessons/{lesson}/blocks/{block}',              [LessonBlockController::class, 'update'])  ->name('blocks.update');
+    Route::delete('courses/{course}/lessons/{lesson}/blocks/{block}',           [LessonBlockController::class, 'destroy']) ->name('blocks.destroy');
+    Route::post('courses/{course}/lessons/{lesson}/blocks/{block}/move-up',     [LessonBlockController::class, 'moveUp'])  ->name('blocks.move-up');
+    Route::post('courses/{course}/lessons/{lesson}/blocks/{block}/move-down',   [LessonBlockController::class, 'moveDown'])->name('blocks.move-down');
+
+    Route::get('enrollments', [ElearningEnrollmentController::class, 'index'])->name('enrollments.index');
+    Route::get('enrollments/create', [ElearningEnrollmentController::class, 'create'])->name('enrollments.create');
+    Route::post('enrollments', [ElearningEnrollmentController::class, 'store'])->name('enrollments.store');
+    Route::get('enrollments/{enrollment}', [ElearningEnrollmentController::class, 'show'])->name('enrollments.show');
+    Route::get('enrollments/{enrollment}/edit', [ElearningEnrollmentController::class, 'edit'])->name('enrollments.edit');
+    Route::put('enrollments/{enrollment}', [ElearningEnrollmentController::class, 'update'])->name('enrollments.update');
+    Route::delete('enrollments/{enrollment}', [ElearningEnrollmentController::class, 'destroy'])->name('enrollments.destroy');
+    Route::post('enrollments/{enrollment}/approve-payment', [ElearningEnrollmentController::class, 'approvePayment'])->name('enrollments.approvePayment');
+
+    Route::get('courses/{course}/lessons/{lesson}/resources', [ElearningLessonResourceController::class, 'index'])->name('resources.index');
+    Route::get('courses/{course}/lessons/{lesson}/resources/create', [ElearningLessonResourceController::class, 'create'])->name('resources.create');
+    Route::post('courses/{course}/lessons/{lesson}/resources', [ElearningLessonResourceController::class, 'store'])->name('resources.store');
+    Route::delete('courses/{course}/lessons/{lesson}/resources/{resource}', [ElearningLessonResourceController::class, 'destroy'])->name('resources.destroy');
+
+    Route::get('courses/{course}/lessons/{lesson}/quizzes', [ElearningQuizController::class, 'index'])->name('quizzes.index');
+    Route::get('courses/{course}/lessons/{lesson}/quizzes/create', [ElearningQuizController::class, 'create'])->name('quizzes.create');
+    Route::post('courses/{course}/lessons/{lesson}/quizzes', [ElearningQuizController::class, 'store'])->name('quizzes.store');
+    Route::get('courses/{course}/lessons/{lesson}/quizzes/{quiz}/edit', [ElearningQuizController::class, 'edit'])->name('quizzes.edit');
+    Route::put('courses/{course}/lessons/{lesson}/quizzes/{quiz}', [ElearningQuizController::class, 'update'])->name('quizzes.update');
+    Route::delete('courses/{course}/lessons/{lesson}/quizzes/{quiz}', [ElearningQuizController::class, 'destroy'])->name('quizzes.destroy');
+
+    Route::get('courses/{course}/lessons/{lesson}/quizzes/{quiz}/questions', [ElearningQuizQuestionController::class, 'index'])->name('quiz-questions.index');
+    Route::get('courses/{course}/lessons/{lesson}/quizzes/{quiz}/questions/create', [ElearningQuizQuestionController::class, 'create'])->name('quiz-questions.create');
+    Route::post('courses/{course}/lessons/{lesson}/quizzes/{quiz}/questions', [ElearningQuizQuestionController::class, 'store'])->name('quiz-questions.store');
+    Route::get('courses/{course}/lessons/{lesson}/quizzes/{quiz}/questions/{question}/edit', [ElearningQuizQuestionController::class, 'edit'])->name('quiz-questions.edit');
+    Route::put('courses/{course}/lessons/{lesson}/quizzes/{quiz}/questions/{question}', [ElearningQuizQuestionController::class, 'update'])->name('quiz-questions.update');
+    Route::delete('courses/{course}/lessons/{lesson}/quizzes/{quiz}/questions/{question}', [ElearningQuizQuestionController::class, 'destroy'])->name('quiz-questions.destroy');
+
+    Route::get('enrollments/{enrollment}/quizzes/{quiz}/start', [ElearningQuizAttemptController::class, 'start'])->name('quiz-attempts.start');
+    Route::post('enrollments/{enrollment}/quizzes/{quiz}/attempts/{attempt}/submit', [ElearningQuizAttemptController::class, 'submit'])->name('quiz-attempts.submit');
+
+    Route::post('enrollments/{enrollment}/issue-certificate', [ElearningEnrollmentController::class, 'issueCertificate'])
+        ->name('enrollments.issueCertificate');
+
+    // Learner account actions
+    Route::post('enrollments/{enrollment}/send-welcome-email', [ElearningEnrollmentController::class, 'sendWelcomeEmail'])
+        ->name('enrollments.sendWelcomeEmail');
+    Route::post('enrollments/{enrollment}/reset-learner-password', [ElearningEnrollmentController::class, 'resetLearnerPassword'])
+        ->name('enrollments.resetLearnerPassword');
+    Route::get('enrollments/{enrollment}/login-as-learner', [ElearningEnrollmentController::class, 'loginAsLearner'])
+        ->name('enrollments.loginAsLearner');
+
+    Route::get('/certificate-verify', function (\Illuminate\Http\Request $request) {
+        $enrollment = \App\Models\ElearningEnrollment::where('certificate_number', $request->cert)->firstOrFail();
+        return view('elearning.certificates.verify', compact('enrollment'));
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin — Blog & Testimonials & Public Visibility
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+
+    // Blog posts
+    Route::get('blog',                   [BlogController::class, 'index'])          ->name('blog.index');
+    Route::get('blog/create',            [BlogController::class, 'create'])         ->name('blog.create');
+    Route::post('blog',                  [BlogController::class, 'store'])          ->name('blog.store');
+    Route::get('blog/{post}/edit',       [BlogController::class, 'edit'])           ->name('blog.edit');
+    Route::put('blog/{post}',            [BlogController::class, 'update'])         ->name('blog.update');
+    Route::delete('blog/{post}',         [BlogController::class, 'destroy'])        ->name('blog.destroy');
+
+    // Blog categories
+    Route::get('blog-categories',               [BlogController::class, 'categories'])      ->name('blog.categories');
+    Route::post('blog-categories',              [BlogController::class, 'storeCategory'])   ->name('blog.categories.store');
+    Route::put('blog-categories/{category}',    [BlogController::class, 'updateCategory'])  ->name('blog.categories.update');
+    Route::delete('blog-categories/{category}', [BlogController::class, 'destroyCategory']) ->name('blog.categories.destroy');
+
+    // Testimonials
+    Route::get('testimonials',                            [TestimonialController::class, 'index'])  ->name('testimonials.index');
+    Route::patch('testimonials/{testimonial}/approve',    [TestimonialController::class, 'approve'])->name('testimonials.approve');
+    Route::patch('testimonials/{testimonial}/reject',     [TestimonialController::class, 'reject']) ->name('testimonials.reject');
+    Route::patch('testimonials/{testimonial}/feature',    [TestimonialController::class, 'feature'])->name('testimonials.feature');
+    Route::delete('testimonials/{testimonial}',           [TestimonialController::class, 'destroy'])->name('testimonials.destroy');
+});

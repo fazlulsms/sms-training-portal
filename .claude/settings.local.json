@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan *)",
+      "Bash(php -r \"require 'vendor/autoload.php'; echo 'Syntax OK';\")",
+      "Bash(grep \"GET.*/$\\\\|POST.*logout\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\This pc\\\\training-management\\\\resources\\\\views\" -Recurse -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(npm run *)",
+      "Bash(grep -v \"^$\")",
+      "Bash(php -l app/Http/Controllers/LessonBlockController.php)",
+      "Bash(php -l app/Models/LessonBlock.php)",
+      "Bash(php -l app/Models/ElearningLesson.php)",
+      "Bash(php -l app/Http/Controllers/ElearningLessonController.php)",
+      "Bash(php -l app/Http/Controllers/Auth/AuthenticatedSessionController.php)",
+      "Bash(Get-ChildItem -Path . -Force)",
+      "Bash(Select-Object Name)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\This pc\\\\training-management\\\\resources\\\\views\" -Recurse -Directory | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\('C:\\\\Users\\\\This pc\\\\training-management\\\\resources\\\\views', ''\\) })",
+      "Bash(xargs grep -l \"Schema::create.*training_schedule\\\\|Schema::create.*enrollments\")",
+      "Bash(xargs -I {} basename {} .php)"
+    ]
+  }
+}

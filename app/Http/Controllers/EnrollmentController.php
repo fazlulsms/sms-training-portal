@@ -1,0 +1,195 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Enrollment;
+use App\Models\TrainingSchedule;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+class EnrollmentController extends Controller
+{
+    public function index()
+    {
+        $enrollments = Enrollment::with('trainingSchedule.course')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return view('enrollments.index', compact('enrollments'));
+    }
+
+    public function create()
+    {
+        $schedules = TrainingSchedule::with('course')
+            ->orderByRaw("FIELD(status, 'Open', 'Closed', 'Postponed', 'Completed', 'Cancelled')")
+            ->orderBy('start_date', 'asc')
+            ->get();
+
+        return view('enrollments.create', compact('schedules'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'training_schedule_id' => 'required|exists:training_schedules,id',
+            'full_name' => 'required|string|max:255',
+        ]);
+
+        Enrollment::create([
+            'training_schedule_id' => $request->training_schedule_id,
+            'full_name' => $request->full_name,
+            'email' => $request->email,
+            'company' => $request->company,
+            'designation' => $request->designation,
+            'country' => $request->country,
+            'country_code' => $request->country_code,
+            'mobile_number' => $request->mobile_number,
+            'full_address' => $request->full_address,
+            'selected_mode' => $request->selected_mode,
+            'applied_fee' => $request->applied_fee,
+            'payment_status' => $request->payment_status ?? 'Pending',
+            'amount_received' => $request->amount_received ?? 0,
+            'payment_method' => $request->payment_method,
+            'attendance_status' => $request->attendance_status ?? 'Pending',
+            'completion_status' => $request->completion_status ?? 'Pending',
+            'registration_status' => 'Confirmed',
+            'remarks' => $request->remarks,
+        ]);
+
+        return redirect('/enrollments')->with('success', 'Enrollment added successfully');
+    }
+
+    public function edit($id)
+    {
+        $enrollment = Enrollment::findOrFail($id);
+
+        $schedules = TrainingSchedule::with('course')
+            ->orderByRaw("FIELD(status, 'Open', 'Closed', 'Postponed', 'Completed', 'Cancelled')")
+            ->orderBy('start_date', 'asc')
+            ->get();
+
+        return view('enrollments.edit', compact('enrollment', 'schedules'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'training_schedule_id' => 'required|exists:training_schedules,id',
+            'full_name' => 'required|string|max:255',
+        ]);
+
+        $enrollment = Enrollment::findOrFail($id);
+
+        $enrollment->update([
+            'training_schedule_id' => $request->training_schedule_id,
+            'full_name' => $request->full_name,
+            'email' => $request->email,
+            'company' => $request->company,
+            'designation' => $request->designation,
+            'country' => $request->country,
+            'country_code' => $request->country_code,
+            'mobile_number' => $request->mobile_number,
+            'full_address' => $request->full_address,
+            'selected_mode' => $request->selected_mode,
+            'applied_fee' => $request->applied_fee,
+            'payment_status' => $request->payment_status ?? 'Pending',
+            'amount_received' => $request->amount_received ?? 0,
+            'payment_method' => $request->payment_method,
+            'attendance_status' => $request->attendance_status ?? 'Pending',
+            'completion_status' => $request->completion_status ?? 'Pending',
+            'remarks' => $request->remarks,
+        ]);
+
+        return redirect('/enrollments')->with('success', 'Enrollment updated successfully');
+    }
+
+    public function delete($id)
+    {
+        Enrollment::findOrFail($id)->delete();
+
+        return redirect('/enrollments')->with('success', 'Enrollment deleted successfully');
+    }
+
+    public function certificate($id)
+    {
+        $enrollment = Enrollment::with('trainingSchedule.course')->findOrFail($id);
+
+        return view('enrollments.certificate', compact('enrollment'));
+    }
+
+    public function certificatePdf($id)
+    {
+        $enrollment = Enrollment::with('trainingSchedule.course')->findOrFail($id);
+
+        $pdf = Pdf::loadView('enrollments.certificate_pdf', compact('enrollment'))
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->download(($enrollment->certificate_number ?? 'certificate') . '.pdf');
+    }
+
+    public function verifyForm()
+    {
+        return view('verify_certificate');
+    }
+
+    public function verifyCertificate(Request $request)
+    {
+        $enrollment = Enrollment::where('certificate_number', $request->certificate_number)
+            ->where('full_name', 'LIKE', '%' . $request->full_name . '%')
+            ->first();
+
+        return view('verify_result', compact('enrollment'));
+    }
+
+    public function verifyByNumber($certificate_number)
+    {
+        $enrollment = Enrollment::where('certificate_number', $certificate_number)->first();
+
+        return view('verify_result', compact('enrollment'));
+    }
+
+    public function publicCreate($schedule_id)
+    {
+        $schedule = TrainingSchedule::with('course')->findOrFail($schedule_id);
+
+        return view('enrollments.public-create', compact('schedule'));
+    }
+
+    public function publicStore(Request $request, $schedule_id)
+    {
+        $request->validate([
+            'full_name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'selected_mode' => 'required|string|max:50',
+        ]);
+
+        $schedule = TrainingSchedule::with('course')->findOrFail($schedule_id);
+
+        $appliedFee = $request->selected_mode == 'Physical'
+            ? $schedule->physical_fee
+            : $schedule->online_fee;
+
+        Enrollment::create([
+            'training_schedule_id' => $schedule->id,
+            'full_name' => $request->full_name,
+            'email' => $request->email,
+            'company' => $request->company,
+            'designation' => $request->designation,
+            'country' => $request->country,
+            'country_code' => $request->country_code,
+            'mobile_number' => $request->mobile_number,
+            'full_address' => $request->full_address,
+            'selected_mode' => $request->selected_mode,
+            'applied_fee' => $appliedFee,
+            'payment_status' => 'Pending',
+            'amount_received' => 0,
+            'attendance_status' => 'Pending',
+            'completion_status' => 'Pending',
+            'registration_status' => 'Pending',
+            'remarks' => 'Registered through public form',
+        ]);
+
+        return redirect('/register-training/' . $schedule->id)
+            ->with('success', 'Registration submitted successfully. Our team will contact you soon.');
+    }
+}
