@@ -289,7 +289,7 @@ class EnrollmentController extends Controller
             ? $schedule->physical_fee
             : $schedule->online_fee;
 
-        Enrollment::create([
+        $enrollment = Enrollment::create([
             'training_schedule_id' => $schedule->id,
             'full_name' => $request->full_name,
             'email' => $request->email,
@@ -308,6 +308,35 @@ class EnrollmentController extends Controller
             'registration_status' => 'Pending',
             'remarks' => 'Registered through public form',
         ]);
+
+        // Auto-generate invoice + send registration confirmed email
+        if ($enrollment->email) {
+            try {
+                $enrollment->setRelation('trainingSchedule', $schedule);
+
+                $invoice = AutoInvoiceService::forIltEnrollment($enrollment, $schedule);
+
+                $scheduleInfo = collect([
+                    $schedule->batch_code,
+                    $schedule->start_date?->format('d M Y'),
+                    $schedule->venue,
+                ])->filter()->implode(' · ');
+
+                Mail::to($enrollment->email)
+                    ->send(new RegistrationConfirmed(
+                        invoice:      $invoice,
+                        courseName:   $schedule->course?->name ?? 'Training Program',
+                        scheduleInfo: $scheduleInfo ?: null,
+                        tempPassword: null,
+                        type:         'ILT',
+                    ));
+            } catch (\Throwable $e) {
+                Log::error('AutoInvoice/RegistrationConfirmed failed (ILT public)', [
+                    'enrollment_id' => $enrollment->id,
+                    'error'         => $e->getMessage(),
+                ]);
+            }
+        }
 
         return redirect('/register-training/' . $schedule->id)
             ->with('success', 'Registration submitted successfully. Our team will contact you soon.');
