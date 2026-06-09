@@ -33,9 +33,11 @@ class CertificateController extends Controller
 
         $selectedSchedule = $id;
 
+        // Show all enrolled participants for this schedule so admin can
+        // generate certificates regardless of completion_status value.
+        // (Completion is marked automatically when certificate is generated.)
         $enrollments = Enrollment::with('trainingSchedule.course')
             ->where('training_schedule_id', $id)
-            ->where('completion_status', 'Completed')
             ->get();
 
         return view('certificates.index', compact('schedules', 'enrollments', 'selectedSchedule'));
