@@ -57,16 +57,22 @@
     <div class="pub-container">
         <div style="font-size:52px;margin-bottom:14px;">🏆</div>
         <h1>Certificate Verification</h1>
-        <p>Enter the certificate number to verify its authenticity</p>
-        <form method="GET" action="{{ route('public.verify-certificate') }}">
+        <p>Enter your name and certificate number to verify authenticity</p>
+        <form method="GET" action="{{ route('public.verify-certificate') }}" style="max-width:540px;margin:0 auto;">
+            <div class="verify-input-row" style="margin-bottom:10px;">
+                <input type="text" name="name" class="verify-input"
+                       value="{{ request('name') }}"
+                       placeholder="Your full name (as on certificate)"
+                       autocomplete="off">
+            </div>
             <div class="verify-input-row">
                 <input type="text" name="cert" class="verify-input"
                        value="{{ request('cert') }}"
-                       placeholder="e.g. SMS-2025-CERT-000123"
+                       placeholder="Certificate No. e.g. SMS-TC-2026-0001"
                        autocomplete="off" spellcheck="false">
                 <button type="submit" class="verify-btn">🔍 Verify</button>
             </div>
-            <p class="verify-hint">Certificate numbers are printed on the certificate document</p>
+            <p class="verify-hint">Both fields are required. Name must match the certificate (at least 50% similarity).</p>
         </form>
     </div>
 </div>
@@ -75,23 +81,10 @@
 <div class="verify-body">
 <div class="verify-main">
 
-    @if(request('cert'))
-    @php
-        $certCode  = trim(request('cert'));
-        // Try to find a participant certificate record
-        $certificate = null;
-        if (class_exists(\App\Models\Certificate::class)) {
-            $certificate = \App\Models\Certificate::where('certificate_number', $certCode)->first();
-        }
-        // Fallback: search enrollment records for matching code
-        if (!$certificate) {
-            $enrollment = \App\Models\ElearningEnrollment::where('certificate_number', $certCode)->first()
-                       ?? \App\Models\Enrollment::where('certificate_number', $certCode)->first();
-        }
-        $found = $certificate || (!empty($enrollment) && !empty($enrollment->certificate_number));
-    @endphp
+    @if(request('cert') && request('name'))
 
-    @if($found)
+    @if($result && $result['found'])
+    {{-- ✅ VERIFIED --}}
     <div class="result-card valid">
         <div class="result-status">
             <div class="result-icon">✅</div>
@@ -100,33 +93,70 @@
                 <div class="result-sub">This certificate is authentic and issued by SMS Training Services</div>
             </div>
         </div>
-        @php $record = $certificate ?? $enrollment; @endphp
         <div class="cert-detail-grid">
             <div class="cert-cell">
                 <div class="cert-label">Certificate No.</div>
-                <div class="cert-value">{{ $certCode }}</div>
+                <div class="cert-value" style="font-family:monospace;">{{ $result['cert_number'] }}</div>
             </div>
             <div class="cert-cell">
                 <div class="cert-label">Issued To</div>
-                <div class="cert-value">{{ $record->participant_name ?? $record->user?->name ?? '—' }}</div>
+                <div class="cert-value">{{ $result['name'] }}</div>
             </div>
             <div class="cert-cell">
-                <div class="cert-label">Course</div>
-                <div class="cert-value">{{ $record->course?->name ?? $record->trainingSchedule?->course?->name ?? '—' }}</div>
+                <div class="cert-label">Course / Programme</div>
+                <div class="cert-value">{{ $result['course'] }}</div>
             </div>
             <div class="cert-cell">
                 <div class="cert-label">Issue Date</div>
-                <div class="cert-value">{{ $record->certificate_issued_at ? \Carbon\Carbon::parse($record->certificate_issued_at)->format('d M Y') : ($record->updated_at?->format('d M Y') ?? '—') }}</div>
+                <div class="cert-value">{{ $result['issue_date'] ? \Carbon\Carbon::parse($result['issue_date'])->format('d M Y') : '—' }}</div>
+            </div>
+            @if($result['company'] && $result['company'] !== '—')
+            <div class="cert-cell">
+                <div class="cert-label">Company / Organisation</div>
+                <div class="cert-value">{{ $result['company'] }}</div>
+            </div>
+            @endif
+            @if($result['batch'] && $result['batch'] !== '—')
+            <div class="cert-cell">
+                <div class="cert-label">Batch</div>
+                <div class="cert-value">{{ $result['batch'] }}</div>
+            </div>
+            @endif
+            <div class="cert-cell" style="grid-column:1/-1;">
+                <div class="cert-label">Certificate Type</div>
+                <div class="cert-value">{{ $result['type'] }} Training Certificate</div>
             </div>
         </div>
+        <div style="margin-top:14px;padding:10px 14px;background:#dcfce7;border-radius:8px;font-size:13px;color:#166534;font-weight:600;">
+            🔒 Verified by SMS Training Services · Sustainable Management System Inc.
+        </div>
     </div>
+
+    @elseif($result && !$result['found'] && ($result['name_mismatch'] ?? false))
+    {{-- ⚠️ Cert exists but name doesn't match --}}
+    <div class="result-card" style="background:#fffbeb;border:2px solid #fbbf24;">
+        <div class="result-status">
+            <div class="result-icon">⚠️</div>
+            <div>
+                <div class="result-title" style="color:#b45309;">Name Does Not Match</div>
+                <div class="result-sub">A certificate with this number exists, but the name you entered does not match our records.</div>
+            </div>
+        </div>
+        <p style="font-size:14px;color:#6b7280;margin:0;line-height:1.7;">
+            Please check the name exactly as printed on the certificate and try again.
+            If you believe this is an error, contact us at
+            <a href="mailto:training@smscert.com" style="color:#1e3a8a;font-weight:700;">training@smscert.com</a>.
+        </p>
+    </div>
+
     @else
+    {{-- ❌ Not found --}}
     <div class="result-card invalid">
         <div class="result-status">
             <div class="result-icon">❌</div>
             <div>
                 <div class="result-title invalid">Certificate Not Found</div>
-                <div class="result-sub">No certificate matching "<strong>{{ $certCode }}</strong>" was found in our records.</div>
+                <div class="result-sub">No certificate matching "<strong>{{ request('cert') }}</strong>" was found in our records.</div>
             </div>
         </div>
         <p style="font-size:14px;color:#6b7280;margin:0;line-height:1.7;">
@@ -135,15 +165,26 @@
         </p>
     </div>
     @endif
+
+    @elseif(request('cert') && !request('name'))
+    <div class="result-card" style="background:#eff6ff;border:2px solid #bfdbfe;">
+        <div class="result-status">
+            <div class="result-icon">ℹ️</div>
+            <div>
+                <div class="result-title" style="color:#1e40af;">Name Required</div>
+                <div class="result-sub">Please enter your full name (as printed on the certificate) along with the certificate number.</div>
+            </div>
+        </div>
+    </div>
     @endif
 
     {{-- Info panels --}}
     <div class="info-box">
         <h3 class="info-box-title">🔍 How to Verify</h3>
         <ol class="info-steps">
-            <li>Locate the certificate number printed on your certificate document (usually at the bottom or back).</li>
-            <li>Enter the full certificate number in the search box above.</li>
-            <li>Click "Verify" to check its authenticity in our database.</li>
+            <li>Enter your <strong>full name</strong> exactly as it appears on your certificate.</li>
+            <li>Locate the <strong>certificate number</strong> printed on your certificate document and enter it in the second field.</li>
+            <li>Click "Verify" — your name must match at least 50% to confirm authenticity.</li>
         </ol>
     </div>
 

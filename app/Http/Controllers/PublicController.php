@@ -231,8 +231,97 @@ class PublicController extends Controller
     }
 
     // ── Certificate Verify ────────────────────────────────────
-    public function verifyCertificate()
+    public function verifyCertificate(\Illuminate\Http\Request $request)
     {
-        return view('public.verify-certificate');
+        $result = null;
+
+        if ($request->filled('cert') && $request->filled('name')) {
+            $certCode  = trim($request->input('cert'));
+            $inputName = trim($request->input('name'));
+
+            // 1) ILT enrollment (SMS-TC-*)
+            $iltEnroll = \App\Models\Enrollment::where('certificate_number', $certCode)
+                ->whereNotNull('certificate_number')
+                ->first();
+            if ($iltEnroll) {
+                $actualName = $iltEnroll->full_name ?? '';
+                similar_text(strtolower($inputName), strtolower($actualName), $pct);
+                if ($pct >= 50) {
+                    $result = [
+                        'found'       => true,
+                        'type'        => 'ILT',
+                        'cert_number' => $certCode,
+                        'name'        => $iltEnroll->full_name,
+                        'company'     => $iltEnroll->company ?? '—',
+                        'course'      => $iltEnroll->trainingSchedule?->course?->name ?? '—',
+                        'batch'       => $iltEnroll->trainingSchedule?->batch_code ?? '—',
+                        'issue_date'  => $iltEnroll->certificate_issue_date,
+                    ];
+                }
+            }
+
+            // 2) eLearning enrollment
+            if (!$result) {
+                $eEnroll = \App\Models\ElearningEnrollment::where('certificate_number', $certCode)
+                    ->whereNotNull('certificate_number')
+                    ->with('user', 'course')
+                    ->first();
+                if ($eEnroll) {
+                    $actualName = $eEnroll->participant_name ?? $eEnroll->user?->name ?? '';
+                    similar_text(strtolower($inputName), strtolower($actualName), $pct);
+                    if ($pct >= 50) {
+                        $result = [
+                            'found'       => true,
+                            'type'        => 'eLearning',
+                            'cert_number' => $certCode,
+                            'name'        => $actualName,
+                            'company'     => $eEnroll->company ?? '—',
+                            'course'      => $eEnroll->course?->name ?? '—',
+                            'batch'       => '—',
+                            'issue_date'  => $eEnroll->certificate_issued_at ?? $eEnroll->updated_at,
+                        ];
+                    }
+                }
+            }
+
+            // 3) Corporate certificate (SMS-TR-*)
+            if (!$result) {
+                $corpCert = \App\Models\CorporateCertificate::where('certificate_number', $certCode)
+                    ->with(['participant', 'project'])
+                    ->first();
+                if ($corpCert) {
+                    $actualName = $corpCert->participant?->participant_name ?? '';
+                    similar_text(strtolower($inputName), strtolower($actualName), $pct);
+                    if ($pct >= 50) {
+                        $result = [
+                            'found'       => true,
+                            'type'        => 'Corporate',
+                            'cert_number' => $certCode,
+                            'name'        => $actualName,
+                            'company'     => $corpCert->participant?->company ?? '—',
+                            'course'      => $corpCert->project?->title ?? '—',
+                            'batch'       => '—',
+                            'issue_date'  => $corpCert->issue_date,
+                        ];
+                    }
+                }
+            }
+
+            // Certificate number exists but name doesn't match (or not found)
+            if (!$result) {
+                // Check if cert number exists at all (so we give a more helpful message)
+                $certExists = \App\Models\Enrollment::where('certificate_number', $certCode)->exists()
+                           || \App\Models\ElearningEnrollment::where('certificate_number', $certCode)->exists()
+                           || \App\Models\CorporateCertificate::where('certificate_number', $certCode)->exists();
+
+                $result = [
+                    'found'        => false,
+                    'cert_number'  => $certCode,
+                    'name_mismatch'=> $certExists, // cert exists but name < 50% match
+                ];
+            }
+        }
+
+        return view('public.verify-certificate', compact('result'));
     }
 }
