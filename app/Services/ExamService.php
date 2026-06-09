@@ -87,7 +87,7 @@ class ExamService
             Mail::to($enrollment->email)->send(new TrainingMail(
                 "Action Required: Complete Your Knowledge Test – {$courseName}",
                 'emails.exam-invitation',
-                $data,
+                ['emailData' => $data],
                 []
             ));
         } catch (\Throwable $e) {
@@ -299,7 +299,7 @@ class ExamService
             Mail::to($enrollment->email)->send(new TrainingMail(
                 "Congratulations! You Passed the Knowledge Test – {$courseName}",
                 'emails.exam-passed',
-                $data,
+                ['emailData' => $data],
                 []
             ));
         } catch (\Throwable $e) {
@@ -332,7 +332,7 @@ class ExamService
             Mail::to($enrollment->email)->send(new TrainingMail(
                 "Knowledge Test Result – Please Try Again – {$courseName}",
                 'emails.exam-failed-retry',
-                $data,
+                ['emailData' => $data],
                 []
             ));
         } catch (\Throwable $e) {
@@ -354,7 +354,7 @@ class ExamService
             Mail::to($enrollment->email)->send(new TrainingMail(
                 "Knowledge Test Result – {$courseName}",
                 'emails.exam-failed-final',
-                $data,
+                ['emailData' => $data],
                 []
             ));
         } catch (\Throwable $e) {
