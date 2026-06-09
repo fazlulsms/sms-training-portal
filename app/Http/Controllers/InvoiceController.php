@@ -273,6 +273,20 @@ $amountInWords = $this->numberToWords($grandTotal, $request->currency ?? 'BDT');
             $invoice->items()->delete();
         }
 
+        // Sync linked enrollment payment status on every invoice edit
+        $editNewStatus  = $request->payment_status ?? $invoice->payment_status;
+        $editAmountPaid = ($request->amount_paid !== null && $request->amount_paid !== '')
+                            ? (float)$request->amount_paid
+                            : ($invoice->amount_paid ?? 0);
+        try {
+            PaymentConfirmationService::syncLinkedEnrollment($invoice->fresh(), $editNewStatus, $editAmountPaid);
+        } catch (\Throwable $e) {
+            Log::error('PaymentSync failed (Invoice update)', [
+                'invoice_id' => $invoice->id,
+                'error'      => $e->getMessage(),
+            ]);
+        }
+
         // Trigger payment confirmation if payment_status just became Paid
         $nowPaid = strtolower($request->payment_status ?? '') === 'paid';
         if ($nowPaid && !$wasAlreadyPaid) {
@@ -383,6 +397,16 @@ $amountInWords = $this->numberToWords($grandTotal, $request->currency ?? 'BDT');
             'amount_paid'    => $amountPaid,
             'payment_method' => $request->payment_method ?? $invoice->payment_method,
         ]);
+
+        // Sync linked enrollment payment status for every change
+        try {
+            PaymentConfirmationService::syncLinkedEnrollment($invoice->fresh(), $newStatus, $amountPaid);
+        } catch (\Throwable $e) {
+            Log::error('PaymentSync failed (paymentUpdate)', [
+                'invoice_id' => $invoice->id,
+                'error'      => $e->getMessage(),
+            ]);
+        }
 
         $nowPaid = strtolower($newStatus) === 'paid';
 

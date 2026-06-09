@@ -141,6 +141,67 @@ class PaymentConfirmationService
         }
     }
 
+    // ── Enrollment sync ──────────────────────────────────────────────────
+
+    /**
+     * Sync the linked enrollment's payment_status / amount_received
+     * whenever an invoice's payment status changes.
+     * Called from InvoiceController whenever payment_status is saved.
+     */
+    public static function syncLinkedEnrollment(Invoice $invoice, string $newStatus, float $amountPaid): void
+    {
+        // ── ILT enrollment ────────────────────────────────────────────────
+        if ($invoice->enrollment_id) {
+            $enrollment = Enrollment::find($invoice->enrollment_id);
+            if ($enrollment) {
+                $iltStatus = match(strtolower($newStatus)) {
+                    'paid'      => 'manual_approved',
+                    'partial'   => 'Partial',
+                    'unpaid'    => 'Pending',
+                    default     => null,   // Cancelled → don't touch enrollment
+                };
+
+                if ($iltStatus !== null) {
+                    $enrollment->update([
+                        'payment_status'  => $iltStatus,
+                        'amount_received' => $amountPaid,
+                    ]);
+
+                    Log::info('PaymentSync: ILT enrollment synced from invoice', [
+                        'invoice_id'    => $invoice->id,
+                        'enrollment_id' => $enrollment->id,
+                        'new_status'    => $iltStatus,
+                        'amount'        => $amountPaid,
+                    ]);
+                }
+            }
+        }
+
+        // ── eLearning enrollment ──────────────────────────────────────────
+        if ($invoice->elearning_enrollment_id) {
+            $eEnroll = ElearningEnrollment::find($invoice->elearning_enrollment_id);
+            if ($eEnroll) {
+                if (strtolower($newStatus) === 'paid') {
+                    $eEnroll->update([
+                        'payment_status' => 'manual_approved',
+                        'access_status'  => 'unlocked',
+                        'started_at'     => $eEnroll->started_at ?? now(),
+                    ]);
+                } elseif (strtolower($newStatus) === 'partial') {
+                    $eEnroll->update(['payment_status' => 'pending']);
+                } elseif (strtolower($newStatus) === 'unpaid') {
+                    $eEnroll->update(['payment_status' => 'pending']);
+                }
+
+                Log::info('PaymentSync: eLearning enrollment synced from invoice', [
+                    'invoice_id'              => $invoice->id,
+                    'elearning_enrollment_id' => $eEnroll->id,
+                    'invoice_status'          => $newStatus,
+                ]);
+            }
+        }
+    }
+
     // ── Invoice lookup helpers ───────────────────────────────────────────
 
     private static function findInvoiceForIlt(Enrollment $enrollment): ?Invoice
