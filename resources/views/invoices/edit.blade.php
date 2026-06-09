@@ -195,6 +195,7 @@
                         <option value="Individual"      {{ $invoice->invoice_type == 'Individual'      ? 'selected' : '' }}>Individual</option>
                         <option value="Group/Corporate" {{ $invoice->invoice_type == 'Group/Corporate' ? 'selected' : '' }}>Group / Corporate</option>
                         <option value="Corporate"       {{ $invoice->invoice_type == 'Corporate'       ? 'selected' : '' }}>Corporate</option>
+                        <option value="auto"            {{ $invoice->invoice_type == 'auto'            ? 'selected' : '' }}>Auto (System Generated)</option>
                     </select>
                 </div>
             </div>

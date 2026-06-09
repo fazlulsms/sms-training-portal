@@ -158,7 +158,7 @@ $invoice = Invoice::create([
 
     public function show($id)
     {
-        $invoice = Invoice::with('items.enrollment.trainingSchedule.course')->findOrFail($id);
+        $invoice = Invoice::with(['items.enrollment.trainingSchedule.course', 'paymentLogs'])->findOrFail($id);
         return view('invoices.show', compact('invoice'));
     }
 
@@ -250,7 +250,7 @@ $amountInWords = $this->numberToWords($grandTotal, $request->currency ?? 'BDT');
             'amount_in_words' => $amountInWords,
 
             'payment_status' => $request->payment_status ?? $invoice->payment_status,
-            'amount_paid' => $request->amount_paid ?? $invoice->amount_paid,
+            'amount_paid' => ($request->amount_paid !== null && $request->amount_paid !== '') ? (float)$request->amount_paid : ($invoice->amount_paid ?? 0),
             'payment_method' => $request->payment_method,
             'prepared_by' => $request->prepared_by,
         ]);
@@ -272,7 +272,7 @@ $amountInWords = $this->numberToWords($grandTotal, $request->currency ?? 'BDT');
         if ($nowPaid && !$wasAlreadyPaid) {
             try {
                 PaymentConfirmationService::handleInvoice($invoice->fresh(), [
-                    'amount'         => $request->amount_paid ?? $grandTotal,
+                    'amount'         => ($request->amount_paid !== null && $request->amount_paid !== '') ? (float)$request->amount_paid : $grandTotal,
                     'payment_method' => $request->payment_method,
                     'received_by'    => $request->prepared_by,
                     'remarks'        => $request->notes,
