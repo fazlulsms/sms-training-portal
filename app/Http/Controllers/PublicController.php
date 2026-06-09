@@ -287,20 +287,25 @@ class PublicController extends Controller
             // 3) Corporate certificate (SMS-TR-*)
             if (!$result) {
                 $corpCert = \App\Models\CorporateCertificate::where('certificate_number', $certCode)
-                    ->with(['participant', 'project'])
+                    ->with(['participant', 'project', 'session'])
                     ->first();
                 if ($corpCert) {
                     $actualName = $corpCert->participant?->participant_name ?? '';
                     similar_text(strtolower($inputName), strtolower($actualName), $pct);
                     if ($pct >= 50) {
+                        $courseName = $corpCert->session?->course_name
+                                   ?? $corpCert->project?->project_name
+                                   ?? '—';
                         $result = [
                             'found'       => true,
                             'type'        => 'Corporate',
                             'cert_number' => $certCode,
                             'name'        => $actualName,
-                            'company'     => $corpCert->participant?->company ?? '—',
-                            'course'      => $corpCert->project?->title ?? '—',
-                            'batch'       => '—',
+                            'company'     => $corpCert->participant?->company
+                                          ?? $corpCert->project?->company_name
+                                          ?? '—',
+                            'course'      => $courseName,
+                            'batch'       => $corpCert->project?->project_name ?? '—',
                             'issue_date'  => $corpCert->issue_date,
                         ];
                     }
