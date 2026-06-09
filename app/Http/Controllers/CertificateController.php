@@ -22,7 +22,7 @@ class CertificateController extends Controller
 
     public function filter(Request $request)
     {
-        return redirect('/certificates/schedule/' . $request->training_schedule_id);
+        return redirect('/admin/certificates/schedule/' . $request->training_schedule_id);
     }
 
     public function showBySchedule($id)
@@ -73,7 +73,7 @@ class CertificateController extends Controller
             'completion_status' => 'Completed',
         ]);
 
-        return redirect('/certificates/schedule/' . $enrollment->training_schedule_id)
+        return redirect('/admin/certificates/schedule/' . $enrollment->training_schedule_id)
             ->with('success', 'Certificate generated successfully');
     }
 
@@ -109,7 +109,7 @@ class CertificateController extends Controller
             'certificate_generated' => 0,
         ]);
 
-        return redirect('/certificates/schedule/' . $scheduleId)
+        return redirect('/admin/certificates/schedule/' . $scheduleId)
             ->with('success', 'Certificate deleted successfully');
     }
 }
