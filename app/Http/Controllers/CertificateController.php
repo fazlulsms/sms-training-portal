@@ -21,7 +21,11 @@ class CertificateController extends Controller
     public const TEMPLATES = [
         'attendance'  => 'Certificate of Attendance',
         'completion'  => 'Certificate of Completion',
+        'auditor'     => 'Auditor / Lead Auditor Training Certificate',
     ];
+
+    // ── Templates that render in portrait orientation ─────────────────────
+    private const PORTRAIT_TEMPLATES = ['auditor'];
 
     // ─────────────────────────────────────────────────────────────────────
     // INDEX — main list with all filters
@@ -257,7 +261,8 @@ class CertificateController extends Controller
     public function view($id)
     {
         $enrollment = Enrollment::with('trainingSchedule.course')->findOrFail($id);
-        return view('certificates.attendance', compact('enrollment'));
+        $viewName   = $this->templateView($enrollment->certificate_template ?? 'attendance');
+        return view($viewName, compact('enrollment'));
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -267,9 +272,13 @@ class CertificateController extends Controller
     {
         $enrollment = Enrollment::with('trainingSchedule.course')->findOrFail($id);
 
-        $pdf = Pdf::loadView('certificates.attendance', compact('enrollment'))
-            ->setPaper('a4', 'landscape')
-            ->setOption(['isRemoteEnabled' => true]);
+        $template    = $enrollment->certificate_template ?? 'attendance';
+        $viewName    = $this->templateView($template);
+        $orientation = $this->templateOrientation($template);
+
+        $pdf = Pdf::loadView($viewName, compact('enrollment'))
+            ->setPaper('a4', $orientation)
+            ->setOption(['isRemoteEnabled' => true, 'dpi' => 150]);
 
         $safeFileName = str_replace(['/', '\\'], '-', $enrollment->certificate_number ?? 'certificate');
         return $pdf->download($safeFileName . '.pdf');
@@ -301,6 +310,21 @@ class CertificateController extends Controller
     // ─────────────────────────────────────────────────────────────────────
     // HELPERS
     // ─────────────────────────────────────────────────────────────────────
+
+    // ── Resolve Blade view name for a template key ───────────────────────
+    private function templateView(string $template): string
+    {
+        return match ($template) {
+            'auditor'  => 'certificates.auditor',
+            default    => 'certificates.attendance',
+        };
+    }
+
+    // ── Resolve PDF orientation for a template key ────────────────────────
+    private function templateOrientation(string $template): string
+    {
+        return in_array($template, self::PORTRAIT_TEMPLATES) ? 'portrait' : 'landscape';
+    }
 
     private function isEligible(Enrollment $enrollment): bool
     {
@@ -350,9 +374,13 @@ class CertificateController extends Controller
         $certNumber = $enrollment->certificate_number;
 
         // Build PDF attachment
-        $pdf        = Pdf::loadView('certificates.attendance', compact('enrollment'))
-            ->setPaper('a4', 'landscape')
-            ->setOption(['isRemoteEnabled' => true]);
+        $template    = $enrollment->certificate_template ?? 'attendance';
+        $viewName    = $this->templateView($template);
+        $orientation = $this->templateOrientation($template);
+
+        $pdf        = Pdf::loadView($viewName, compact('enrollment'))
+            ->setPaper('a4', $orientation)
+            ->setOption(['isRemoteEnabled' => true, 'dpi' => 150]);
         $pdfData    = $pdf->output();
         $fileName   = str_replace(['/', '\\'], '-', $certNumber ?? 'certificate') . '.pdf';
 
