@@ -339,15 +339,15 @@ class CertificateController extends Controller
         $fileName   = str_replace(['/', '\\'], '-', $certNumber ?? 'certificate') . '.pdf';
 
         $mail = new TrainingMail(
-            subject: 'Certificate Issued – ' . $courseName,
-            view: 'emails.participant.certificate-issued',
-            data: [
+            'Certificate Issued – ' . $courseName,
+            'emails.participant.certificate-issued',
+            [
                 'enrollment' => $enrollment,
                 'courseName' => $courseName,
                 'certNumber' => $certNumber,
                 'loginUrl'   => url('/verify-certificate/' . $certNumber),
             ],
-            attachments: [['name' => $fileName, 'data' => $pdfData]],
+            [['name' => $fileName, 'data' => $pdfData]],
         );
 
         Mail::to($enrollment->email)->send($mail);
