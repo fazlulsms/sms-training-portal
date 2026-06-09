@@ -360,7 +360,7 @@
             $ilActive = request()->is('admin/courses*') || request()->is('admin/trainers*')
                      || request()->is('admin/training-schedules*') || request()->is('enrollments*')
                      || request()->is('admin/invoices*') || request()->is('admin/certificates*')
-                     || request()->is('admin/attendance*');
+                     ;
         @endphp
         <div class="sb-group sg-il"
              x-data="{ open: {{ $ilActive ? 'true' : 'false' }} }">
@@ -400,11 +400,6 @@
                     Enrollments
                 </a>
 
-                <a href="/admin/attendance/{{ optional(\App\Models\TrainingSchedule::whereDate('start_date','>=',now())->orderBy('start_date')->first())->id ?? 0 }}"
-                   class="sb-sub {{ request()->is('admin/attendance*') ? 'active' : '' }}">
-                    <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
-                    Attendance
-                </a>
 
                 <a href="/admin/invoices"
                    class="sb-sub {{ request()->is('admin/invoices*') ? 'active' : '' }}">
