@@ -1,3 +1,7 @@
+@php
+    $ps       = strtolower($invoice->payment_status ?? 'unpaid');
+    $showPaid = isset($paid) ? (bool)$paid : ($ps === 'paid');
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -61,9 +65,32 @@
   .footer { background: #0f1e45; color: #94a3b8; padding: 10px 24px; font-size: 7.5px; display: table; width: 100%; margin-top: 20px; }
   .footer-left  { display: table-cell; }
   .footer-right { display: table-cell; text-align: right; }
+
+  /* ── PAID Watermark ─────────────────────────────────── */
+  .paid-watermark {
+    position: fixed;
+    top: 38%;
+    left: 12%;
+    width: 76%;
+    text-align: center;
+    font-size: 72px;
+    font-weight: 900;
+    color: rgba(21, 128, 61, 0.13);
+    letter-spacing: 18px;
+    transform: rotate(-35deg);
+    pointer-events: none;
+    z-index: 999;
+    border: 6px solid rgba(21, 128, 61, 0.12);
+    padding: 6px 18px;
+    border-radius: 8px;
+  }
 </style>
 </head>
 <body>
+
+@if($showPaid)
+<div class="paid-watermark">PAID</div>
+@endif
 
 <!-- Header -->
 <div class="header">
@@ -87,12 +114,9 @@
     <div class="meta-label">Payment Due</div>
     <div class="meta-value">{{ $invoice->due_date ? \Carbon\Carbon::parse($invoice->due_date)->format('d M Y') : '—' }}</div>
     <div class="meta-value-sub">
-      @php
-        $ps  = strtolower($invoice->payment_status ?? 'pending');
-        $cls = in_array($ps, ['paid','manual_approved']) ? 'b-paid' : ($ps === 'overdue' ? 'b-overdue' : 'b-pending');
-        $lbl = in_array($ps, ['paid','manual_approved']) ? 'Paid' : ucfirst($invoice->payment_status ?? 'Pending');
-      @endphp
-      <span class="badge {{ $cls }}">{{ $lbl }}</span>
+        <span class="badge {{ $showPaid ? 'b-paid' : (($ps === 'overdue') ? 'b-overdue' : 'b-pending') }}">
+        {{ $showPaid ? 'PAID' : ucfirst($invoice->payment_status ?? 'Pending') }}
+      </span>
     </div>
   </div>
 </div>

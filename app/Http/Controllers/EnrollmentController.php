@@ -6,6 +6,7 @@ use App\Mail\RegistrationConfirmed;
 use App\Models\Enrollment;
 use App\Models\TrainingSchedule;
 use App\Services\AutoInvoiceService;
+use App\Services\PaymentConfirmationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -183,6 +184,9 @@ class EnrollmentController extends Controller
 
         $enrollment = Enrollment::findOrFail($id);
 
+        // Capture old payment status before update
+        $wasAlreadyPaid = PaymentConfirmationService::isPaidStatus($enrollment->payment_status);
+
         $enrollment->update([
             'training_schedule_id' => $request->training_schedule_id,
             'full_name' => $request->full_name,
@@ -202,6 +206,19 @@ class EnrollmentController extends Controller
             'completion_status' => $request->completion_status ?? 'Pending',
             'remarks' => $request->remarks,
         ]);
+
+        // Trigger payment confirmation if status just became Paid
+        $nowPaid = PaymentConfirmationService::isPaidStatus($request->payment_status);
+        if ($nowPaid && !$wasAlreadyPaid) {
+            try {
+                PaymentConfirmationService::handleIltEnrollment($enrollment->fresh());
+            } catch (\Throwable $e) {
+                Log::error('PaymentConfirmation failed (ILT update)', [
+                    'enrollment_id' => $enrollment->id,
+                    'error'         => $e->getMessage(),
+                ]);
+            }
+        }
 
         return redirect('/enrollments')->with('success', 'Enrollment updated successfully');
     }

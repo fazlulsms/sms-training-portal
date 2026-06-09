@@ -45,6 +45,7 @@ class AutoInvoiceService
         return Invoice::create([
             'invoice_number'        => self::generateInvoiceNumber(),
             'invoice_type'          => 'auto',
+            'enrollment_id'         => $enrollment->id,
             'client_name'           => $enrollment->full_name,
             'client_email'          => $enrollment->email,
             'client_phone'          => $enrollment->mobile_number ?? null,
@@ -92,9 +93,10 @@ class AutoInvoiceService
         $total      = $fee;
 
         return Invoice::create([
-            'invoice_number'        => self::generateInvoiceNumber(),
-            'invoice_type'          => 'auto',
-            'client_name'           => $enrollment->participant_name,
+            'invoice_number'              => self::generateInvoiceNumber(),
+            'invoice_type'                => 'auto',
+            'elearning_enrollment_id'     => $enrollment->id,
+            'client_name'                 => $enrollment->participant_name,
             'client_email'          => $enrollment->email,
             'client_phone'          => $enrollment->phone       ?? null,
             'client_address'        => null,

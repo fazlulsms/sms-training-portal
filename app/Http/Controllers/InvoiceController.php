@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Mail\InvoiceEmail;
 use App\Models\Enrollment;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Services\PaymentConfirmationService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\InvoiceEmail;
 
 class InvoiceController extends Controller
 {
@@ -189,6 +191,9 @@ $invoice = Invoice::create([
     {
         $invoice = Invoice::findOrFail($id);
 
+        // Capture payment status before update (for duplicate-prevention)
+        $wasAlreadyPaid = strtolower($invoice->payment_status ?? '') === 'paid';
+
        $participants = $request->number_of_participants ?? 1;
 $feePerPerson = $request->fee_per_person ?? 0;
 $chargeFor = $participants * $feePerPerson;
@@ -261,6 +266,24 @@ $amountInWords = $this->numberToWords($grandTotal, $request->currency ?? 'BDT');
             'unit_price' => $feePerPerson,
             'line_total' => $subtotal,
         ]);
+
+        // Trigger payment confirmation if payment_status just became Paid
+        $nowPaid = strtolower($request->payment_status ?? '') === 'paid';
+        if ($nowPaid && !$wasAlreadyPaid) {
+            try {
+                PaymentConfirmationService::handleInvoice($invoice->fresh(), [
+                    'amount'         => $request->amount_paid ?? $grandTotal,
+                    'payment_method' => $request->payment_method,
+                    'received_by'    => $request->prepared_by,
+                    'remarks'        => $request->notes,
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('PaymentConfirmation failed (Invoice update)', [
+                    'invoice_id' => $invoice->id,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
+        }
 
         return redirect('/admin/invoices/view/' . $invoice->id)
             ->with('success', 'Invoice updated successfully.');

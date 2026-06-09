@@ -6,6 +6,7 @@ use App\Mail\EnrollmentWelcome;
 use App\Mail\RegistrationConfirmed;
 use App\Models\Course;
 use App\Services\AutoInvoiceService;
+use App\Services\PaymentConfirmationService;
 use App\Models\ElearningEnrollment;
 use App\Models\Setting;
 use App\Models\User;
@@ -165,6 +166,16 @@ class ElearningEnrollmentController extends Controller
             'expires_at'     => $course->access_days ? now()->addDays($course->access_days) : null,
         ]);
 
+        // Trigger payment confirmation email
+        try {
+            PaymentConfirmationService::handleElearningEnrollment($enrollment->fresh());
+        } catch (\Throwable $e) {
+            Log::error('PaymentConfirmation failed (eLearning approvePayment)', [
+                'elearning_enrollment_id' => $enrollment->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         return back()->with('success', 'Payment approved and course access unlocked.');
     }
 
@@ -206,12 +217,28 @@ class ElearningEnrollmentController extends Controller
             'certificate_status' => 'required|string|max:50',
         ]);
 
+        // Capture old payment status
+        $wasAlreadyPaid = PaymentConfirmationService::isPaidStatus($enrollment->payment_status);
+
         $enrollment->update($request->only([
             'course_id', 'participant_name', 'email', 'phone',
             'company', 'designation', 'amount', 'currency',
             'payment_method', 'payment_status', 'access_status',
             'completion_status', 'certificate_status',
         ]));
+
+        // Trigger payment confirmation if status just became paid/manual_approved
+        $nowPaid = PaymentConfirmationService::isPaidStatus($request->payment_status);
+        if ($nowPaid && !$wasAlreadyPaid) {
+            try {
+                PaymentConfirmationService::handleElearningEnrollment($enrollment->fresh());
+            } catch (\Throwable $e) {
+                Log::error('PaymentConfirmation failed (eLearning update)', [
+                    'elearning_enrollment_id' => $enrollment->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         return redirect()
             ->route('elearning.enrollments.show', $enrollment)

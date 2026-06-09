@@ -9,6 +9,9 @@ class Invoice extends Model
     protected $fillable = [
         'invoice_number',
         'invoice_type',
+        'enrollment_id',
+        'elearning_enrollment_id',
+        'payment_confirmed_email_sent',
 
         'client_name',
         'client_email',
@@ -52,6 +55,7 @@ class Invoice extends Model
     ];
 
     protected $casts = [
+        'payment_confirmed_email_sent' => 'boolean',
         'number_of_participants' => 'integer',
         'fee_per_person' => 'decimal:2',
         'subtotal' => 'decimal:2',
@@ -65,5 +69,15 @@ class Invoice extends Model
     public function items()
     {
         return $this->hasMany(InvoiceItem::class);
+    }
+
+    public function paymentLogs()
+    {
+        return $this->hasMany(PaymentLog::class);
+    }
+
+    public function isPaid(): bool
+    {
+        return strtolower($this->payment_status ?? '') === 'paid';
     }
 }
