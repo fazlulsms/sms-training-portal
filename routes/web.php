@@ -310,8 +310,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/question-sets/{setId}/questions/delete/{qId}', [QuestionSetController::class, 'deleteQuestion'])->name('question-sets.questions.delete');
 
     // ── Training Exams ────────────────────────────────────────────────────
-    Route::post('/training-schedules/{id}/assign-exam', [TrainingExamController::class, 'assignExam'])->name('training-exams.assign');
-    Route::get('/training-exams/{scheduleId}/results', [TrainingExamController::class, 'scheduleResults'])->name('training-exams.results');
+    Route::get('/training-exams',                        [TrainingExamController::class, 'index'])->name('training-exams.index');
+    Route::post('/training-schedules/{id}/assign-exam',  [TrainingExamController::class, 'assignExam'])->name('training-exams.assign');
+    Route::get('/training-exams/{scheduleId}/results',   [TrainingExamController::class, 'scheduleResults'])->name('training-exams.results');
     Route::get('/training-exams/answers/{attemptId}', [TrainingExamController::class, 'viewAnswers'])->name('training-exams.answers');
     Route::post('/training-exams/grade/{attemptId}', [TrainingExamController::class, 'grade'])->name('training-exams.grade');
     Route::post('/training-exams/reset-attempt/{enrollmentId}', [TrainingExamController::class, 'resetAttempt'])->name('training-exams.reset');

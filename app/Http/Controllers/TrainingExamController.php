@@ -72,6 +72,55 @@ class TrainingExamController extends Controller
         return back()->with('success', 'Exam assigned to training schedule.');
     }
 
+    // ── All exam results across all schedules (index) ────────────────────
+
+    public function index(Request $request)
+    {
+        $search  = $request->input('search');
+        $status  = $request->input('status');
+        $course  = $request->input('course_id');
+
+        $query = ParticipantTestAttempt::with([
+            'enrollment.trainingSchedule.course',
+            'questionSet',
+        ])
+        ->whereIn('status', ['submitted','passed','failed','pending_review','attempt_limit_reached','in_progress'])
+        ->orderByDesc('submitted_at');
+
+        if ($search) {
+            $query->whereHas('enrollment', function ($q) use ($search) {
+                $q->where('full_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('company', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        if ($course) {
+            $query->whereHas('enrollment.trainingSchedule', function ($q) use ($course) {
+                $q->where('course_id', $course);
+            });
+        }
+
+        $attempts = $query->paginate(25)->withQueryString();
+
+        // Stats
+        $stats = [
+            'total'          => ParticipantTestAttempt::whereNotIn('status',['not_started'])->count(),
+            'pending_review' => ParticipantTestAttempt::where('status','pending_review')->count(),
+            'passed'         => ParticipantTestAttempt::where('status','passed')->count(),
+            'failed'         => ParticipantTestAttempt::whereIn('status',['failed','attempt_limit_reached'])->count(),
+            'in_progress'    => ParticipantTestAttempt::where('status','in_progress')->count(),
+        ];
+
+        $courses = \App\Models\Course::orderBy('name')->get();
+
+        return view('training-exams.index', compact('attempts', 'stats', 'courses', 'search', 'status', 'course'));
+    }
+
     // ── Results for a schedule ────────────────────────────────────────────
 
     public function scheduleResults($scheduleId)
@@ -217,7 +266,7 @@ class TrainingExamController extends Controller
                 \Illuminate\Support\Facades\Mail::to($enrollment->email)->send(new \App\Mail\TrainingMail(
                     "Reminder: Please Complete Your Knowledge Test – {$courseName}",
                     'emails.exam-invitation',
-                    $data,
+                    ['emailData' => $data],
                     []
                 ));
             } catch (\Throwable $e) {
