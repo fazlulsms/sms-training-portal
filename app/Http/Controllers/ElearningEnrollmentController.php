@@ -78,22 +78,10 @@ class ElearningEnrollmentController extends Controller
             'phone'            => 'nullable|string|max:50',
             'company'          => 'nullable|string|max:255',
             'designation'      => 'nullable|string|max:255',
-            'amount'           => 'nullable|numeric',
-            'currency'         => 'required|string|max:10',
-            'payment_method'   => 'required|string|max:50',
-            'payment_status'   => 'required|string|max:50',
+            // Payment fields NOT accepted at registration — handled via Invoice Pay
         ]);
 
         $course = Course::findOrFail($request->course_id);
-
-        $accessStatus = in_array($request->payment_status, ['paid', 'manual_approved'])
-            ? 'unlocked'
-            : 'locked';
-
-        $startedAt = $accessStatus === 'unlocked' ? now() : null;
-        $expiresAt = $accessStatus === 'unlocked' && $course->access_days
-            ? Carbon::now()->addDays($course->access_days)
-            : null;
 
         // ── Account creation / linking ──────────────────────────────────────
         [$user, $plainPassword, $accountCreated] = $this->resolveOrCreateLearner(
@@ -104,7 +92,7 @@ class ElearningEnrollmentController extends Controller
             $request->designation,
         );
 
-        // ── Create enrollment ────────────────────────────────────────────────
+        // ── Create enrollment (always pending / locked until payment confirmed) ──
         $enrollment = ElearningEnrollment::create([
             'user_id'            => $user->id,
             'course_id'          => $request->course_id,
@@ -113,21 +101,22 @@ class ElearningEnrollmentController extends Controller
             'phone'              => $request->phone,
             'company'            => $request->company,
             'designation'        => $request->designation,
-            'amount'             => $request->amount ?? $course->course_fee ?? 0,
-            'currency'           => $request->currency,
-            'payment_method'     => $request->payment_method,
-            'payment_status'     => $request->payment_status,
-            'access_status'      => $accessStatus,
-            'started_at'         => $startedAt,
-            'expires_at'         => $expiresAt,
+            'amount'             => $course->course_fee ?? 0,
+            'currency'           => 'BDT',
+            'payment_method'     => 'pending',
+            'payment_status'     => 'pending',
+            'access_status'      => 'locked',   // unlocked only after payment
+            'started_at'         => null,
+            'expires_at'         => null,
             'completion_status'  => 'not_started',
             'certificate_status' => 'not_issued',
         ]);
 
-        // ── Auto-invoice + registration email + admin alert ─────────────────
+        // ── SEQUENCE STEP 1: Registration email (invoice attached, NO credentials) ──
         try {
             $invoice = AutoInvoiceService::forElearningEnrollment($enrollment);
-            TrainingNotificationService::elearningRegistrationCompleted($enrollment, $invoice, $plainPassword);
+            // Pass null for tempPassword — credentials sent only after payment
+            TrainingNotificationService::elearningRegistrationCompleted($enrollment, $invoice, null);
         } catch (\Throwable $e) {
             Log::error('AutoInvoice/RegistrationConfirmed failed (eLearning admin)', [
                 'enrollment_id' => $enrollment->id, 'error' => $e->getMessage(),
@@ -135,12 +124,16 @@ class ElearningEnrollmentController extends Controller
         }
         TrainingNotificationService::adminNewRegistration($enrollment, 'ElearningEnrollment');
 
-        // ── Send welcome email ───────────────────────────────────────────────
-        $this->dispatchWelcomeEmail($enrollment, $user, $plainPassword);
+        // NOTE: Welcome email with credentials is sent AFTER payment confirmation
+        // (via approvePayment() or Invoice Pay → syncLinkedEnrollment)
+        // Store plainPassword temporarily in session so approvePayment can use it if needed
+        if ($plainPassword) {
+            session(['elearning_temp_pw_' . $enrollment->id => $plainPassword]);
+        }
 
         $msg = $accountCreated
-            ? '✅ Enrollment created. Learner account created and welcome email sent to ' . $request->email
-            : '✅ Enrollment created. Welcome email sent to existing account ' . $request->email;
+            ? '✅ Enrollment created. Account created. Registration confirmation sent to ' . $request->email . '. Welcome email with login credentials will be sent after payment is confirmed.'
+            : '✅ Enrollment created. Registration confirmation sent to ' . $request->email . '. Course access will be activated after payment.';
 
         return redirect()
             ->route('elearning.enrollments.show', $enrollment)
@@ -160,20 +153,27 @@ class ElearningEnrollmentController extends Controller
             'expires_at'     => $course->access_days ? now()->addDays($course->access_days) : null,
         ]);
 
-        // Trigger payment confirmation email
+        $fresh = $enrollment->fresh()->load('course', 'user');
+
+        // ── SEQUENCE STEP 2a: Payment confirmation email (PDF receipt) ───────
         try {
-            PaymentConfirmationService::handleElearningEnrollment($enrollment->fresh());
+            PaymentConfirmationService::handleElearningEnrollment($fresh);
         } catch (\Throwable $e) {
             Log::error('PaymentConfirmation failed (eLearning approvePayment)', [
-                'elearning_enrollment_id' => $enrollment->id,
-                'error' => $e->getMessage(),
+                'elearning_enrollment_id' => $enrollment->id, 'error' => $e->getMessage(),
             ]);
         }
 
-        // Course access activated notification
-        TrainingNotificationService::courseAccessActivated($enrollment->fresh());
+        // ── SEQUENCE STEP 2b: Welcome email with login credentials ───────────
+        // Generate a fresh temp password so the learner can log in now
+        $plainPassword = $this->generateTempPassword();
+        if ($fresh->user) {
+            $fresh->user->update(['password' => Hash::make($plainPassword)]);
+        }
+        // Course access activated email includes credentials
+        TrainingNotificationService::courseAccessActivated($fresh, $plainPassword);
 
-        return back()->with('success', 'Payment approved and course access unlocked.');
+        return back()->with('success', 'Payment approved, course access unlocked, and welcome email sent.');
     }
 
     // ── Show ──────────────────────────────────────────────────────────────────
@@ -438,18 +438,17 @@ class ElearningEnrollmentController extends Controller
             'certificate_status' => 'not_issued',
         ]);
 
-        // ── Auto-invoice + registration email + admin alert ─────────────────
+        // ── SEQUENCE STEP 1: Registration email (no credentials) ────────────
         try {
             $invoice = AutoInvoiceService::forElearningEnrollment($enrollment);
-            TrainingNotificationService::elearningRegistrationCompleted($enrollment, $invoice, $plainPassword);
+            TrainingNotificationService::elearningRegistrationCompleted($enrollment, $invoice, null);
         } catch (\Throwable $e) {
             Log::error('AutoInvoice/RegistrationConfirmed failed (eLearning public)', [
                 'enrollment_id' => $enrollment->id, 'error' => $e->getMessage(),
             ]);
         }
         TrainingNotificationService::adminNewRegistration($enrollment, 'ElearningEnrollment');
-
-        $this->dispatchWelcomeEmail($enrollment, $user, $plainPassword);
+        // Welcome email with credentials sent AFTER payment confirmation (Step 2)
 
         $message = $accountCreated
             ? 'Your registration has been received. A learner account has been created and login credentials have been sent to your email address. You can log in once payment is confirmed.'

@@ -179,14 +179,46 @@ class PaymentConfirmationService
 
         // ── eLearning enrollment ──────────────────────────────────────────
         if ($invoice->elearning_enrollment_id) {
-            $eEnroll = ElearningEnrollment::find($invoice->elearning_enrollment_id);
+            $eEnroll = ElearningEnrollment::with('course', 'user')
+                ->find($invoice->elearning_enrollment_id);
             if ($eEnroll) {
+                $wasLocked = $eEnroll->access_status !== 'unlocked';
+
                 if (strtolower($newStatus) === 'paid') {
+                    $course    = $eEnroll->course;
+                    $expiresAt = $course?->access_days ? now()->addDays($course->access_days) : null;
+
                     $eEnroll->update([
                         'payment_status' => 'manual_approved',
                         'access_status'  => 'unlocked',
                         'started_at'     => $eEnroll->started_at ?? now(),
+                        'expires_at'     => $eEnroll->expires_at ?? $expiresAt,
                     ]);
+
+                    // ── SEQUENCE STEP 2b: Welcome email with login credentials ──
+                    // Only sent the first time access is unlocked
+                    if ($wasLocked) {
+                        try {
+                            $fresh         = $eEnroll->fresh()->load('course', 'user');
+                            $plainPassword = null;
+
+                            if ($fresh->user) {
+                                $plainPassword = 'SMS@' . date('Y') . '#'
+                                    . str_pad(random_int(1000, 9999), 4, '0', STR_PAD_LEFT);
+                                $fresh->user->update([
+                                    'password' => \Illuminate\Support\Facades\Hash::make($plainPassword),
+                                ]);
+                            }
+
+                            TrainingNotificationService::courseAccessActivated($fresh, $plainPassword);
+                        } catch (\Throwable $e) {
+                            Log::error('PaymentSync: welcome email failed for eLearning', [
+                                'elearning_enrollment_id' => $eEnroll->id,
+                                'error'                   => $e->getMessage(),
+                            ]);
+                        }
+                    }
+
                 } elseif (strtolower($newStatus) === 'partial') {
                     $eEnroll->update(['payment_status' => 'pending']);
                 } elseif (strtolower($newStatus) === 'unpaid') {

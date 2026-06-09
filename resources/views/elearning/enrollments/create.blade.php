@@ -1,116 +1,99 @@
 @extends('layouts.app')
-
+@section('page-title', 'New eLearning Enrollment')
 @section('content')
-<div class="max-w-4xl mx-auto bg-white shadow rounded-xl p-6">
 
-    <h1 class="text-2xl font-bold mb-6">Create eLearning Enrollment</h1>
+<style>
+.el-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:32px;max-width:820px;margin:0 auto;box-shadow:0 1px 8px rgba(0,0,0,.06)}
+.el-title{font-size:22px;font-weight:800;color:#1e293b;margin-bottom:4px}
+.el-sub{font-size:13px;color:#64748b;margin-bottom:28px}
+.el-section-title{font-size:13px;font-weight:800;color:#1e3a8a;text-transform:uppercase;letter-spacing:.06em;margin:24px 0 12px;padding-bottom:6px;border-bottom:2px solid #e2e8f0}
+.el-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.el-fg{display:flex;flex-direction:column}
+.el-fg.full{grid-column:1/-1}
+.el-fg label{font-size:12px;font-weight:700;color:#475569;margin-bottom:5px}
+.el-fg input,.el-fg select{border:1px solid #cbd5e1;border-radius:8px;padding:9px 13px;font-size:13px;color:#334155;background:#fff;width:100%;box-sizing:border-box}
+.el-fg input:focus,.el-fg select:focus{border-color:#1e3a8a;outline:none;box-shadow:0 0 0 3px rgba(30,58,138,.1)}
+.el-actions{margin-top:28px;display:flex;gap:12px;justify-content:flex-end;border-top:1px solid #e2e8f0;padding-top:20px}
+.btn-primary{background:#1e3a8a;color:#fff;border:none;border-radius:8px;padding:11px 26px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-secondary{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:600;text-decoration:none}
+.seq-box{background:linear-gradient(135deg,#f0f9ff,#dbeafe);border:1px solid #bfdbfe;border-radius:12px;padding:16px 20px;margin-bottom:20px}
+.seq-box-title{font-size:13px;font-weight:800;color:#1e40af;margin-bottom:10px}
+.seq-step{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:13px;color:#374151}
+.seq-num{width:22px;height:22px;background:#1e3a8a;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;margin-top:1px}
+.seq-step:last-child{margin-bottom:0}
+.pay-info-box{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px;font-size:13px;color:#92400e;margin-top:16px}
+@media(max-width:640px){.el-grid{grid-template-columns:1fr}}
+</style>
 
-    @if ($errors->any())
-        <div class="bg-red-100 text-red-700 px-4 py-3 rounded mb-4">
-            <ul class="list-disc ml-5">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
+<x-page-header title="New eLearning Enrollment" desc="Register a participant for an eLearning course." />
+
+<div class="el-card">
+
+    @if($errors->any())
+    <div style="background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:8px;padding:14px 18px;margin-bottom:20px;font-size:13px;">
+        @foreach($errors->all() as $err)<div>• {{ $err }}</div>@endforeach
+    </div>
     @endif
+
+    {{-- Enrollment sequence info --}}
+    <div class="seq-box">
+        <div class="seq-box-title">📋 Enrollment Sequence</div>
+        <div class="seq-step"><div class="seq-num">1</div><div><strong>Register</strong> — Fill this form. Registration confirmation email + invoice sent automatically.</div></div>
+        <div class="seq-step"><div class="seq-num">2</div><div><strong>Invoice Created</strong> — Auto-invoice generated with payment pending status.</div></div>
+        <div class="seq-step"><div class="seq-num">3</div><div><strong>Update Payment</strong> — Admin clicks <strong>💳 Pay</strong> on the enrollment or invoice to record payment.</div></div>
+        <div class="seq-step"><div class="seq-num">4</div><div><strong>Access Granted</strong> — Course unlocked automatically. Welcome email with login credentials sent to participant.</div></div>
+    </div>
 
     <form action="{{ route('elearning.enrollments.store') }}" method="POST">
         @csrf
 
-        <div class="space-y-4">
+        <div class="el-section-title">Course</div>
+        <div class="el-fg">
+            <label>eLearning Course <span style="color:#ef4444">*</span></label>
+            <select name="course_id" required>
+                <option value="">Select Course…</option>
+                @foreach($courses as $course)
+                <option value="{{ $course->id }}" {{ old('course_id') == $course->id ? 'selected' : '' }}>
+                    {{ $course->name }} — {{ number_format($course->course_fee ?? 0) }} BDT
+                </option>
+                @endforeach
+            </select>
+        </div>
 
-            <div>
-                <label class="block text-sm font-medium mb-1">Course</label>
-                <select name="course_id" class="w-full border rounded-lg px-4 py-2" required>
-                    <option value="">Select Course</option>
-                    @foreach($courses as $course)
-                        <option value="{{ $course->id }}">
-                            {{ $course->name }} - {{ $course->course_fee }} BDT
-                        </option>
-                    @endforeach
-                </select>
+        <div class="el-section-title">Participant Information</div>
+        <div class="el-grid">
+            <div class="el-fg full">
+                <label>Full Name <span style="color:#ef4444">*</span></label>
+                <input type="text" name="participant_name" value="{{ old('participant_name') }}" required placeholder="Participant's full name">
             </div>
-
-            <div>
-                <label class="block text-sm font-medium mb-1">Participant Name</label>
-                <input type="text" name="participant_name" class="w-full border rounded-lg px-4 py-2" required>
+            <div class="el-fg">
+                <label>Email Address <span style="color:#ef4444">*</span></label>
+                <input type="email" name="email" value="{{ old('email') }}" required placeholder="email@example.com">
             </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Email</label>
-                    <input type="email" name="email" class="w-full border rounded-lg px-4 py-2" required>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-1">Phone</label>
-                    <input type="text" name="phone" class="w-full border rounded-lg px-4 py-2">
-                </div>
+            <div class="el-fg">
+                <label>Phone</label>
+                <input type="text" name="phone" value="{{ old('phone') }}" placeholder="+880…">
             </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Company</label>
-                    <input type="text" name="company" class="w-full border rounded-lg px-4 py-2">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-1">Designation</label>
-                    <input type="text" name="designation" class="w-full border rounded-lg px-4 py-2">
-                </div>
+            <div class="el-fg">
+                <label>Company / Organisation</label>
+                <input type="text" name="company" value="{{ old('company') }}">
             </div>
-
-            <div class="grid grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Amount</label>
-                    <input type="number" step="0.01" name="amount" class="w-full border rounded-lg px-4 py-2">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-1">Currency</label>
-                    <select name="currency" class="w-full border rounded-lg px-4 py-2">
-                        <option value="BDT">BDT</option>
-                        <option value="USD">USD</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-1">Payment Method</label>
-                    <select name="payment_method" class="w-full border rounded-lg px-4 py-2">
-                        <option value="manual">Manual</option>
-                        <option value="bank">Bank</option>
-                        <option value="cash">Cash</option>
-                        <option value="bkash">bKash</option>
-                        <option value="nagad">Nagad</option>
-                        <option value="sslcommerz">SSLCommerz</option>
-                    </select>
-                </div>
+            <div class="el-fg">
+                <label>Designation</label>
+                <input type="text" name="designation" value="{{ old('designation') }}">
             </div>
+        </div>
 
-            <div>
-                <label class="block text-sm font-medium mb-1">Payment Status</label>
-                <select name="payment_status" class="w-full border rounded-lg px-4 py-2">
-                    <option value="pending">Pending</option>
-                    <option value="manual_approved">Manual Approved</option>
-                    <option value="paid">Paid</option>
-                    <option value="failed">Failed</option>
-                    <option value="refunded">Refunded</option>
-                </select>
-            </div>
+        {{-- Payment info notice (not a form field) --}}
+        <div class="pay-info-box">
+            💰 <div><strong>Payment fields are not set during registration.</strong> An invoice will be auto-created with Pending status. Use the <strong>💳 Pay</strong> button after registration to record payment and activate course access.</div>
+        </div>
 
-            <div class="flex gap-3">
-                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg">
-                    Save Enrollment
-                </button>
-
-                <a href="{{ route('elearning.enrollments.index') }}"
-                   class="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg">
-                    Back
-                </a>
-            </div>
-
+        <div class="el-actions">
+            <a href="{{ route('elearning.enrollments.index') }}" class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary">✅ Create Enrollment</button>
         </div>
     </form>
 </div>
+
 @endsection
