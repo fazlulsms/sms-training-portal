@@ -7,6 +7,7 @@ use App\Models\Enrollment;
 use App\Models\TrainingSchedule;
 use App\Services\AutoInvoiceService;
 use App\Services\PaymentConfirmationService;
+use App\Services\TrainingNotificationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -131,34 +132,19 @@ class EnrollmentController extends Controller
             'remarks' => $request->remarks,
         ]);
 
-        // Auto-generate invoice + send registration confirmed email (silently)
-        if ($enrollment->email) {
-            try {
-                $enrollment->load('trainingSchedule.course');
-                $invoice = AutoInvoiceService::forIltEnrollment($enrollment);
-
-                $schedule     = $enrollment->trainingSchedule;
-                $scheduleInfo = collect([
-                    $schedule?->batch_code,
-                    $schedule?->start_date?->format('d M Y'),
-                    $schedule?->venue,
-                ])->filter()->implode(' · ');
-
-                Mail::to($enrollment->email)
-                    ->send(new RegistrationConfirmed(
-                        invoice:      $invoice,
-                        courseName:   $schedule?->course?->name ?? 'Training Program',
-                        scheduleInfo: $scheduleInfo ?: null,
-                        tempPassword: null,
-                        type:         'ILT',
-                    ));
-            } catch (\Throwable $e) {
-                Log::error('AutoInvoice/RegistrationConfirmed failed (ILT admin)', [
-                    'enrollment_id' => $enrollment->id,
-                    'error'         => $e->getMessage(),
-                ]);
-            }
+        // Auto-invoice + registration email
+        try {
+            $enrollment->load('trainingSchedule.course');
+            $invoice = AutoInvoiceService::forIltEnrollment($enrollment);
+            TrainingNotificationService::iltRegistrationCompleted($enrollment, $invoice);
+        } catch (\Throwable $e) {
+            Log::error('AutoInvoice/RegistrationConfirmed failed (ILT admin)', [
+                'enrollment_id' => $enrollment->id, 'error' => $e->getMessage(),
+            ]);
         }
+
+        // Admin alert
+        TrainingNotificationService::adminNewRegistration($enrollment);
 
         return redirect('/enrollments')->with('success', 'Enrollment added successfully');
     }
@@ -184,8 +170,11 @@ class EnrollmentController extends Controller
 
         $enrollment = Enrollment::findOrFail($id);
 
-        // Capture old payment status before update
-        $wasAlreadyPaid = PaymentConfirmationService::isPaidStatus($enrollment->payment_status);
+        // Capture old statuses before update
+        $wasAlreadyPaid     = PaymentConfirmationService::isPaidStatus($enrollment->payment_status);
+        $oldAttendance      = $enrollment->attendance_status;
+        $oldCompletion      = $enrollment->completion_status;
+        $oldCertStatus      = $enrollment->certificate_number;
 
         $enrollment->update([
             'training_schedule_id' => $request->training_schedule_id,
@@ -207,17 +196,36 @@ class EnrollmentController extends Controller
             'remarks' => $request->remarks,
         ]);
 
-        // Trigger payment confirmation if status just became Paid
+        $fresh   = $enrollment->fresh();
         $nowPaid = PaymentConfirmationService::isPaidStatus($request->payment_status);
+
+        // Payment confirmed
         if ($nowPaid && !$wasAlreadyPaid) {
             try {
-                PaymentConfirmationService::handleIltEnrollment($enrollment->fresh());
+                PaymentConfirmationService::handleIltEnrollment($fresh);
             } catch (\Throwable $e) {
                 Log::error('PaymentConfirmation failed (ILT update)', [
-                    'enrollment_id' => $enrollment->id,
-                    'error'         => $e->getMessage(),
+                    'enrollment_id' => $enrollment->id, 'error' => $e->getMessage(),
                 ]);
             }
+        }
+
+        // Attendance marked
+        $newAttendance = $request->attendance_status ?? '';
+        if (in_array($newAttendance, ['Attended', 'Completed']) && !in_array($oldAttendance, ['Attended', 'Completed'])) {
+            TrainingNotificationService::attendanceCompleted($fresh);
+        }
+
+        // Course completed
+        $newCompletion = $request->completion_status ?? '';
+        if ($newCompletion === 'Completed' && $oldCompletion !== 'Completed') {
+            TrainingNotificationService::courseCompleted($fresh);
+        }
+
+        // Certificate issued (certificate_number just assigned)
+        $newCertNumber = $fresh->certificate_number;
+        if ($newCertNumber && !$oldCertStatus) {
+            TrainingNotificationService::certificateIssued($fresh);
         }
 
         return redirect('/enrollments')->with('success', 'Enrollment updated successfully');
@@ -309,34 +317,17 @@ class EnrollmentController extends Controller
             'remarks' => 'Registered through public form',
         ]);
 
-        // Auto-generate invoice + send registration confirmed email
-        if ($enrollment->email) {
-            try {
-                $enrollment->setRelation('trainingSchedule', $schedule);
-
-                $invoice = AutoInvoiceService::forIltEnrollment($enrollment, $schedule);
-
-                $scheduleInfo = collect([
-                    $schedule->batch_code,
-                    $schedule->start_date?->format('d M Y'),
-                    $schedule->venue,
-                ])->filter()->implode(' · ');
-
-                Mail::to($enrollment->email)
-                    ->send(new RegistrationConfirmed(
-                        invoice:      $invoice,
-                        courseName:   $schedule->course?->name ?? 'Training Program',
-                        scheduleInfo: $scheduleInfo ?: null,
-                        tempPassword: null,
-                        type:         'ILT',
-                    ));
-            } catch (\Throwable $e) {
-                Log::error('AutoInvoice/RegistrationConfirmed failed (ILT public)', [
-                    'enrollment_id' => $enrollment->id,
-                    'error'         => $e->getMessage(),
-                ]);
-            }
+        // Auto-invoice + registration email + admin alert
+        try {
+            $enrollment->setRelation('trainingSchedule', $schedule);
+            $invoice = AutoInvoiceService::forIltEnrollment($enrollment, $schedule);
+            TrainingNotificationService::iltRegistrationCompleted($enrollment, $invoice);
+        } catch (\Throwable $e) {
+            Log::error('AutoInvoice/RegistrationConfirmed failed (ILT public)', [
+                'enrollment_id' => $enrollment->id, 'error' => $e->getMessage(),
+            ]);
         }
+        TrainingNotificationService::adminNewRegistration($enrollment);
 
         return redirect('/register-training/' . $schedule->id)
             ->with('success', 'Registration submitted successfully. Our team will contact you soon.');

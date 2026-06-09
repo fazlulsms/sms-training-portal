@@ -23,6 +23,7 @@ use App\Http\Controllers\ElearningQuizQuestionController;
 use App\Http\Controllers\ElearningQuizAttemptController;
 
 use App\Http\Controllers\ParticipantDashboardController;
+use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\ParticipantQuizController;
 use App\Http\Controllers\ElearningCertificateController;
 use App\Http\Controllers\TrainerPortalController;
@@ -301,6 +302,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+    // Email Notification Settings
+    Route::get('/settings/notifications',             [NotificationSettingsController::class, 'index'])     ->name('notifications.index');
+    Route::post('/settings/notifications/{setting}/toggle', [NotificationSettingsController::class, 'toggle'])    ->name('notifications.toggle');
+    Route::post('/settings/notifications/toggle-all', [NotificationSettingsController::class, 'toggleAll']) ->name('notifications.toggle-all');
 
     // Demo / Test Environment (admin only)
     Route::prefix('admin/elearning')->name('demo.')->group(function () {

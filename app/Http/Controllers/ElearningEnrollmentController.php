@@ -7,6 +7,7 @@ use App\Mail\RegistrationConfirmed;
 use App\Models\Course;
 use App\Services\AutoInvoiceService;
 use App\Services\PaymentConfirmationService;
+use App\Services\TrainingNotificationService;
 use App\Models\ElearningEnrollment;
 use App\Models\Setting;
 use App\Models\User;
@@ -123,23 +124,16 @@ class ElearningEnrollmentController extends Controller
             'certificate_status' => 'not_issued',
         ]);
 
-        // ── Auto-generate invoice + registration confirmed email ─────────────
+        // ── Auto-invoice + registration email + admin alert ─────────────────
         try {
             $invoice = AutoInvoiceService::forElearningEnrollment($enrollment);
-            Mail::to($enrollment->email)
-                ->send(new RegistrationConfirmed(
-                    invoice:      $invoice,
-                    courseName:   $course->name,
-                    scheduleInfo: null,
-                    tempPassword: $plainPassword,
-                    type:         'eLearning',
-                ));
+            TrainingNotificationService::elearningRegistrationCompleted($enrollment, $invoice, $plainPassword);
         } catch (\Throwable $e) {
             Log::error('AutoInvoice/RegistrationConfirmed failed (eLearning admin)', [
-                'enrollment_id' => $enrollment->id,
-                'error'         => $e->getMessage(),
+                'enrollment_id' => $enrollment->id, 'error' => $e->getMessage(),
             ]);
         }
+        TrainingNotificationService::adminNewRegistration($enrollment, 'ElearningEnrollment');
 
         // ── Send welcome email ───────────────────────────────────────────────
         $this->dispatchWelcomeEmail($enrollment, $user, $plainPassword);
@@ -175,6 +169,9 @@ class ElearningEnrollmentController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+
+        // Course access activated notification
+        TrainingNotificationService::courseAccessActivated($enrollment->fresh());
 
         return back()->with('success', 'Payment approved and course access unlocked.');
     }
@@ -217,8 +214,11 @@ class ElearningEnrollmentController extends Controller
             'certificate_status' => 'required|string|max:50',
         ]);
 
-        // Capture old payment status
-        $wasAlreadyPaid = PaymentConfirmationService::isPaidStatus($enrollment->payment_status);
+        // Capture old statuses before update
+        $wasAlreadyPaid    = PaymentConfirmationService::isPaidStatus($enrollment->payment_status);
+        $oldAccessStatus   = $enrollment->access_status;
+        $oldCompletion     = $enrollment->completion_status;
+        $oldCertStatus     = $enrollment->certificate_status;
 
         $enrollment->update($request->only([
             'course_id', 'participant_name', 'email', 'phone',
@@ -227,17 +227,33 @@ class ElearningEnrollmentController extends Controller
             'completion_status', 'certificate_status',
         ]));
 
-        // Trigger payment confirmation if status just became paid/manual_approved
+        $fresh   = $enrollment->fresh();
         $nowPaid = PaymentConfirmationService::isPaidStatus($request->payment_status);
+
+        // Payment confirmed
         if ($nowPaid && !$wasAlreadyPaid) {
             try {
-                PaymentConfirmationService::handleElearningEnrollment($enrollment->fresh());
+                PaymentConfirmationService::handleElearningEnrollment($fresh);
             } catch (\Throwable $e) {
                 Log::error('PaymentConfirmation failed (eLearning update)', [
-                    'elearning_enrollment_id' => $enrollment->id,
-                    'error' => $e->getMessage(),
+                    'elearning_enrollment_id' => $enrollment->id, 'error' => $e->getMessage(),
                 ]);
             }
+        }
+
+        // Course access just unlocked
+        if ($request->access_status === 'unlocked' && $oldAccessStatus !== 'unlocked') {
+            TrainingNotificationService::courseAccessActivated($fresh);
+        }
+
+        // Course completed
+        if ($request->completion_status === 'completed' && $oldCompletion !== 'completed') {
+            TrainingNotificationService::courseCompleted($fresh, 'ElearningEnrollment');
+        }
+
+        // Certificate issued
+        if (in_array($request->certificate_status, ['issued', 'ready']) && !in_array($oldCertStatus, ['issued', 'ready'])) {
+            TrainingNotificationService::certificateIssued($fresh, 'ElearningEnrollment');
         }
 
         return redirect()
@@ -348,6 +364,8 @@ class ElearningEnrollmentController extends Controller
             'certificate_issue_date' => now()->toDateString(),
         ]);
 
+        TrainingNotificationService::certificateIssued($enrollment->fresh(), 'ElearningEnrollment');
+
         return back()->with('success', 'Certificate issued successfully.');
     }
 
@@ -420,23 +438,16 @@ class ElearningEnrollmentController extends Controller
             'certificate_status' => 'not_issued',
         ]);
 
-        // ── Auto-generate invoice + registration confirmed email ─────────────
+        // ── Auto-invoice + registration email + admin alert ─────────────────
         try {
             $invoice = AutoInvoiceService::forElearningEnrollment($enrollment);
-            Mail::to($enrollment->email)
-                ->send(new RegistrationConfirmed(
-                    invoice:      $invoice,
-                    courseName:   $course->name,
-                    scheduleInfo: null,
-                    tempPassword: $plainPassword,
-                    type:         'eLearning',
-                ));
+            TrainingNotificationService::elearningRegistrationCompleted($enrollment, $invoice, $plainPassword);
         } catch (\Throwable $e) {
             Log::error('AutoInvoice/RegistrationConfirmed failed (eLearning public)', [
-                'enrollment_id' => $enrollment->id,
-                'error'         => $e->getMessage(),
+                'enrollment_id' => $enrollment->id, 'error' => $e->getMessage(),
             ]);
         }
+        TrainingNotificationService::adminNewRegistration($enrollment, 'ElearningEnrollment');
 
         $this->dispatchWelcomeEmail($enrollment, $user, $plainPassword);
 
