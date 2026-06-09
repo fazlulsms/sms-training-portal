@@ -28,7 +28,18 @@ class Enrollment extends Model
         'certificate_number',
         'certificate_issue_date',
         'certificate_generated',
+        'certificate_template',
+        'certificate_email_sent',
+        'certificate_email_sent_at',
+        'certificate_generated_by',
+        'certificate_generated_at',
         'remarks',
+    ];
+
+    protected $casts = [
+        'certificate_email_sent'    => 'boolean',
+        'certificate_email_sent_at' => 'datetime',
+        'certificate_generated_at'  => 'datetime',
     ];
 
     public function trainingSchedule()

@@ -29,7 +29,9 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "Bash(xargs grep -l \"elearn\\\\|ElearnEnrollment\\\\|eLearning\")"
+      "Bash(xargs grep -l \"elearn\\\\|ElearnEnrollment\\\\|eLearning\")",
+      "Bash(copy \"resources\\\\views\\\\certificates\\\\index_new.blade.php\" \"resources\\\\views\\\\certificates\\\\index.blade.php\")",
+      "Bash(del \"resources\\\\views\\\\certificates\\\\index_new.blade.php\")"
     ]
   }
 }

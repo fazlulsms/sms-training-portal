@@ -223,11 +223,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/enrollments/generate-certificate/{id}', [EnrollmentController::class, 'generateCertificate']);
     Route::get('/enrollments/certificate/{id}', [EnrollmentController::class, 'certificate']);
     Route::get('/enrollments/certificate-pdf/{id}', [EnrollmentController::class, 'certificatePdf']);
-    Route::get('/certificates', [CertificateController::class, 'index']);
+    Route::get('/certificates', [CertificateController::class, 'index'])->name('certificates.index');
     Route::post('/certificates/filter', [CertificateController::class, 'filter']);
     Route::get('/certificates/generate/{id}', [CertificateController::class, 'generateForm']);
     Route::post('/certificates/generate/{id}', [CertificateController::class, 'generate']);
     Route::get('/certificates/schedule/{id}', [CertificateController::class, 'showBySchedule']);
+    Route::post('/certificates/bulk-generate', [CertificateController::class, 'bulkGenerate'])->name('certificates.bulk');
+    Route::post('/certificates/email/{id}', [CertificateController::class, 'emailCertificate'])->name('certificates.email');
     Route::get('/certificates/delete/{id}', [CertificateController::class, 'delete']);
     Route::get('/certificates/view/{id}', [CertificateController::class, 'view']);
     Route::get('/certificates/pdf/{id}', [CertificateController::class, 'pdf']);

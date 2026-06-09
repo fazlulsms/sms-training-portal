@@ -18,10 +18,12 @@
         <form method="POST" action="/admin/certificates/generate/{{ $enrollment->id }}" style="margin-top:20px;">
             @csrf
 
-            <label style="font-weight:600;">Certificate Template</label>
-            <select name="certificate_template" style="width:100%; padding:12px; margin-top:8px; border:1px solid #d1d5db; border-radius:8px;">
-                <option value="completion">Certificate of Completion</option>
-                <option value="attendance">Certificate of Attendance</option>
+            <label style="font-weight:600;">Certificate Template <span style="color:#ef4444">*</span></label>
+            <select name="certificate_template" required style="width:100%; padding:12px; margin-top:8px; border:1px solid #d1d5db; border-radius:8px;">
+                <option value="">Select template…</option>
+                @foreach($templates as $tkey => $tlabel)
+                <option value="{{ $tkey }}">{{ $tlabel }}</option>
+                @endforeach
             </select>
 
             <label style="display:block; font-weight:600; margin-top:15px;">Certificate Issue Date</label>
