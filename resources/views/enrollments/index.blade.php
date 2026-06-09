@@ -101,6 +101,8 @@
                     <td class="c">
                         <div class="dt-actions" style="justify-content:center;">
                             <a href="/admin/enrollments/edit/{{ $enrollment->id }}" class="btn btn-edit btn-xs">Edit</a>
+                            <a href="/admin/invoices/payment/for-enrollment/{{ $enrollment->id }}"
+                               class="btn btn-xs" style="background:#f0fdf4;color:#15803d;border:1px solid #86efac;font-weight:700;">💳 Pay</a>
                             <a href="/admin/enrollments/delete/{{ $enrollment->id }}"
                                onclick="return confirm('Delete this enrollment?')"
                                class="btn btn-del btn-xs">Delete</a>

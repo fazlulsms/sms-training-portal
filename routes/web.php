@@ -244,6 +244,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/invoices/{id}/send-email', [InvoiceController::class, 'sendEmail'])->name('invoices.sendEmail');
     Route::get('/invoices/enrollment/{id}/details', [InvoiceController::class, 'getEnrollmentDetails'])->name('invoices.enrollment.details');
     Route::get('/invoices/enrollment/{id}', [InvoiceController::class, 'getEnrollmentDetails']);
+    // Dedicated payment update
+    Route::get('/invoices/payment/{id}',                       [InvoiceController::class, 'paymentForm'])           ->name('invoices.payment.form');
+    Route::post('/invoices/payment/{id}',                      [InvoiceController::class, 'paymentUpdate'])         ->name('invoices.payment.update');
+    Route::get('/invoices/payment/for-enrollment/{id}',        [InvoiceController::class, 'paymentByEnrollment'])   ->name('invoices.payment.byEnrollment');
+    Route::get('/invoices/payment/for-elearning/{id}',         [InvoiceController::class, 'paymentByElearning'])    ->name('invoices.payment.byElearning');
 
     // Legacy reports
     Route::get('/reports/training',      [ReportController::class, 'training']);

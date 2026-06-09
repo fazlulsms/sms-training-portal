@@ -49,6 +49,8 @@
                     <td class="c">
                         <div class="dt-actions" style="justify-content:center;">
                             <a href="/admin/invoices/view/{{ $invoice->id }}" class="btn btn-view btn-xs">View</a>
+                            <a href="/admin/invoices/payment/{{ $invoice->id }}"
+                               class="btn btn-xs" style="background:#f0fdf4;color:#15803d;border:1px solid #86efac;font-weight:700;">💳 Pay</a>
                             <a href="/admin/invoices/edit/{{ $invoice->id }}" class="btn btn-edit btn-xs">Edit</a>
                             <a href="{{ url('/admin/invoices/email/' . $invoice->id) }}"
                                onclick="return confirm('Send invoice email to client?')"

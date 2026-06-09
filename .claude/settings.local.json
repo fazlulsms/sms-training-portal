@@ -25,7 +25,11 @@
       "Bash(composer require *)",
       "Bash(grep -n \"^use App\\\\\\\\\\\\\\\\Http\\\\\\\\\\\\\\\\Controllers\\\\\\\\\\\\\\\\ReportController\" routes/web.php)",
       "Bash(php -l app/Http/Controllers/ReportsController.php)",
-      "Bash(php -r ' *)"
+      "Bash(php -r ' *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(xargs grep -l \"elearn\\\\|ElearnEnrollment\\\\|eLearning\")"
     ]
   }
 }

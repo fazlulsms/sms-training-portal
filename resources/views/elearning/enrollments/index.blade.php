@@ -119,6 +119,8 @@
                         <div class="dt-actions" style="justify-content:center;">
                             <a href="{{ route('elearning.enrollments.show', $enrollment) }}" class="btn btn-view btn-xs">View</a>
                             <a href="{{ route('elearning.enrollments.edit', $enrollment) }}" class="btn btn-edit btn-xs">Edit</a>
+                            <a href="/admin/invoices/payment/for-elearning/{{ $enrollment->id }}"
+                               class="btn btn-xs" style="background:#f0fdf4;color:#15803d;border:1px solid #86efac;font-weight:700;">💳 Pay</a>
                             @if($enrollment->payment_status === 'pending')
                                 <form action="{{ route('elearning.enrollments.approvePayment', $enrollment) }}" method="POST" style="margin:0;">
                                     @csrf

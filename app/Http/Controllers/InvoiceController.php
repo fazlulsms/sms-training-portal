@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\InvoiceEmail;
+use App\Models\ElearningEnrollment;
 use App\Models\Enrollment;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
@@ -255,17 +256,22 @@ $amountInWords = $this->numberToWords($grandTotal, $request->currency ?? 'BDT');
             'prepared_by' => $request->prepared_by,
         ]);
 
-        $invoice->items()->delete();
-
-        InvoiceItem::create([
-            'invoice_id' => $invoice->id,
-            'enrollment_id' => $request->enrollment_id,
-            'participant_name' => $request->contact_person ?? $request->client_name,
-            'description' => $request->training_name ?? 'Training Participation Fee',
-            'quantity' => $participants,
-            'unit_price' => $feePerPerson,
-            'line_total' => $subtotal,
-        ]);
+        // Re-create item only for manual invoices; auto-invoices store data directly on the invoice
+        if ($invoice->invoice_type !== 'auto') {
+            $invoice->items()->delete();
+            InvoiceItem::create([
+                'invoice_id'       => $invoice->id,
+                'enrollment_id'    => ($request->enrollment_id !== '' && $request->enrollment_id !== null) ? (int)$request->enrollment_id : null,
+                'participant_name' => $request->contact_person ?? $request->client_name,
+                'description'      => $request->training_name ?? 'Training Participation Fee',
+                'quantity'         => $participants,
+                'unit_price'       => $feePerPerson,
+                'line_total'       => $subtotal,
+            ]);
+        } else {
+            // For auto-invoices just delete stale items — no new item created
+            $invoice->items()->delete();
+        }
 
         // Trigger payment confirmation if payment_status just became Paid
         $nowPaid = strtolower($request->payment_status ?? '') === 'paid';
@@ -353,4 +359,80 @@ $amountInWords = $this->numberToWords($grandTotal, $request->currency ?? 'BDT');
             'quantity' => 1,
         ]);
     }
+    // ── Dedicated Payment Update ──────────────────────────────────────────
+
+    public function paymentForm($id)
+    {
+        $invoice = Invoice::with('paymentLogs')->findOrFail($id);
+        return view('invoices.payment-update', compact('invoice'));
+    }
+
+    public function paymentUpdate(Request $request, $id)
+    {
+        $invoice = Invoice::findOrFail($id);
+
+        $wasAlreadyPaid = strtolower($invoice->payment_status ?? '') === 'paid';
+        $newStatus      = $request->payment_status ?? $invoice->payment_status;
+        $amountPaid     = ($request->amount_paid !== null && $request->amount_paid !== '')
+                            ? (float)$request->amount_paid
+                            : (float)($invoice->amount_paid ?? 0);
+
+        // Always update payment fields (Unpaid / Partial / Paid)
+        $invoice->update([
+            'payment_status' => $newStatus,
+            'amount_paid'    => $amountPaid,
+            'payment_method' => $request->payment_method ?? $invoice->payment_method,
+        ]);
+
+        $nowPaid = strtolower($newStatus) === 'paid';
+
+        if ($nowPaid && !$wasAlreadyPaid) {
+            try {
+                PaymentConfirmationService::handleInvoice($invoice->fresh(), [
+                    'amount'         => $amountPaid,
+                    'payment_method' => $request->payment_method ?? $invoice->payment_method,
+                    'transaction_id' => $request->transaction_id,
+                    'received_by'    => $request->received_by,
+                    'remarks'        => $request->remarks,
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('PaymentConfirmation failed (paymentUpdate)', [
+                    'invoice_id' => $invoice->id,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return redirect('/admin/invoices/view/' . $invoice->id)
+            ->with('success', 'Payment status updated successfully.');
+    }
+
+    public function paymentByEnrollment($enrollmentId)
+    {
+        $invoice = Invoice::where('invoice_type', 'auto')
+                          ->where('enrollment_id', $enrollmentId)
+                          ->latest()->first();
+
+        if (!$invoice) {
+            return redirect('/admin/enrollments')
+                ->with('error', 'No invoice found for this enrollment.');
+        }
+
+        return redirect('/admin/invoices/payment/' . $invoice->id);
+    }
+
+    public function paymentByElearning($enrollmentId)
+    {
+        $invoice = Invoice::where('invoice_type', 'auto')
+                          ->where('elearning_enrollment_id', $enrollmentId)
+                          ->latest()->first();
+
+        if (!$invoice) {
+            return redirect('/admin/elearning/enrollments')
+                ->with('error', 'No invoice found for this enrollment.');
+        }
+
+        return redirect('/admin/invoices/payment/' . $invoice->id);
+    }
+
 } // Make sure this last closing brace remains to close your Controller class definition completely!
