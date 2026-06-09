@@ -25,7 +25,7 @@ class CertificateController extends Controller
     ];
 
     // ── Templates that render in portrait orientation ─────────────────────
-    private const PORTRAIT_TEMPLATES = ['auditor'];
+    private const PORTRAIT_TEMPLATES = []; // auditor is landscape
 
     // ─────────────────────────────────────────────────────────────────────
     // INDEX — main list with all filters
