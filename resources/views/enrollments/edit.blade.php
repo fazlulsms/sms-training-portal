@@ -53,9 +53,8 @@
             </div>
         @endif
 
-        <form action="{{ url('/enrollments/' . $enrollment->id) }}" method="POST">
+        <form action="{{ url('/admin/enrollments/update/' . $enrollment->id) }}" method="POST">
             @csrf
-            @method('PUT')
 
             <!-- Section 1: Course Allocation -->
             <div class="form-section-title">Course & Schedule Details</div>
@@ -196,21 +195,47 @@
 
             <div class="form-grid">
                 <div class="form-group">
-                    <label for="attendance_status">Attendance Status</label>
-                    <select name="attendance_status" id="attendance_status">
-                        <option value="Pending" {{ (old('attendance_status', $enrollment->attendance_status) == 'Pending') ? 'selected' : '' }}>Pending</option>
-                        <option value="Present" {{ (old('attendance_status', $enrollment->attendance_status) == 'Present') ? 'selected' : '' }}>Present</option>
-                        <option value="Absent" {{ (old('attendance_status', $enrollment->attendance_status) == 'Absent') ? 'selected' : '' }}>Absent</option>
-                    </select>
+                    <label>Attendance Status <span style="font-size:10px;font-weight:600;background:#dbeafe;color:#1e40af;padding:2px 7px;border-radius:10px;margin-left:4px;">🔒 Trainer Only</span></label>
+                    @php
+                        $attColor = match($enrollment->attendance_status) {
+                            'Present','Attended','Completed' => '#dcfce7',
+                            'Absent'  => '#fee2e2',
+                            default   => '#f3f4f6',
+                        };
+                        $attText = match($enrollment->attendance_status) {
+                            'Present','Attended','Completed' => '#15803d',
+                            'Absent'  => '#991b1b',
+                            default   => '#6b7280',
+                        };
+                    @endphp
+                    <div style="padding:10px 14px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;display:flex;align-items:center;gap:10px;">
+                        <span style="background:{{ $attColor }};color:{{ $attText }};padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700;">
+                            {{ $enrollment->attendance_status ?? 'Pending' }}
+                        </span>
+                        <span style="font-size:11px;color:#94a3b8;">Updated by Trainer Portal only</span>
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="completion_status">Completion Status</label>
-                    <select name="completion_status" id="completion_status">
-                        <option value="Pending" {{ (old('completion_status', $enrollment->completion_status) == 'Pending') ? 'selected' : '' }}>Pending</option>
-                        <option value="Completed" {{ (old('completion_status', $enrollment->completion_status) == 'Completed') ? 'selected' : '' }}>Completed</option>
-                        <option value="Not Completed" {{ (old('completion_status', $enrollment->completion_status) == 'Not Completed') ? 'selected' : '' }}>Not Completed</option>
-                    </select>
+                    <label>Completion Status <span style="font-size:10px;font-weight:600;background:#dbeafe;color:#1e40af;padding:2px 7px;border-radius:10px;margin-left:4px;">🔒 Trainer Only</span></label>
+                    @php
+                        $compColor = match($enrollment->completion_status) {
+                            'Completed'     => '#dcfce7',
+                            'Not Completed' => '#fee2e2',
+                            default         => '#f3f4f6',
+                        };
+                        $compText = match($enrollment->completion_status) {
+                            'Completed'     => '#15803d',
+                            'Not Completed' => '#991b1b',
+                            default         => '#6b7280',
+                        };
+                    @endphp
+                    <div style="padding:10px 14px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;display:flex;align-items:center;gap:10px;">
+                        <span style="background:{{ $compColor }};color:{{ $compText }};padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700;">
+                            {{ $enrollment->completion_status ?? 'Pending' }}
+                        </span>
+                        <span style="font-size:11px;color:#94a3b8;">Updated by Trainer Portal only</span>
+                    </div>
                 </div>
 
                 <div class="form-group full">

@@ -188,10 +188,8 @@ class EnrollmentController extends Controller
             'full_address'         => $request->full_address,
             'selected_mode'        => $request->selected_mode,
             'applied_fee'          => $request->applied_fee,
-            // Payment fields are managed via Invoice → payment update only
-            // Do NOT overwrite payment_status / amount_received / payment_method here
-            'attendance_status'    => $request->attendance_status ?? 'Pending',
-            'completion_status'    => $request->completion_status ?? 'Pending',
+            // Payment fields managed via Invoice → 💳 Pay only
+            // Attendance/Completion managed via Trainer Portal only
             'remarks'              => $request->remarks,
         ]);
 
