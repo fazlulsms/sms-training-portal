@@ -178,28 +178,28 @@ class EnrollmentController extends Controller
 
         $enrollment->update([
             'training_schedule_id' => $request->training_schedule_id,
-            'full_name' => $request->full_name,
-            'email' => $request->email,
-            'company' => $request->company,
-            'designation' => $request->designation,
-            'country' => $request->country,
-            'country_code' => $request->country_code,
-            'mobile_number' => $request->mobile_number,
-            'full_address' => $request->full_address,
-            'selected_mode' => $request->selected_mode,
-            'applied_fee' => $request->applied_fee,
-            'payment_status' => $request->payment_status ?? 'Pending',
-            'amount_received' => $request->amount_received ?? 0,
-            'payment_method' => $request->payment_method,
-            'attendance_status' => $request->attendance_status ?? 'Pending',
-            'completion_status' => $request->completion_status ?? 'Pending',
-            'remarks' => $request->remarks,
+            'full_name'            => $request->full_name,
+            'email'                => $request->email,
+            'company'              => $request->company,
+            'designation'          => $request->designation,
+            'country'              => $request->country,
+            'country_code'         => $request->country_code,
+            'mobile_number'        => $request->mobile_number,
+            'full_address'         => $request->full_address,
+            'selected_mode'        => $request->selected_mode,
+            'applied_fee'          => $request->applied_fee,
+            // Payment fields are managed via Invoice → payment update only
+            // Do NOT overwrite payment_status / amount_received / payment_method here
+            'attendance_status'    => $request->attendance_status ?? 'Pending',
+            'completion_status'    => $request->completion_status ?? 'Pending',
+            'remarks'              => $request->remarks,
         ]);
 
         $fresh   = $enrollment->fresh();
-        $nowPaid = PaymentConfirmationService::isPaidStatus($request->payment_status);
+        // Payment is managed via Invoice area — check fresh status (could have been synced there)
+        $nowPaid = PaymentConfirmationService::isPaidStatus($fresh->payment_status);
 
-        // Payment confirmed
+        // Payment confirmed (only if synced externally between last save and now — safety net)
         if ($nowPaid && !$wasAlreadyPaid) {
             try {
                 PaymentConfirmationService::handleIltEnrollment($fresh);

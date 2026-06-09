@@ -152,33 +152,49 @@
             </div>
 
             <!-- Section 3: Status & Pricing Details -->
-            <div class="form-section-title">Payment & Administration Status</div>
+            <div class="form-section-title">Administration Status</div>
+
+            {{-- Payment info: read-only display. Update via Invoice → 💳 Pay --}}
+            @php
+                $payBadgeColor = match($enrollment->payment_status) {
+                    'manual_approved', 'Paid' => '#dcfce7',
+                    'Partial'                  => '#fef9c3',
+                    default                    => '#f3f4f6',
+                };
+                $payTextColor = match($enrollment->payment_status) {
+                    'manual_approved', 'Paid' => '#15803d',
+                    'Partial'                  => '#854d0e',
+                    default                    => '#6b7280',
+                };
+                $payLabel = match($enrollment->payment_status) {
+                    'manual_approved' => 'Paid (Manual)',
+                    default           => $enrollment->payment_status ?? 'Pending',
+                };
+            @endphp
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+                <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+                    <div>
+                        <div style="font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Payment Status</div>
+                        <span style="background:{{ $payBadgeColor }};color:{{ $payTextColor }};padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700;">{{ $payLabel }}</span>
+                    </div>
+                    <div>
+                        <div style="font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Amount Received</div>
+                        <span style="font-size:14px;font-weight:700;color:#1e293b;">{{ number_format($enrollment->amount_received ?? 0, 2) }}</span>
+                    </div>
+                    @if($enrollment->payment_method)
+                    <div>
+                        <div style="font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Method</div>
+                        <span style="font-size:13px;color:#374151;">{{ $enrollment->payment_method }}</span>
+                    </div>
+                    @endif
+                </div>
+                <a href="/admin/invoices/payment/for-enrollment/{{ $enrollment->id }}"
+                   style="background:#15803d;color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;">
+                   💳 Update Payment
+                </a>
+            </div>
+
             <div class="form-grid">
-                <div class="form-group">
-                    <label for="payment_status">Payment Status</label>
-                    <select name="payment_status" id="payment_status">
-                        <option value="Pending" {{ (old('payment_status', $enrollment->payment_status) == 'Pending') ? 'selected' : '' }}>Pending</option>
-                        <option value="Paid" {{ (old('payment_status', $enrollment->payment_status) == 'Paid') ? 'selected' : '' }}>Paid</option>
-                        <option value="Partial" {{ (old('payment_status', $enrollment->payment_status) == 'Partial') ? 'selected' : '' }}>Partial</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="amount_received">Amount Received</label>
-                    <input type="number" step="0.01" name="amount_received" id="amount_received" value="{{ old('amount_received', $enrollment->amount_received ?? 0) }}">
-                </div>
-
-                <div class="form-group">
-                    <label for="payment_method">Payment Method</label>
-                    <select name="payment_method" id="payment_method">
-                        <option value="">Select Method</option>
-                        <option value="Bank Transfer" {{ (old('payment_method', $enrollment->payment_method) == 'Bank Transfer') ? 'selected' : '' }}>Bank Transfer</option>
-                        <option value="Cheque" {{ (old('payment_method', $enrollment->payment_method) == 'Cheque') ? 'selected' : '' }}>Cheque</option>
-                        <option value="Cash" {{ (old('payment_method', $enrollment->payment_method) == 'Cash') ? 'selected' : '' }}>Cash</option>
-                        <option value="Mobile Wallet" {{ (old('payment_method', $enrollment->payment_method) == 'Mobile Wallet') ? 'selected' : '' }}>Mobile Wallet</option>
-                    </select>
-                </div>
-
                 <div class="form-group">
                     <label for="attendance_status">Attendance Status</label>
                     <select name="attendance_status" id="attendance_status">
