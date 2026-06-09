@@ -256,6 +256,68 @@ class CertificateController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────
+    // PREVIEW — live template preview (no certificate generation required)
+    // ?template=auditor|attendance|completion  overrides stored template
+    // ?scale=0.6  optional CSS zoom for browser preview
+    // ─────────────────────────────────────────────────────────────────────
+    public function preview(Request $request, $id)
+    {
+        $enrollment = Enrollment::with('trainingSchedule.course')->findOrFail($id);
+
+        // Allow ?template= to override so you can test any template on any enrollment
+        $template = $request->query('template', $enrollment->certificate_template ?? 'auditor');
+        if (!array_key_exists($template, self::TEMPLATES)) {
+            $template = 'auditor';
+        }
+
+        $viewName = $this->templateView($template);
+        $scale    = (float) $request->query('scale', 0.75);
+
+        // Render the certificate view, wrap it in a preview shell for browser comfort
+        $certHtml = view($viewName, compact('enrollment'))->render();
+
+        $orientation = $this->templateOrientation($template);
+        $pageW = $orientation === 'landscape' ? '297mm' : '210mm';
+        $pageH = $orientation === 'landscape' ? '210mm' : '297mm';
+
+        $html = <<<HTML
+        <!DOCTYPE html><html><head><meta charset="utf-8">
+        <title>Preview — {$template}</title>
+        <style>
+        body { margin:0; background:#64748b; display:flex; flex-direction:column; align-items:center; padding:20px; font-family:sans-serif; min-height:100vh; }
+        .toolbar { background:#1e293b; color:#fff; padding:10px 20px; border-radius:8px; margin-bottom:16px;
+                   display:flex; align-items:center; gap:16px; font-size:13px; width:{$pageW}; box-sizing:border-box; }
+        .toolbar strong { color:#f0d060; }
+        .toolbar a { color:#7dd3fc; text-decoration:none; }
+        .toolbar a:hover { text-decoration:underline; }
+        .cert-frame { transform-origin: top center; transform: scale({$scale}); width:{$pageW}; height:{$pageH};
+                      box-shadow:0 8px 40px rgba(0,0,0,0.45); overflow:hidden; display:block;
+                      margin-bottom: calc(({$pageH} * {$scale}) - {$pageH} + 20px); }
+        </style></head><body>
+        <div class="toolbar">
+            <span>🔍 <strong>Preview Mode</strong> &nbsp;—&nbsp; Template: <strong>{$template}</strong>
+            &nbsp;|&nbsp; Enrollment ID: <strong>{$id}</strong></span>
+            <span style="margin-left:auto; display:flex; gap:12px;">
+                <a href="?template=auditor&scale={$scale}">Auditor</a>
+                <a href="?template=attendance&scale={$scale}">Attendance</a>
+                <a href="?template=completion&scale={$scale}">Completion</a>
+                &nbsp;|&nbsp;
+                <a href="?template={$template}&scale=0.5">50%</a>
+                <a href="?template={$template}&scale=0.65">65%</a>
+                <a href="?template={$template}&scale=0.75">75%</a>
+                <a href="?template={$template}&scale=1">100%</a>
+                &nbsp;|&nbsp;
+                <a href="/admin/certificates/pdf/{$id}" target="_blank">⬇ Download PDF</a>
+            </span>
+        </div>
+        <div class="cert-frame">{$certHtml}</div>
+        </body></html>
+        HTML;
+
+        return response($html);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
     // VIEW — certificate HTML
     // ─────────────────────────────────────────────────────────────────────
     public function view($id)

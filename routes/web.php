@@ -240,6 +240,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/certificates/email/{id}', [CertificateController::class, 'emailCertificate'])->name('certificates.email');
     Route::get('/certificates/delete/{id}', [CertificateController::class, 'delete']);
     Route::get('/certificates/view/{id}', [CertificateController::class, 'view']);
+    Route::get('/certificates/preview/{id}', [CertificateController::class, 'preview'])->name('certificates.preview');
     Route::get('/certificates/pdf/{id}', [CertificateController::class, 'pdf']);
 
     // Invoices
