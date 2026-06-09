@@ -34,15 +34,7 @@ html, body {
 .co-bl { bottom: 7.5mm; left: 7.5mm;   border-width: 0 0 2px 2px; }
 .co-br { bottom: 7.5mm; right: 7.5mm;  border-width: 0 2px 2px 0; }
 
-/* ── Watermark ─────────────────────────────────── */
-.watermark {
-    position: absolute;
-    top: 50%; left: 50%;
-    width: 110mm; height: 110mm;
-    margin-top: -55mm; margin-left: -55mm;
-    opacity: 0.04; z-index: 1;
-}
-.watermark img { width: 100%; height: 100%; }
+/* ── Watermark removed ── */
 
 /* ── Content stack ─────────────────────────────── */
 .body {
@@ -252,9 +244,6 @@ html, body {
 @endphp
 
 <div class="cert">
-
-    {{-- Watermark --}}
-    @if($logo)<div class="watermark"><img src="{{ $logo }}"></div>@endif
 
     {{-- Borders & corners --}}
     <div class="b1"></div>
