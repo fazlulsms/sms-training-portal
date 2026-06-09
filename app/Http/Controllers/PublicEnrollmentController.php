@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\RegistrationConfirmed;
 use App\Models\Course;
-use App\Models\TrainingSchedule;
 use App\Models\Enrollment;
+use App\Models\TrainingSchedule;
 use App\Models\User;
+use App\Services\AutoInvoiceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -98,12 +101,29 @@ class PublicEnrollmentController extends Controller
             'remarks'              => 'Enrolled via public website',
         ]);
 
-        // Send confirmation email (silently)
+        // Auto-generate invoice + send registration confirmed email (silently)
         try {
+            $invoice = AutoInvoiceService::forIltEnrollment($enrollment, $schedule);
+
+            $scheduleInfo = collect([
+                $schedule->batch_code,
+                $schedule->start_date?->format('d M Y'),
+                $schedule->venue,
+            ])->filter()->implode(' · ');
+
             Mail::to($validated['email'])
-                ->send(new \App\Mail\EnrollmentConfirmation($enrollment, $schedule, $user, $plainPassword));
+                ->send(new RegistrationConfirmed(
+                    invoice:      $invoice,
+                    courseName:   $schedule->course?->name ?? 'Training Program',
+                    scheduleInfo: $scheduleInfo ?: null,
+                    tempPassword: $plainPassword,
+                    type:         'ILT',
+                ));
         } catch (\Throwable $e) {
-            // Mail failure must not break enrollment
+            Log::error('AutoInvoice/RegistrationConfirmed failed (ILT public)', [
+                'enrollment_id' => $enrollment->id,
+                'error'         => $e->getMessage(),
+            ]);
         }
 
         // If SSLCommerz selected — initiate payment

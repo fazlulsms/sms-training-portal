@@ -13,7 +13,7 @@ return new class extends Migration
 
             $table->string('invoice_number')->unique();
 
-            $table->enum('invoice_type', ['Individual', 'Corporate'])->default('Individual');
+            $table->enum('invoice_type', ['Individual', 'Corporate', 'auto'])->default('Individual');
 
             $table->string('client_name');
             $table->string('client_email')->nullable();

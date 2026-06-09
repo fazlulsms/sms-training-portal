@@ -9,9 +9,23 @@ class TestimonialController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Testimonial::with('course');
-        if ($request->filled('status')) $query->where('status', $request->status);
-        $testimonials = $query->latest()->paginate(20);
+        $q      = $request->input('q');
+        $status = $request->input('status');
+        $rating = $request->input('rating');
+
+        $testimonials = Testimonial::with('course')
+            ->when($q, fn($query) => $query->where(fn($sub) =>
+                $sub->where('name', 'like', "%$q%")
+                    ->orWhere('company', 'like', "%$q%")
+                    ->orWhere('course_name', 'like', "%$q%")
+                    ->orWhereHas('course', fn($c) => $c->where('name', 'like', "%$q%"))
+            ))
+            ->when($status, fn($query) => $query->where('status', $status))
+            ->when($rating, fn($query) => $query->where('rating', $rating))
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
         return view('admin.testimonials.index', compact('testimonials'));
     }
 

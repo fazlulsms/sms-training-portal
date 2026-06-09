@@ -2,20 +2,94 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Mail\RegistrationConfirmed;
 use App\Models\Enrollment;
 use App\Models\TrainingSchedule;
+use App\Services\AutoInvoiceService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class EnrollmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $q                 = $request->input('search', $request->input('q'));
+        $paymentStatus     = $request->input('payment_status');
+        $attendanceStatus  = $request->input('attendance_status');
+        $completionStatus  = $request->input('completion_status');
+        $courseId          = $request->input('course_id');
+
         $enrollments = Enrollment::with('trainingSchedule.course')
+            ->when($q, fn($query) => $query->where(fn($sub) =>
+                $sub->where('full_name', 'like', "%$q%")
+                    ->orWhere('email', 'like', "%$q%")
+                    ->orWhere('company', 'like', "%$q%")
+                    ->orWhereHas('trainingSchedule', fn($ts) =>
+                        $ts->where('batch_code', 'like', "%$q%")
+                           ->orWhereHas('course', fn($c) => $c->where('name', 'like', "%$q%"))
+                    )
+            ))
+            ->when($paymentStatus, fn($query) => $query->where('payment_status', $paymentStatus))
+            ->when($attendanceStatus, fn($query) => $query->where('attendance_status', $attendanceStatus))
+            ->when($completionStatus, fn($query) => $query->where('completion_status', $completionStatus))
+            ->when($courseId, fn($query) => $query->whereHas('trainingSchedule', fn($ts) => $ts->where('course_id', $courseId)))
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
         return view('enrollments.index', compact('enrollments'));
+    }
+
+    public function exportCsv(Request $request)
+    {
+        $q                = $request->input('search', $request->input('q'));
+        $paymentStatus    = $request->input('payment_status');
+        $attendanceStatus = $request->input('attendance_status');
+        $completionStatus = $request->input('completion_status');
+
+        $enrollments = Enrollment::with('trainingSchedule.course')
+            ->when($q, fn($query) => $query->where(fn($sub) =>
+                $sub->where('full_name', 'like', "%$q%")
+                    ->orWhere('email', 'like', "%$q%")
+                    ->orWhere('company', 'like', "%$q%")
+                    ->orWhereHas('trainingSchedule', fn($ts) =>
+                        $ts->where('batch_code', 'like', "%$q%")
+                           ->orWhereHas('course', fn($c) => $c->where('name', 'like', "%$q%"))
+                    )
+            ))
+            ->when($paymentStatus, fn($query) => $query->where('payment_status', $paymentStatus))
+            ->when($attendanceStatus, fn($query) => $query->where('attendance_status', $attendanceStatus))
+            ->when($completionStatus, fn($query) => $query->where('completion_status', $completionStatus))
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $headers = [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="enrollments_' . now()->format('Ymd') . '.csv"',
+        ];
+
+        return response()->stream(function () use ($enrollments) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['ID', 'Name', 'Email', 'Company', 'Course', 'Batch', 'Mode', 'Payment', 'Attendance', 'Completion', 'Enrolled On']);
+            foreach ($enrollments as $e) {
+                fputcsv($handle, [
+                    $e->id,
+                    $e->full_name,
+                    $e->email,
+                    $e->company,
+                    $e->trainingSchedule->course->name ?? '',
+                    $e->trainingSchedule->batch_code ?? '',
+                    $e->selected_mode,
+                    $e->payment_status,
+                    $e->attendance_status,
+                    $e->completion_status,
+                    $e->created_at->format('d M Y'),
+                ]);
+            }
+            fclose($handle);
+        }, 200, $headers);
     }
 
     public function create()
@@ -35,7 +109,7 @@ class EnrollmentController extends Controller
             'full_name' => 'required|string|max:255',
         ]);
 
-        Enrollment::create([
+        $enrollment = Enrollment::create([
             'training_schedule_id' => $request->training_schedule_id,
             'full_name' => $request->full_name,
             'email' => $request->email,
@@ -55,6 +129,35 @@ class EnrollmentController extends Controller
             'registration_status' => 'Confirmed',
             'remarks' => $request->remarks,
         ]);
+
+        // Auto-generate invoice + send registration confirmed email (silently)
+        if ($enrollment->email) {
+            try {
+                $enrollment->load('trainingSchedule.course');
+                $invoice = AutoInvoiceService::forIltEnrollment($enrollment);
+
+                $schedule     = $enrollment->trainingSchedule;
+                $scheduleInfo = collect([
+                    $schedule?->batch_code,
+                    $schedule?->start_date?->format('d M Y'),
+                    $schedule?->venue,
+                ])->filter()->implode(' · ');
+
+                Mail::to($enrollment->email)
+                    ->send(new RegistrationConfirmed(
+                        invoice:      $invoice,
+                        courseName:   $schedule?->course?->name ?? 'Training Program',
+                        scheduleInfo: $scheduleInfo ?: null,
+                        tempPassword: null,
+                        type:         'ILT',
+                    ));
+            } catch (\Throwable $e) {
+                Log::error('AutoInvoice/RegistrationConfirmed failed (ILT admin)', [
+                    'enrollment_id' => $enrollment->id,
+                    'error'         => $e->getMessage(),
+                ]);
+            }
+        }
 
         return redirect('/enrollments')->with('success', 'Enrollment added successfully');
     }

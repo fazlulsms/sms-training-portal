@@ -50,7 +50,7 @@
                         <div class="dt-actions" style="justify-content:center;">
                             <a href="/admin/invoices/view/{{ $invoice->id }}" class="btn btn-view btn-xs">View</a>
                             <a href="/admin/invoices/edit/{{ $invoice->id }}" class="btn btn-edit btn-xs">Edit</a>
-                            <a href="{{ url('/invoices/email/' . $invoice->id) }}"
+                            <a href="{{ url('/admin/invoices/email/' . $invoice->id) }}"
                                onclick="return confirm('Send invoice email to client?')"
                                class="btn btn-xs" style="background:#f0fdfa;color:#0f766e;">Email</a>
                             <a href="/admin/invoices/delete/{{ $invoice->id }}"

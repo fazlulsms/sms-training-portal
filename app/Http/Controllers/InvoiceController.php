@@ -150,7 +150,7 @@ $invoice = Invoice::create([
         'line_total' => $chargeFor,
     ]);
 
-    return redirect('/invoices/view/' . $invoice->id)
+    return redirect('/admin/invoices/view/' . $invoice->id)
         ->with('success', 'Invoice created successfully.');
 }
 
@@ -262,7 +262,7 @@ $amountInWords = $this->numberToWords($grandTotal, $request->currency ?? 'BDT');
             'line_total' => $subtotal,
         ]);
 
-        return redirect('/invoices/view/' . $invoice->id)
+        return redirect('/admin/invoices/view/' . $invoice->id)
             ->with('success', 'Invoice updated successfully.');
     }
 
@@ -291,7 +291,7 @@ $amountInWords = $this->numberToWords($grandTotal, $request->currency ?? 'BDT');
         $invoice->items()->delete();
         $invoice->delete();
 
-        return redirect('/invoices')->with('success', 'Invoice deleted successfully.');
+        return redirect('/admin/invoices')->with('success', 'Invoice deleted successfully.');
     }
 
     public function getEnrollmentDetails($id)

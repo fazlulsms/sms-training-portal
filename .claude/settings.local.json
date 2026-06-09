@@ -17,7 +17,15 @@
       "Bash(Select-Object Name)",
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\This pc\\\\training-management\\\\resources\\\\views\" -Recurse -Directory | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\('C:\\\\Users\\\\This pc\\\\training-management\\\\resources\\\\views', ''\\) })",
       "Bash(xargs grep -l \"Schema::create.*training_schedule\\\\|Schema::create.*enrollments\")",
-      "Bash(xargs -I {} basename {} .php)"
+      "Bash(xargs -I {} basename {} .php)",
+      "Bash(python3 -c ' *)",
+      "Bash(dir /s /b \"C:\\\\Users\\\\This pc\\\\training-management\\\\resources\\\\views\\\\corporate\\\\*.blade.php\")",
+      "Bash(php -l app/Models/CorporateCertificate.php)",
+      "Bash(php -r \"echo class_exists\\('PhpOffice\\\\PhpSpreadsheet\\\\Spreadsheet'\\) ? 'yes' : 'no';\")",
+      "Bash(composer require *)",
+      "Bash(grep -n \"^use App\\\\\\\\\\\\\\\\Http\\\\\\\\\\\\\\\\Controllers\\\\\\\\\\\\\\\\ReportController\" routes/web.php)",
+      "Bash(php -l app/Http/Controllers/ReportsController.php)",
+      "Bash(php -r ' *)"
     ]
   }
 }

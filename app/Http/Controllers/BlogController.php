@@ -11,10 +11,26 @@ use Illuminate\Support\Str;
 class BlogController extends Controller
 {
     // ── Admin CRUD ────────────────────────────────────────────
-    public function index()
+    public function index(Request $request)
     {
-        $posts = BlogPost::with('category')->latest()->paginate(20);
-        return view('admin.blog.index', compact('posts'));
+        $q          = $request->input('q');
+        $status     = $request->input('status');
+        $categoryId = $request->input('category_id');
+
+        $posts = BlogPost::with('category')
+            ->when($q, fn($query) => $query->where(fn($sub) =>
+                $sub->where('title', 'like', "%$q%")
+                    ->orWhere('author', 'like', "%$q%")
+            ))
+            ->when($status, fn($query) => $query->where('status', $status))
+            ->when($categoryId, fn($query) => $query->where('blog_category_id', $categoryId))
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        $categories = BlogCategory::orderBy('name')->get();
+
+        return view('admin.blog.index', compact('posts', 'categories'));
     }
 
     public function create()

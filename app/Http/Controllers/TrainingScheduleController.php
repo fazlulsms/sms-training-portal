@@ -9,14 +9,74 @@ use App\Models\Trainer;
 
 class TrainingScheduleController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $q        = $request->input('q');
+        $status   = $request->input('status');
+        $dateFrom = $request->input('date_from');
+        $dateTo   = $request->input('date_to');
+
         $schedules = TrainingSchedule::with(['course', 'trainer'])
+            ->when($q, fn($query) => $query->where(fn($sub) =>
+                $sub->whereHas('course', fn($c) => $c->where('name', 'like', "%$q%"))
+                    ->orWhere('batch_code', 'like', "%$q%")
+                    ->orWhere('venue', 'like', "%$q%")
+                    ->orWhereHas('trainer', fn($t) => $t->where('name', 'like', "%$q%"))
+            ))
+            ->when($status, fn($query) => $query->where('status', $status))
+            ->when($dateFrom, fn($query) => $query->where('start_date', '>=', $dateFrom))
+            ->when($dateTo, fn($query) => $query->where('start_date', '<=', $dateTo))
             ->orderByRaw("FIELD(status, 'Open', 'Closed', 'Postponed', 'Completed', 'Cancelled')")
+            ->orderBy('start_date', 'asc')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('training_schedules.index', compact('schedules'));
+    }
+
+    public function exportCsv(Request $request)
+    {
+        $q        = $request->input('q');
+        $status   = $request->input('status');
+        $dateFrom = $request->input('date_from');
+        $dateTo   = $request->input('date_to');
+
+        $schedules = TrainingSchedule::with(['course', 'trainer'])
+            ->when($q, fn($query) => $query->where(fn($sub) =>
+                $sub->whereHas('course', fn($c) => $c->where('name', 'like', "%$q%"))
+                    ->orWhere('batch_code', 'like', "%$q%")
+                    ->orWhere('venue', 'like', "%$q%")
+                    ->orWhereHas('trainer', fn($t) => $t->where('name', 'like', "%$q%"))
+            ))
+            ->when($status, fn($query) => $query->where('status', $status))
+            ->when($dateFrom, fn($query) => $query->where('start_date', '>=', $dateFrom))
+            ->when($dateTo, fn($query) => $query->where('start_date', '<=', $dateTo))
             ->orderBy('start_date', 'asc')
             ->get();
 
-        return view('training_schedules.index', compact('schedules'));
+        $headers = [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="schedules_' . now()->format('Ymd') . '.csv"',
+        ];
+
+        return response()->stream(function () use ($schedules) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['ID', 'Course', 'Batch Code', 'Trainer', 'Start Date', 'End Date', 'Mode', 'Venue', 'Status']);
+            foreach ($schedules as $s) {
+                fputcsv($handle, [
+                    $s->id,
+                    $s->course->name ?? '',
+                    $s->batch_code,
+                    $s->trainer->name ?? '',
+                    $s->start_date,
+                    $s->end_date,
+                    $s->training_mode,
+                    $s->venue,
+                    $s->status,
+                ]);
+            }
+            fclose($handle);
+        }, 200, $headers);
     }
 
     public function create()

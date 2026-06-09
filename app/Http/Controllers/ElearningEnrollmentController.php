@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Mail\EnrollmentWelcome;
+use App\Mail\RegistrationConfirmed;
 use App\Models\Course;
+use App\Services\AutoInvoiceService;
 use App\Models\ElearningEnrollment;
 use App\Models\Setting;
 use App\Models\User;
@@ -119,6 +121,24 @@ class ElearningEnrollmentController extends Controller
             'completion_status'  => 'not_started',
             'certificate_status' => 'not_issued',
         ]);
+
+        // ── Auto-generate invoice + registration confirmed email ─────────────
+        try {
+            $invoice = AutoInvoiceService::forElearningEnrollment($enrollment);
+            Mail::to($enrollment->email)
+                ->send(new RegistrationConfirmed(
+                    invoice:      $invoice,
+                    courseName:   $course->name,
+                    scheduleInfo: null,
+                    tempPassword: $plainPassword,
+                    type:         'eLearning',
+                ));
+        } catch (\Throwable $e) {
+            Log::error('AutoInvoice/RegistrationConfirmed failed (eLearning admin)', [
+                'enrollment_id' => $enrollment->id,
+                'error'         => $e->getMessage(),
+            ]);
+        }
 
         // ── Send welcome email ───────────────────────────────────────────────
         $this->dispatchWelcomeEmail($enrollment, $user, $plainPassword);
@@ -372,6 +392,24 @@ class ElearningEnrollmentController extends Controller
             'completion_status'  => 'not_started',
             'certificate_status' => 'not_issued',
         ]);
+
+        // ── Auto-generate invoice + registration confirmed email ─────────────
+        try {
+            $invoice = AutoInvoiceService::forElearningEnrollment($enrollment);
+            Mail::to($enrollment->email)
+                ->send(new RegistrationConfirmed(
+                    invoice:      $invoice,
+                    courseName:   $course->name,
+                    scheduleInfo: null,
+                    tempPassword: $plainPassword,
+                    type:         'eLearning',
+                ));
+        } catch (\Throwable $e) {
+            Log::error('AutoInvoice/RegistrationConfirmed failed (eLearning public)', [
+                'enrollment_id' => $enrollment->id,
+                'error'         => $e->getMessage(),
+            ]);
+        }
 
         $this->dispatchWelcomeEmail($enrollment, $user, $plainPassword);
 

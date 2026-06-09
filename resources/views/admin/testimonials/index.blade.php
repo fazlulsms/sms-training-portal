@@ -32,6 +32,13 @@
 <div class="card" style="margin-bottom:20px;">
     <div class="card-body" style="padding:14px 20px;">
         <form method="GET" action="{{ route('admin.testimonials.index') }}" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+            <div style="position:relative;">
+                <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#9ca3af;pointer-events:none;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </span>
+                <input type="text" name="q" value="{{ request('q') }}" placeholder="Search name, company, course…"
+                       style="padding:8px 12px 8px 30px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;width:220px;">
+            </div>
             <select name="status" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;">
                 <option value="">All Statuses</option>
                 @foreach(['pending','approved','featured','rejected'] as $s)
@@ -45,9 +52,10 @@
                 @endforeach
             </select>
             <button type="submit" class="btn btn-primary" style="padding:8px 16px;">Filter</button>
-            @if(request()->hasAny(['status','rating']))
+            @if(request()->hasAny(['q','status','rating']))
             <a href="{{ route('admin.testimonials.index') }}" style="font-size:13px;color:#6b7280;text-decoration:none;">✕ Clear</a>
             @endif
+            <div style="margin-left:auto;font-size:12.5px;color:#9ca3af;font-weight:600;">{{ $testimonials->total() }} record(s)</div>
         </form>
     </div>
 </div>

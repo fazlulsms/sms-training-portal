@@ -14,22 +14,29 @@
 <x-flash-message />
 
 <div class="filter-bar">
-    <div class="filter-row">
-        <div class="fi-search-wrap" style="flex:1;min-width:220px;">
-            <span class="fi-search-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-            <input class="fi fi-search" type="text" id="courseSearch" placeholder="Search by name or code…" style="width:100%;">
+    <form method="GET" action="/admin/courses" style="display:contents;">
+        <div class="filter-row">
+            <div class="fi-search-wrap" style="flex:1;min-width:220px;">
+                <span class="fi-search-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                <input class="fi fi-search" type="text" name="q" value="{{ request('q') }}" placeholder="Search by name or code…" style="width:100%;">
+            </div>
+            <select class="fi" name="course_type" style="min-width:150px;">
+                <option value="">All Types</option>
+                <option value="elearning" {{ request('course_type') === 'elearning' ? 'selected' : '' }}>eLearning</option>
+                <option value="manual" {{ request('course_type') === 'manual' ? 'selected' : '' }}>Manual Training</option>
+            </select>
+            <select class="fi" name="status" style="min-width:130px;">
+                <option value="">All Status</option>
+                <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Active</option>
+                <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            @if(request()->hasAny(['q','course_type','status']))
+            <a href="/admin/courses" class="btn btn-ghost btn-sm">✕ Clear</a>
+            @endif
+            <a href="/admin/courses/export?{{ http_build_query(request()->only(['q','course_type','status'])) }}" class="btn btn-secondary btn-sm">⬇ CSV</a>
         </div>
-        <select class="fi" id="typeFilter" style="min-width:150px;">
-            <option value="">All Types</option>
-            <option value="elearning">eLearning</option>
-            <option value="manual">Manual Training</option>
-        </select>
-        <select class="fi" id="statusFilter" style="min-width:130px;">
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-        </select>
-    </div>
+    </form>
 </div>
 
 <div class="dt-wrap">
@@ -47,8 +54,8 @@
             </thead>
             <tbody>
                 @forelse($courses as $i => $course)
-                <tr data-type="{{ $course->course_type }}" data-status="{{ $course->status ? 'active' : 'inactive' }}">
-                    <td class="text-muted text-small">{{ $i + 1 }}</td>
+                <tr>
+                    <td class="text-muted text-small">{{ $courses->firstItem() + $loop->index }}</td>
                     <td class="td-main">{{ $course->name }}</td>
                     <td><span class="td-mono">{{ $course->code }}</span></td>
                     <td class="c">
@@ -91,30 +98,9 @@
             </tbody>
         </table>
     </div>
+    @if($courses->hasPages())
+    <div style="padding:14px 16px;border-top:1px solid #f0f2f5;">{{ $courses->links() }}</div>
+    @endif
 </div>
-
-<script>
-(function () {
-    const search = document.getElementById('courseSearch');
-    const typeF  = document.getElementById('typeFilter');
-    const statF  = document.getElementById('statusFilter');
-    const rows   = () => document.querySelectorAll('#coursesTable tbody tr[data-type]');
-
-    function filter() {
-        const q = search.value.toLowerCase();
-        const t = typeF.value;
-        const s = statF.value;
-        rows().forEach(r => {
-            const txt = r.innerText.toLowerCase();
-            const show = (!q || txt.includes(q))
-                      && (!t || r.dataset.type === t)
-                      && (!s || r.dataset.status === s);
-            r.style.display = show ? '' : 'none';
-        });
-    }
-
-    [search, typeF, statF].forEach(el => el.addEventListener('input', filter));
-})();
-</script>
 
 @endsection

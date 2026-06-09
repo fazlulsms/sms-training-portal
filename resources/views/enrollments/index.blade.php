@@ -42,6 +42,7 @@
             </select>
             <button class="btn btn-primary btn-sm" type="submit">Filter</button>
             <a href="/admin/enrollments" class="btn btn-ghost btn-sm">Reset</a>
+            <a href="/admin/enrollments/export?{{ http_build_query(request()->only(['search','payment_status','attendance_status','completion_status'])) }}" class="btn btn-secondary btn-sm">⬇ CSV</a>
         </div>
     </form>
 </div>

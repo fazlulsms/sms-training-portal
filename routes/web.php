@@ -11,6 +11,7 @@ use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportsController;
 
 use App\Http\Controllers\ElearningCourseController;
 use App\Http\Controllers\ElearningLessonController;
@@ -184,6 +185,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
     // Courses
     Route::get('/courses', [CourseController::class, 'index']);
+    Route::get('/courses/export', [CourseController::class, 'exportCsv'])->name('admin.courses.export');
     Route::get('/courses/create', [CourseController::class, 'create']);
     Route::post('/courses/store', [CourseController::class, 'store']);
     Route::get('/courses/edit/{id}', [CourseController::class, 'edit']);
@@ -200,6 +202,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
     // Training Schedules
     Route::get('/training-schedules', [TrainingScheduleController::class, 'index']);
+    Route::get('/training-schedules/export', [TrainingScheduleController::class, 'exportCsv'])->name('admin.training-schedules.export');
     Route::get('/training-schedules/create', [TrainingScheduleController::class, 'create']);
     Route::post('/training-schedules/store', [TrainingScheduleController::class, 'store']);
     Route::get('/training-schedules/edit/{id}', [TrainingScheduleController::class, 'edit']);
@@ -208,6 +211,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
     // Enrollments
     Route::get('/enrollments', [EnrollmentController::class, 'index']);
+    Route::get('/enrollments/export', [EnrollmentController::class, 'exportCsv'])->name('admin.enrollments.export');
     Route::get('/enrollments/create', [EnrollmentController::class, 'create']);
     Route::post('/enrollments/store', [EnrollmentController::class, 'store']);
     Route::get('/enrollments/edit/{id}', [EnrollmentController::class, 'edit']);
@@ -241,11 +245,40 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/invoices/enrollment/{id}/details', [InvoiceController::class, 'getEnrollmentDetails'])->name('invoices.enrollment.details');
     Route::get('/invoices/enrollment/{id}', [InvoiceController::class, 'getEnrollmentDetails']);
 
-    // Reports
-    Route::get('/reports/training', [ReportController::class, 'training']);
-    Route::get('/reports/participants', [ReportController::class, 'participants']);
-    Route::get('/reports/certificates', [ReportController::class, 'certificates']);
-    Route::get('/reports/payments', [ReportController::class, 'payments']);
+    // Legacy reports
+    Route::get('/reports/training',      [ReportController::class, 'training']);
+    Route::get('/reports/participants',  [ReportController::class, 'participants']);
+    Route::get('/reports/certificates',  [ReportController::class, 'certificates']);
+    Route::get('/reports/payments',      [ReportController::class, 'payments']);
+
+    // ── Reports & Analytics Module ─────────────────────────────────────────────
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/',            [ReportsController::class, 'index'])       ->name('index');
+        Route::get('/elearning',   [ReportsController::class, 'elearning'])   ->name('elearning');
+        Route::get('/ilt',         [ReportsController::class, 'ilt'])         ->name('ilt');
+        Route::get('/financial',   [ReportsController::class, 'financial'])   ->name('financial');
+        Route::get('/geographic',  [ReportsController::class, 'geographic'])  ->name('geographic');
+        Route::get('/export-center',[ReportsController::class,'exportCenter'])->name('export-center');
+
+        // eLearning exports
+        Route::get('/elearning/export/pdf',   [ReportsController::class, 'exportElearningPdf'])  ->name('elearning.pdf');
+        Route::get('/elearning/export/csv',   [ReportsController::class, 'exportElearningCsv'])  ->name('elearning.csv');
+        Route::get('/elearning/export/excel', [ReportsController::class, 'exportElearningExcel'])->name('elearning.excel');
+
+        // ILT exports
+        Route::get('/ilt/export/pdf',   [ReportsController::class, 'exportIltPdf'])  ->name('ilt.pdf');
+        Route::get('/ilt/export/csv',   [ReportsController::class, 'exportIltCsv'])  ->name('ilt.csv');
+        Route::get('/ilt/export/excel', [ReportsController::class, 'exportIltExcel'])->name('ilt.excel');
+
+        // Financial exports
+        Route::get('/financial/export/pdf',   [ReportsController::class, 'exportFinancialPdf'])  ->name('financial.pdf');
+        Route::get('/financial/export/csv',   [ReportsController::class, 'exportFinancialCsv'])  ->name('financial.csv');
+        Route::get('/financial/export/excel', [ReportsController::class, 'exportFinancialExcel'])->name('financial.excel');
+
+        // Geographic exports
+        Route::get('/geographic/export/pdf',  [ReportsController::class, 'exportGeographicPdf']) ->name('geographic.pdf');
+        Route::get('/geographic/export/csv',  [ReportsController::class, 'exportGeographicCsv']) ->name('geographic.csv');
+    });
 
     // Attendance (admin)
     Route::get('/attendance/{schedule}', [AttendanceController::class, 'sheet'])->name('attendance.sheet');
@@ -375,4 +408,80 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('testimonials/{testimonial}/reject',     [TestimonialController::class, 'reject']) ->name('testimonials.reject');
     Route::patch('testimonials/{testimonial}/feature',    [TestimonialController::class, 'feature'])->name('testimonials.feature');
     Route::delete('testimonials/{testimonial}',           [TestimonialController::class, 'destroy'])->name('testimonials.destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Corporate Training Module
+|--------------------------------------------------------------------------
+*/
+use App\Http\Controllers\Corporate\ProjectController      as CorpProjectController;
+use App\Http\Controllers\Corporate\SessionController      as CorpSessionController;
+use App\Http\Controllers\Corporate\ParticipantController  as CorpParticipantController;
+use App\Http\Controllers\Corporate\AttendanceController   as CorpAttendanceController;
+use App\Http\Controllers\Corporate\CertificateController  as CorpCertificateController;
+use App\Http\Controllers\Corporate\EvidenceController     as CorpEvidenceController;
+use App\Http\Controllers\Corporate\EvaluationController   as CorpEvaluationController;
+use App\Http\Controllers\Corporate\ReportController       as CorpReportController;
+
+Route::middleware(['auth', 'admin'])
+     ->prefix('corporate')
+     ->name('corporate.')
+     ->group(function () {
+
+    // ── Projects ────────────────────────────────────────────────
+    Route::get('projects',                    [CorpProjectController::class, 'index'])   ->name('projects.index');
+    Route::get('projects/create',             [CorpProjectController::class, 'create'])  ->name('projects.create');
+    Route::post('projects',                   [CorpProjectController::class, 'store'])   ->name('projects.store');
+    Route::get('projects/{project}',          [CorpProjectController::class, 'show'])    ->name('projects.show');
+    Route::get('projects/{project}/edit',     [CorpProjectController::class, 'edit'])    ->name('projects.edit');
+    Route::put('projects/{project}',          [CorpProjectController::class, 'update'])  ->name('projects.update');
+    Route::delete('projects/{project}',       [CorpProjectController::class, 'destroy']) ->name('projects.destroy');
+
+    // ── Sessions ────────────────────────────────────────────────
+    Route::get('sessions',                    [CorpSessionController::class, 'index'])   ->name('sessions.index');
+    Route::get('sessions/create',             [CorpSessionController::class, 'create'])  ->name('sessions.create');
+    Route::post('sessions',                   [CorpSessionController::class, 'store'])   ->name('sessions.store');
+    Route::get('sessions/{session}',          [CorpSessionController::class, 'show'])    ->name('sessions.show');
+    Route::get('sessions/{session}/edit',     [CorpSessionController::class, 'edit'])    ->name('sessions.edit');
+    Route::put('sessions/{session}',          [CorpSessionController::class, 'update'])  ->name('sessions.update');
+    Route::delete('sessions/{session}',       [CorpSessionController::class, 'destroy']) ->name('sessions.destroy');
+
+    // ── Participants (nested under sessions) ─────────────────────
+    Route::get('sessions/{session}/participants',              [CorpParticipantController::class, 'index'])       ->name('sessions.participants.index');
+    Route::get('sessions/{session}/participants/create',       [CorpParticipantController::class, 'create'])      ->name('sessions.participants.create');
+    Route::post('sessions/{session}/participants',             [CorpParticipantController::class, 'store'])       ->name('sessions.participants.store');
+    Route::get('sessions/{session}/participants/{participant}/edit',   [CorpParticipantController::class, 'edit'])    ->name('sessions.participants.edit');
+    Route::put('sessions/{session}/participants/{participant}',        [CorpParticipantController::class, 'update'])  ->name('sessions.participants.update');
+    Route::delete('sessions/{session}/participants/{participant}',     [CorpParticipantController::class, 'destroy']) ->name('sessions.participants.destroy');
+    Route::post('sessions/{session}/participants/bulk-delete',         [CorpParticipantController::class, 'bulkDestroy'])  ->name('sessions.participants.bulk-destroy');
+    Route::post('sessions/{session}/participants/import',              [CorpParticipantController::class, 'importCsv'])    ->name('sessions.participants.import');
+    Route::get('sessions/{session}/participants/export',               [CorpParticipantController::class, 'exportCsv'])    ->name('sessions.participants.export');
+    Route::get('participants/csv-template',                            [CorpParticipantController::class, 'csvTemplate'])  ->name('participants.csv-template');
+
+    // ── Attendance ───────────────────────────────────────────────
+    Route::get('sessions/{session}/attendance',             [CorpAttendanceController::class, 'sheet'])     ->name('sessions.attendance');
+    Route::post('sessions/{session}/attendance',            [CorpAttendanceController::class, 'save'])      ->name('sessions.attendance.save');
+    Route::post('sessions/{session}/attendance/bulk',       [CorpAttendanceController::class, 'bulkMark'])  ->name('sessions.attendance.bulk');
+    Route::get('sessions/{session}/attendance/export',      [CorpAttendanceController::class, 'exportCsv']) ->name('sessions.attendance.export');
+
+    // ── Certificates ─────────────────────────────────────────────
+    Route::get('sessions/{session}/certificates',              [CorpCertificateController::class, 'index'])          ->name('sessions.certificates.index');
+    Route::post('sessions/{session}/certificates/bulk',        [CorpCertificateController::class, 'generateBulk'])   ->name('sessions.certificates.bulk');
+    Route::post('sessions/{session}/certificates/{participant}/generate', [CorpCertificateController::class, 'generateSingle']) ->name('sessions.certificates.generate');
+    Route::get('sessions/{session}/certificates/zip',          [CorpCertificateController::class, 'downloadZip'])    ->name('sessions.certificates.zip');
+    Route::get('certificates/{certificate}/view',              [CorpCertificateController::class, 'view'])            ->name('certificates.view');
+
+    // ── Evidence ─────────────────────────────────────────────────
+    Route::get('sessions/{session}/evidence',              [CorpEvidenceController::class, 'index'])   ->name('sessions.evidence.index');
+    Route::post('sessions/{session}/evidence',             [CorpEvidenceController::class, 'store'])   ->name('sessions.evidence.store');
+    Route::delete('sessions/{session}/evidence/{evidence}',[CorpEvidenceController::class, 'destroy']) ->name('sessions.evidence.destroy');
+
+    // ── Evaluation ───────────────────────────────────────────────
+    Route::get('sessions/{session}/evaluation',             [CorpEvaluationController::class, 'index'])   ->name('sessions.evaluation.index');
+    Route::post('sessions/{session}/evaluation',            [CorpEvaluationController::class, 'store'])   ->name('sessions.evaluation.store');
+    Route::delete('sessions/{session}/evaluation/{evaluation}', [CorpEvaluationController::class, 'destroy']) ->name('sessions.evaluation.destroy');
+
+    // ── Reports ──────────────────────────────────────────────────
+    Route::get('projects/{project}/report', [CorpReportController::class, 'projectReport']) ->name('projects.report');
 });

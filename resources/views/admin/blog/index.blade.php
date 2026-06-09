@@ -23,8 +23,19 @@
 <div class="card" style="margin-bottom:20px;">
     <div class="card-body" style="padding:16px 20px;">
         <form method="GET" action="{{ route('admin.blog.index') }}" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-            <input type="text" name="q" value="{{ request('q') }}" placeholder="Search posts…"
-                   style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;width:240px;">
+            <div style="position:relative;">
+                <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#9ca3af;pointer-events:none;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </span>
+                <input type="text" name="q" value="{{ request('q') }}" placeholder="Search title or author…"
+                       style="padding:8px 12px 8px 30px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;width:220px;">
+            </div>
+            <select name="category_id" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;">
+                <option value="">All Categories</option>
+                @foreach($categories as $cat)
+                <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                @endforeach
+            </select>
             <select name="status" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;">
                 <option value="">All Statuses</option>
                 @foreach(['draft','published','archived'] as $s)
@@ -32,9 +43,10 @@
                 @endforeach
             </select>
             <button type="submit" class="btn btn-primary" style="padding:8px 16px;">Filter</button>
-            @if(request()->hasAny(['q','status']))
+            @if(request()->hasAny(['q','status','category_id']))
             <a href="{{ route('admin.blog.index') }}" style="font-size:13px;color:#6b7280;text-decoration:none;">✕ Clear</a>
             @endif
+            <div style="margin-left:auto;font-size:12.5px;color:#9ca3af;font-weight:600;">{{ $posts->total() }} post(s)</div>
         </form>
     </div>
 </div>
