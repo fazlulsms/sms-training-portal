@@ -148,6 +148,87 @@
         </form>
     </div>
 
+    {{-- ── Knowledge Test Assignment ────────────────────────────── --}}
+    @php
+        $examAssignment = $schedule->questionAssignment()->with('questionSet')->first();
+        $activeQS = \App\Models\QuestionSet::where('status','Active')->orderBy('title')->get();
+    @endphp
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:24px;margin-top:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+            <div>
+                <div style="font-size:14px;font-weight:800;color:#1e293b;">📋 Knowledge Test (Optional)</div>
+                <div style="font-size:12px;color:#64748b;margin-top:3px;">Require participants to pass an exam before certificate can be issued.</div>
+            </div>
+            <a href="/admin/training-exams/{{ $schedule->id }}/results"
+               style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;text-decoration:none;">
+                📊 View Exam Results
+            </a>
+        </div>
+
+        @if($examAssignment)
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+            <div>
+                <div style="font-size:13px;font-weight:800;color:#166534;">✅ Exam Assigned</div>
+                <div style="font-size:13px;color:#374151;margin-top:4px;">{{ $examAssignment->questionSet->title }}</div>
+                <div style="font-size:12px;color:#64748b;margin-top:2px;">
+                    {{ $examAssignment->questionSet->total_marks }} marks ·
+                    Pass: {{ $examAssignment->questionSet->effectivePassMark() }} ·
+                    Attempts: {{ $examAssignment->effectiveAttempts() }}
+                </div>
+            </div>
+            <form method="POST" action="/admin/training-schedules/{{ $schedule->id }}/assign-exam">
+                @csrf
+                <input type="hidden" name="require_exam" value="0">
+                <button type="submit" onclick="return confirm('Remove exam from this schedule?')"
+                        style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;">
+                    ✕ Remove Exam
+                </button>
+            </form>
+        </div>
+        @else
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;font-size:13px;color:#92400e;margin-bottom:14px;">
+            ℹ️ No exam assigned. Certificates can be issued based on attendance/completion only.
+        </div>
+        @endif
+
+        @if($activeQS->isNotEmpty())
+        <form method="POST" action="/admin/training-schedules/{{ $schedule->id }}/assign-exam">
+            @csrf
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+                <div style="flex:1;min-width:200px;">
+                    <label style="font-size:11px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:5px;">{{ $examAssignment ? 'Change' : 'Assign' }} Question Set</label>
+                    <select name="question_set_id" required class="form-control" style="margin-top:0;">
+                        <option value="">Select Question Set…</option>
+                        @foreach($activeQS as $qs)
+                        <option value="{{ $qs->id }}" {{ $examAssignment?->question_set_id == $qs->id ? 'selected' : '' }}>
+                            {{ $qs->title }} ({{ $qs->total_marks }} marks)
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div style="width:160px;">
+                    <label style="font-size:11px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:5px;">Override Attempts</label>
+                    <input type="number" name="allowed_attempts" class="form-control" style="margin-top:0;"
+                           value="{{ $examAssignment?->allowed_attempts }}" placeholder="(use default)" min="1" max="10">
+                </div>
+                <div>
+                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;cursor:pointer;color:#374151;margin-bottom:8px;">
+                        <input type="checkbox" name="exam_active_after_attendance" value="1"
+                               {{ $examAssignment?->exam_active_after_attendance !== false ? 'checked' : '' }}>
+                        Auto-send after attendance
+                    </label>
+                    <button type="submit"
+                            style="background:#1e3a8a;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;">
+                        📋 {{ $examAssignment ? 'Update' : 'Assign' }} Exam
+                    </button>
+                </div>
+            </div>
+        </form>
+        @else
+        <div style="font-size:13px;color:#94a3b8;">No active question sets available. <a href="/admin/question-sets/create" style="color:#1d4ed8;">Create one</a> first.</div>
+        @endif
+    </div>
+
 </div>
 
 <style>

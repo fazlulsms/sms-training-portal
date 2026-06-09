@@ -33,6 +33,7 @@ class Enrollment extends Model
         'certificate_email_sent_at',
         'certificate_generated_by',
         'certificate_generated_at',
+        'exam_email_sent', 'exam_email_sent_at',
         'remarks',
     ];
 
@@ -40,6 +41,8 @@ class Enrollment extends Model
         'certificate_email_sent'    => 'boolean',
         'certificate_email_sent_at' => 'datetime',
         'certificate_generated_at'  => 'datetime',
+        'exam_email_sent'           => 'boolean',
+        'exam_email_sent_at'        => 'datetime',
     ];
 
     public function trainingSchedule()
@@ -50,5 +53,15 @@ class Enrollment extends Model
     public function schedule()
     {
         return $this->belongsTo(\App\Models\TrainingSchedule::class, 'training_schedule_id');
+    }
+
+    public function testAttempts()
+    {
+        return $this->hasMany(\App\Models\ParticipantTestAttempt::class);
+    }
+
+    public function testResult()
+    {
+        return $this->hasOne(\App\Models\ParticipantTestResult::class);
     }
 }

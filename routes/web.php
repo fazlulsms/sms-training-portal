@@ -35,6 +35,9 @@ use App\Http\Controllers\PublicController;
 use App\Http\Controllers\PublicEnrollmentController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\TestimonialController;
+use App\Http\Controllers\QuestionSetController;
+use App\Http\Controllers\TrainingExamController;
+use App\Http\Controllers\ParticipantExamController;
 
 /*
 |--------------------------------------------------------------------------
@@ -165,6 +168,11 @@ Route::get('/elearning-register/{course}', [ElearningEnrollmentController::class
     ->name('elearning.public.register');
 Route::post('/elearning-register/{course}', [ElearningEnrollmentController::class, 'publicRegisterStore'])
     ->name('elearning.public.register.store');
+// ── Participant Exam (public — secure token-based, no auth) ──────────────
+Route::get('/exam/{token}',        [ParticipantExamController::class, 'show'])   ->name('exam.show');
+Route::post('/exam/{token}/submit',[ParticipantExamController::class, 'submit']) ->name('exam.submit');
+Route::get('/exam/{token}/result', [ParticipantExamController::class, 'result']) ->name('exam.result');
+
 // Manual training certificate verification (public)
 Route::get('/verify-certificate', [EnrollmentController::class, 'verifyForm']);
 Route::post('/verify-certificate', [EnrollmentController::class, 'verifyCertificate']);
@@ -287,6 +295,27 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         Route::get('/geographic/export/pdf',  [ReportsController::class, 'exportGeographicPdf']) ->name('geographic.pdf');
         Route::get('/geographic/export/csv',  [ReportsController::class, 'exportGeographicCsv']) ->name('geographic.csv');
     });
+
+    // ── Question Sets ─────────────────────────────────────────────────────
+    Route::get('/question-sets', [QuestionSetController::class, 'index'])->name('question-sets.index');
+    Route::get('/question-sets/create', [QuestionSetController::class, 'create'])->name('question-sets.create');
+    Route::post('/question-sets/store', [QuestionSetController::class, 'store'])->name('question-sets.store');
+    Route::get('/question-sets/edit/{id}', [QuestionSetController::class, 'edit'])->name('question-sets.edit');
+    Route::post('/question-sets/update/{id}', [QuestionSetController::class, 'update'])->name('question-sets.update');
+    Route::get('/question-sets/delete/{id}', [QuestionSetController::class, 'delete'])->name('question-sets.delete');
+    Route::get('/question-sets/{id}/questions', [QuestionSetController::class, 'questions'])->name('question-sets.questions');
+    Route::post('/question-sets/{id}/questions/store', [QuestionSetController::class, 'storeQuestion'])->name('question-sets.questions.store');
+    Route::get('/question-sets/{setId}/questions/edit/{qId}', [QuestionSetController::class, 'editQuestion'])->name('question-sets.questions.edit');
+    Route::post('/question-sets/{setId}/questions/update/{qId}', [QuestionSetController::class, 'updateQuestion'])->name('question-sets.questions.update');
+    Route::get('/question-sets/{setId}/questions/delete/{qId}', [QuestionSetController::class, 'deleteQuestion'])->name('question-sets.questions.delete');
+
+    // ── Training Exams ────────────────────────────────────────────────────
+    Route::post('/training-schedules/{id}/assign-exam', [TrainingExamController::class, 'assignExam'])->name('training-exams.assign');
+    Route::get('/training-exams/{scheduleId}/results', [TrainingExamController::class, 'scheduleResults'])->name('training-exams.results');
+    Route::get('/training-exams/answers/{attemptId}', [TrainingExamController::class, 'viewAnswers'])->name('training-exams.answers');
+    Route::post('/training-exams/grade/{attemptId}', [TrainingExamController::class, 'grade'])->name('training-exams.grade');
+    Route::post('/training-exams/reset-attempt/{enrollmentId}', [TrainingExamController::class, 'resetAttempt'])->name('training-exams.reset');
+    Route::post('/training-exams/send-reminder/{enrollmentId}', [TrainingExamController::class, 'sendReminder'])->name('training-exams.reminder');
 
     // Attendance (admin)
     Route::get('/attendance/{schedule}', [AttendanceController::class, 'sheet'])->name('attendance.sheet');

@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Enrollment;
 use App\Models\TrainingAttendance;
+use App\Models\TrainingQuestionAssignment;
 use App\Models\TrainingSchedule;
+use App\Services\ExamService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
@@ -119,6 +121,16 @@ class AttendanceController extends Controller
             default                       => 'Partial',
         };
 
+        $oldStatus = $enrollment->attendance_status;
         $enrollment->update(['attendance_status' => $summary]);
+
+        // Send exam email if newly marked as attended
+        $attended = ['Present', 'Partial', 'Late'];
+        if (in_array($summary, $attended) && !in_array($oldStatus, $attended)) {
+            $assignment = TrainingQuestionAssignment::where('training_schedule_id', $scheduleId)->first();
+            if ($assignment && $assignment->exam_active_after_attendance && !$enrollment->exam_email_sent) {
+                ExamService::sendExamEmail($enrollment->fresh());
+            }
+        }
     }
 }

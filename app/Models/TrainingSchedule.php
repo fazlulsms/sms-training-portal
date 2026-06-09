@@ -55,4 +55,14 @@ class TrainingSchedule extends Model
     {
         return $this->hasMany(Enrollment::class, 'training_schedule_id');
     }
+
+    public function questionAssignment()
+    {
+        return $this->hasOne(\App\Models\TrainingQuestionAssignment::class);
+    }
+
+    public function hasExamRequired(): bool
+    {
+        return $this->questionAssignment !== null;
+    }
 }

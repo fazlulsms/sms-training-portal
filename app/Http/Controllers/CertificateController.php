@@ -304,8 +304,26 @@ class CertificateController extends Controller
 
     private function isEligible(Enrollment $enrollment): bool
     {
-        return in_array($enrollment->attendance_status, self::ELIGIBLE_ATTENDANCE)
-            && $enrollment->completion_status === 'Completed';
+        // Base attendance + completion check
+        if (!in_array($enrollment->attendance_status, self::ELIGIBLE_ATTENDANCE)
+            || $enrollment->completion_status !== 'Completed') {
+            return false;
+        }
+
+        // If the schedule has an exam assigned, participant must have passed
+        $enrollment->loadMissing('trainingSchedule');
+        $assignment = \App\Models\TrainingQuestionAssignment::where(
+            'training_schedule_id', $enrollment->training_schedule_id
+        )->first();
+
+        if ($assignment) {
+            $result = $enrollment->testResult;
+            if (!$result || !$result->certificate_eligible) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function generateCertNumber(): string

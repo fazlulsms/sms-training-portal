@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Enrollment;
+use App\Models\TrainingQuestionAssignment;
 use App\Models\TrainingSchedule;
+use App\Services\ExamService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -110,7 +112,19 @@ class TrainerPortalController extends Controller
             'attendance_status' => 'required|in:Pending,Present,Absent,Partial,Late',
         ]);
 
-        $enrollment->update(['attendance_status' => $request->attendance_status]);
+        $oldStatus  = $enrollment->attendance_status;
+        $newStatus  = $request->attendance_status;
+
+        $enrollment->update(['attendance_status' => $newStatus]);
+
+        // If newly marked as attended (and has exam assigned) → send exam email
+        $attended = ['Present', 'Partial', 'Late', 'Attended'];
+        if (in_array($newStatus, $attended) && !in_array($oldStatus, $attended)) {
+            $assignment = TrainingQuestionAssignment::where('training_schedule_id', $enrollment->training_schedule_id)->first();
+            if ($assignment && $assignment->exam_active_after_attendance && !$enrollment->exam_email_sent) {
+                ExamService::sendExamEmail($enrollment->fresh());
+            }
+        }
 
         return back()->with('success', 'Attendance updated.');
     }
