@@ -46,7 +46,7 @@ html, body {
 
 /* Header */
 .hdr-logo { margin-bottom: 2mm; }
-.hdr-logo img { height: 16mm; }
+.hdr-logo img { height: 19.2mm; }
 .hdr-name {
     font-size: 11pt; font-weight: 800; color: #0f2055;
     letter-spacing: 1.2px; text-transform: uppercase;
