@@ -117,12 +117,15 @@ class TrainerPortalController extends Controller
 
         $enrollment->update(['attendance_status' => $newStatus]);
 
-        // If newly marked as attended (and has exam assigned) → send exam email
+        // Send exam email whenever attendance is an attended status and email not yet sent
         $attended = ['Present', 'Partial', 'Late', 'Attended'];
-        if (in_array($newStatus, $attended) && !in_array($oldStatus, $attended)) {
-            $assignment = TrainingQuestionAssignment::where('training_schedule_id', $enrollment->training_schedule_id)->first();
-            if ($assignment && $assignment->exam_active_after_attendance && !$enrollment->exam_email_sent) {
-                ExamService::sendExamEmail($enrollment->fresh());
+        if (in_array($newStatus, $attended)) {
+            $freshEnrollment = $enrollment->fresh();
+            if (!$freshEnrollment->exam_email_sent) {
+                $assignment = TrainingQuestionAssignment::where('training_schedule_id', $enrollment->training_schedule_id)->first();
+                if ($assignment && $assignment->exam_active_after_attendance) {
+                    ExamService::sendExamEmail($freshEnrollment);
+                }
             }
         }
 

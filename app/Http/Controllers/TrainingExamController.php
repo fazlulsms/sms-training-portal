@@ -32,7 +32,7 @@ class TrainingExamController extends Controller
             'exam_active_after_attendance' => 'nullable|boolean',
         ]);
 
-        TrainingQuestionAssignment::updateOrCreate(
+        $assignment = TrainingQuestionAssignment::updateOrCreate(
             ['training_schedule_id' => $scheduleId],
             [
                 'question_set_id'              => $validated['question_set_id'],
@@ -40,6 +40,34 @@ class TrainingExamController extends Controller
                 'exam_active_after_attendance' => $request->boolean('exam_active_after_attendance', true),
             ]
         );
+
+        // ── Retroactively send exam emails to already-attended participants ──
+        if ($assignment->exam_active_after_attendance) {
+            $attended = ['Present', 'Partial', 'Late', 'Attended'];
+            $pending  = Enrollment::where('training_schedule_id', $scheduleId)
+                ->whereIn('attendance_status', $attended)
+                ->where(function ($q) {
+                    $q->where('exam_email_sent', false)->orWhereNull('exam_email_sent');
+                })
+                ->get();
+
+            $sent = 0;
+            foreach ($pending as $enrollment) {
+                try {
+                    ExamService::sendExamEmail($enrollment->fresh());
+                    $sent++;
+                } catch (\Throwable $e) {
+                    // log but don't break
+                    \Log::error('ExamService::sendExamEmail failed for enrollment '.$enrollment->id.': '.$e->getMessage());
+                }
+            }
+
+            $msg = 'Exam assigned to training schedule.';
+            if ($sent > 0) {
+                $msg .= " Exam invitation sent to {$sent} already-attended participant(s).";
+            }
+            return back()->with('success', $msg);
+        }
 
         return back()->with('success', 'Exam assigned to training schedule.');
     }

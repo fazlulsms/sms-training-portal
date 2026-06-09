@@ -124,12 +124,15 @@ class AttendanceController extends Controller
         $oldStatus = $enrollment->attendance_status;
         $enrollment->update(['attendance_status' => $summary]);
 
-        // Send exam email if newly marked as attended
+        // Send exam email whenever attendance resolves to an attended status and email not yet sent
         $attended = ['Present', 'Partial', 'Late'];
-        if (in_array($summary, $attended) && !in_array($oldStatus, $attended)) {
-            $assignment = TrainingQuestionAssignment::where('training_schedule_id', $scheduleId)->first();
-            if ($assignment && $assignment->exam_active_after_attendance && !$enrollment->exam_email_sent) {
-                ExamService::sendExamEmail($enrollment->fresh());
+        if (in_array($summary, $attended)) {
+            $freshEnrollment = $enrollment->fresh();
+            if (!$freshEnrollment->exam_email_sent) {
+                $assignment = TrainingQuestionAssignment::where('training_schedule_id', $scheduleId)->first();
+                if ($assignment && $assignment->exam_active_after_attendance) {
+                    ExamService::sendExamEmail($freshEnrollment);
+                }
             }
         }
     }
