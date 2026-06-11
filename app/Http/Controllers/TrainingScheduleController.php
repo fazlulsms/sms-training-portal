@@ -106,22 +106,18 @@ class TrainingScheduleController extends Controller
             'status' => 'required|in:Open,Closed,Completed,Postponed,Cancelled',
         ]);
 
-        TrainingSchedule::create($request->only([
-            'course_id',
-            'trainer_id',
-            'batch_code',
-            'start_date',
-            'end_date',
-            'duration',
-            'training_mode',
-            'currency',
-            'physical_fee',
-            'online_fee',
-            'venue',
-            'zoom_link',
-            'max_participants',
-            'status',
-        ]));
+        $data = $request->only([
+            'course_id', 'trainer_id', 'batch_code', 'training_title',
+            'start_date', 'end_date', 'duration', 'training_mode', 'currency',
+            'physical_fee', 'online_fee', 'discount_fee',
+            'venue', 'city', 'country', 'zoom_link', 'max_participants',
+            'available_seats', 'status', 'schedule_status',
+            'registration_deadline', 'time_start', 'time_end',
+        ]);
+        $data['is_public']   = $request->boolean('is_public');
+        $data['is_featured'] = $request->boolean('is_featured');
+
+        TrainingSchedule::create($data);
 
         return redirect('/training-schedules')->with('success', 'Training Schedule Added Successfully');
     }
@@ -156,22 +152,18 @@ class TrainingScheduleController extends Controller
 
         $schedule = TrainingSchedule::findOrFail($id);
 
-        $schedule->update($request->only([
-            'course_id',
-            'trainer_id',
-            'batch_code',
-            'start_date',
-            'end_date',
-            'duration',
-            'training_mode',
-            'currency',
-            'physical_fee',
-            'online_fee',
-            'venue',
-            'zoom_link',
-            'max_participants',
-            'status',
-        ]));
+        $data = $request->only([
+            'course_id', 'trainer_id', 'batch_code', 'training_title',
+            'start_date', 'end_date', 'duration', 'training_mode', 'currency',
+            'physical_fee', 'online_fee', 'discount_fee',
+            'venue', 'city', 'country', 'zoom_link', 'max_participants',
+            'available_seats', 'status', 'schedule_status',
+            'registration_deadline', 'time_start', 'time_end',
+        ]);
+        $data['is_public']   = $request->boolean('is_public');
+        $data['is_featured'] = $request->boolean('is_featured');
+
+        $schedule->update($data);
 
         return redirect('/training-schedules')->with('success', 'Training Schedule Updated Successfully');
     }

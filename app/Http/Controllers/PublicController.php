@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\CourseCategory;
 use App\Models\TrainingSchedule;
+use App\Models\Trainer;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
 use App\Models\Testimonial;
@@ -18,6 +20,7 @@ class PublicController extends Controller
         $featuredCourses = Course::where('is_public', true)
             ->where('is_featured', true)
             ->withCount(['trainingSchedules as open_schedules_count' => fn($q) => $q->where('is_public', true)])
+            ->orderBy('featured_order')
             ->latest()
             ->take(6)
             ->get();
@@ -38,13 +41,24 @@ class PublicController extends Controller
             ->get();
 
         $featuredTestimonials = Testimonial::featured()->latest()->take(6)->get();
-        $latestBlogs = BlogPost::published()->with('category')->latest('published_at')->take(3)->get();
+        $latestBlogs          = BlogPost::published()->with('category')->latest('published_at')->take(3)->get();
+        $featuredTrainers     = Trainer::where('is_public', true)->where('status', 1)
+                                    ->orderBy('display_order')->take(6)->get();
 
-        $categories = Course::where('is_public', true)
-            ->select('category')
-            ->whereNotNull('category')
-            ->distinct()
-            ->pluck('category');
+        $categories = CourseCategory::where('is_public', true)
+            ->withCount('publicCourses')
+            ->orderBy('display_order')
+            ->get();
+
+        // Fall back to string-based categories if none in course_categories table
+        if ($categories->isEmpty()) {
+            $categories = Course::where('is_public', true)
+                ->select('category')
+                ->whereNotNull('category')
+                ->distinct()
+                ->pluck('category')
+                ->map(fn($c) => (object)['name' => $c, 'slug' => \Illuminate\Support\Str::slug($c), 'icon' => null]);
+        }
 
         $stats = [
             'courses'      => Course::where('is_public', true)->count(),
@@ -55,7 +69,7 @@ class PublicController extends Controller
 
         return view('public.home', compact(
             'featuredCourses', 'elearningCourses', 'upcomingSchedules',
-            'featuredTestimonials', 'latestBlogs', 'categories', 'stats'
+            'featuredTestimonials', 'latestBlogs', 'categories', 'stats', 'featuredTrainers'
         ));
     }
 
@@ -134,13 +148,44 @@ class PublicController extends Controller
             $query->whereMonth('start_date', Carbon::parse($request->month)->month)
                   ->whereYear('start_date',  Carbon::parse($request->month)->year);
         }
-        if ($request->filled('mode'))   $query->where('training_mode', $request->mode);
-        if ($request->filled('course')) $query->where('course_id', $request->course);
+        if ($request->filled('mode'))    $query->where('training_mode', $request->mode);
+        if ($request->filled('course'))  $query->where('course_id', $request->course);
+        if ($request->filled('city'))    $query->where('city', $request->city);
+        if ($request->filled('country')) $query->where('country', $request->country);
+        if ($request->filled('trainer')) $query->where('trainer_id', $request->trainer);
 
         $schedules = $query->orderBy('start_date')->paginate(15)->withQueryString();
         $courses   = Course::where('is_public', true)->select('id','name')->get();
+        $trainers  = Trainer::where('status', 1)->select('id','name')->get();
+        $cities    = TrainingSchedule::where('is_public', true)->whereNotNull('city')
+                        ->distinct()->orderBy('city')->pluck('city');
+        $countries = TrainingSchedule::where('is_public', true)->whereNotNull('country')
+                        ->distinct()->orderBy('country')->pluck('country');
 
-        return view('public.calendar', compact('schedules', 'courses'));
+        return view('public.calendar', compact('schedules', 'courses', 'trainers', 'cities', 'countries'));
+    }
+
+    // ── Trainer Directory ─────────────────────────────────────
+    public function trainers(Request $request)
+    {
+        $trainers = Trainer::where('is_public', true)
+            ->where('status', 1)
+            ->orderBy('display_order')
+            ->orderBy('name')
+            ->get();
+
+        return view('public.trainers', compact('trainers'));
+    }
+
+    // ── Trainer Profile ───────────────────────────────────────
+    public function trainerProfile($id)
+    {
+        $trainer = Trainer::where('is_public', true)
+            ->where('status', 1)
+            ->with(['publicSchedules.course'])
+            ->findOrFail($id);
+
+        return view('public.trainer-profile', compact('trainer'));
     }
 
     // ── Blog Listing ──────────────────────────────────────────

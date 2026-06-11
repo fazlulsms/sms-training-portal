@@ -12,14 +12,15 @@ class TrainingSchedule extends Model
         'course_id', 'trainer_id', 'batch_code', 'training_title',
         'start_date', 'end_date', 'duration', 'currency',
         'physical_fee', 'online_fee', 'discount_fee',
-        'venue', 'zoom_link', 'training_mode',
+        'venue', 'city', 'country', 'zoom_link', 'training_mode',
         'max_participants', 'available_seats', 'fee', 'status',
-        'is_public', 'schedule_status',
+        'is_public', 'is_featured', 'schedule_status',
         'registration_deadline', 'time_start', 'time_end',
     ];
 
     protected $casts = [
         'is_public'             => 'boolean',
+        'is_featured'           => 'boolean',
         'start_date'            => 'date',
         'end_date'              => 'date',
         'registration_deadline' => 'date',

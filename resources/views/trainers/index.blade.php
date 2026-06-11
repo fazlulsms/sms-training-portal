@@ -4,7 +4,7 @@
 
 <x-page-header title="Trainers" desc="Manage trainer profiles and assignments.">
     <x-slot:actions>
-        <a href="/trainers/create" class="btn btn-primary btn-sm">
+        <a href="/admin/trainers/create" class="btn btn-primary btn-sm">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Add Trainer
         </a>
@@ -14,7 +14,7 @@
 <x-flash-message />
 
 <div class="filter-bar">
-    <form method="GET" action="/trainers">
+    <form method="GET" action="/admin/trainers">
         <div class="filter-row">
             <div class="fi-search-wrap" style="flex:1;min-width:220px;">
                 <span class="fi-search-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
@@ -26,7 +26,7 @@
                 <option value="0" {{ request('status')==='0' ? 'selected':'' }}>Inactive</option>
             </select>
             <button class="btn btn-primary btn-sm" type="submit">Search</button>
-            <a href="/trainers" class="btn btn-ghost btn-sm">Reset</a>
+            <a href="/admin/trainers" class="btn btn-ghost btn-sm">Reset</a>
         </div>
     </form>
 </div>
@@ -65,8 +65,8 @@
                     </td>
                     <td class="c">
                         <div class="dt-actions" style="justify-content:center;">
-                            <a href="/trainers/edit/{{ $trainer->id }}" class="btn btn-edit btn-xs">Edit</a>
-                            <a href="/trainers/delete/{{ $trainer->id }}"
+                            <a href="/admin/trainers/edit/{{ $trainer->id }}" class="btn btn-edit btn-xs">Edit</a>
+                            <a href="/admin/trainers/delete/{{ $trainer->id }}"
                                onclick="return confirm('Delete trainer {{ addslashes($trainer->name) }}?')"
                                class="btn btn-del btn-xs">Delete</a>
                         </div>
@@ -81,7 +81,7 @@
                             </div>
                             <p class="empty-title">No trainers found</p>
                             <p class="empty-desc">Add your first trainer to get started.</p>
-                            <a href="/trainers/create" class="btn btn-primary btn-sm">Add Trainer</a>
+                            <a href="/admin/trainers/create" class="btn btn-primary btn-sm">Add Trainer</a>
                         </div>
                     </td>
                 </tr>

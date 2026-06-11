@@ -38,6 +38,8 @@ use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\QuestionSetController;
 use App\Http\Controllers\TrainingExamController;
 use App\Http\Controllers\ParticipantExamController;
+use App\Http\Controllers\CourseCategoryController;
+use App\Http\Controllers\CorporateInquiryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,6 +56,12 @@ Route::name('public.')->group(function () {
     Route::get('/reviews',                      [PublicController::class, 'testimonials'])      ->name('testimonials');
     Route::post('/reviews/submit',              [PublicController::class, 'testimonialSubmit']) ->name('testimonials.submit');
     Route::get('/verify',                       [PublicController::class, 'verifyCertificate']) ->name('verify-certificate');
+    // Trainer directory
+    Route::get('/trainers',                     [PublicController::class, 'trainers'])          ->name('trainers');
+    Route::get('/trainers/{id}',                [PublicController::class, 'trainerProfile'])    ->name('trainer.profile');
+    // Corporate training
+    Route::get('/corporate-training',           [CorporateInquiryController::class, 'publicPage'])  ->name('corporate');
+    Route::post('/corporate-training',          [CorporateInquiryController::class, 'publicStore']) ->name('corporate.submit');
 
     // Public enrollment flow
     Route::get('/enroll/{scheduleId}',          [PublicEnrollmentController::class, 'show'])    ->name('enroll');
@@ -200,6 +208,19 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/courses/edit/{id}', [CourseController::class, 'edit']);
     Route::post('/courses/update/{id}', [CourseController::class, 'update']);
     Route::get('/courses/delete/{id}', [CourseController::class, 'delete']);
+
+    // Course Categories
+    Route::get('/course-categories', [CourseCategoryController::class, 'index']);
+    Route::get('/course-categories/create', [CourseCategoryController::class, 'create']);
+    Route::post('/course-categories/store', [CourseCategoryController::class, 'store']);
+    Route::get('/course-categories/edit/{id}', [CourseCategoryController::class, 'edit']);
+    Route::post('/course-categories/update/{id}', [CourseCategoryController::class, 'update']);
+    Route::get('/course-categories/delete/{id}', [CourseCategoryController::class, 'destroy']);
+
+    // Corporate Inquiries (admin view)
+    Route::get('/corporate-inquiries', [CorporateInquiryController::class, 'index']);
+    Route::get('/corporate-inquiries/{id}', [CorporateInquiryController::class, 'show']);
+    Route::post('/corporate-inquiries/{id}/update', [CorporateInquiryController::class, 'update']);
 
     // Trainers
     Route::get('/trainers', [TrainerController::class, 'index']);
@@ -367,6 +388,7 @@ Route::middleware(['auth', 'admin'])->prefix('elearning')->name('elearning.')->g
     Route::get('courses/{course}/lessons/create', [ElearningLessonController::class, 'create'])->name('lessons.create');
     Route::post('courses/{course}/lessons', [ElearningLessonController::class, 'store'])->name('lessons.store');
     Route::get('courses/{course}/lessons/{lesson}/edit', [ElearningLessonController::class, 'edit'])->name('lessons.edit');
+    Route::get('courses/{course}/lessons/{lesson}/preview', [ElearningLessonController::class, 'preview'])->name('lessons.preview');
     Route::put('courses/{course}/lessons/{lesson}', [ElearningLessonController::class, 'update'])->name('lessons.update');
     Route::delete('courses/{course}/lessons/{lesson}', [ElearningLessonController::class, 'destroy'])->name('lessons.destroy');
 

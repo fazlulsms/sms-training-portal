@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Course;
+use App\Models\CourseCategory;
 
 class CourseController extends Controller
 {
@@ -66,56 +67,84 @@ class CourseController extends Controller
 
     public function create()
     {
-        return view('courses.create');
+        $categories = CourseCategory::orderBy('name')->get();
+        return view('courses.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'nullable|string|max:100',
-            'status' => 'required|in:0,1',
-            'course_type' => 'required|in:manual,elearning',
-            'certification_remarks' => 'nullable|string',
+            'name'                 => 'required|string|max:255',
+            'code'                 => 'nullable|string|max:100',
+            'status'               => 'required|in:0,1',
+            'course_type'          => 'required|in:manual,elearning',
+            'slug'                 => 'nullable|string|max:255|unique:courses,slug',
+            'banner_image'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
 
-        Course::create([
-            'name' => $request->name,
-            'code' => $request->code,
-            'status' => $request->status,
-            'course_type' => $request->course_type,
-            'certification_remarks' => $request->certification_remarks,
+        $data = $request->only([
+            'name', 'code', 'slug', 'category', 'category_id', 'status', 'course_type',
+            'delivery_type', 'language', 'duration', 'cpd_hours',
+            'short_description', 'full_description', 'learning_objectives',
+            'course_outline', 'who_should_attend', 'prerequisites',
+            'certificate_type', 'certification_remarks', 'certification_info',
+            'course_fee', 'public_price',
+            'is_public', 'is_featured', 'display_order', 'featured_order',
+            'course_video_url', 'faq', 'seo_title', 'seo_description', 'seo_keywords',
         ]);
+
+        $data['is_public']   = $request->boolean('is_public');
+        $data['is_featured'] = $request->boolean('is_featured');
+
+        if ($request->hasFile('banner_image')) {
+            $data['banner_image'] = $request->file('banner_image')->store('courses', 'public');
+        }
+
+        Course::create($data);
 
         return redirect('/courses')->with('success', 'Course Added Successfully');
     }
 
     public function edit($id)
     {
-        $course = Course::findOrFail($id);
+        $course     = Course::findOrFail($id);
+        $categories = CourseCategory::orderBy('name')->get();
 
-        return view('courses.edit', compact('course'));
+        return view('courses.edit', compact('course', 'categories'));
     }
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'nullable|string|max:100',
-            'status' => 'required|in:0,1',
-            'course_type' => 'required|in:manual,elearning',
-            'certification_remarks' => 'nullable|string',
-        ]);
-
         $course = Course::findOrFail($id);
 
-        $course->update([
-            'name' => $request->name,
-            'code' => $request->code,
-            'status' => $request->status,
-            'course_type' => $request->course_type,
-            'certification_remarks' => $request->certification_remarks,
+        $request->validate([
+            'name'         => 'required|string|max:255',
+            'code'         => 'nullable|string|max:100',
+            'status'       => 'required|in:0,1',
+            'course_type'  => 'required|in:manual,elearning',
+            'slug'         => 'nullable|string|max:255|unique:courses,slug,' . $id,
+            'banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
+
+        $data = $request->only([
+            'name', 'code', 'slug', 'category', 'category_id', 'status', 'course_type',
+            'delivery_type', 'language', 'duration', 'cpd_hours',
+            'short_description', 'full_description', 'learning_objectives',
+            'course_outline', 'who_should_attend', 'prerequisites',
+            'certificate_type', 'certification_remarks', 'certification_info',
+            'course_fee', 'public_price',
+            'is_public', 'is_featured', 'display_order', 'featured_order',
+            'course_video_url', 'faq', 'seo_title', 'seo_description', 'seo_keywords',
+        ]);
+
+        $data['is_public']   = $request->boolean('is_public');
+        $data['is_featured'] = $request->boolean('is_featured');
+
+        if ($request->hasFile('banner_image')) {
+            $data['banner_image'] = $request->file('banner_image')->store('courses', 'public');
+        }
+
+        $course->update($data);
 
         return redirect('/courses')->with('success', 'Course Updated Successfully');
     }

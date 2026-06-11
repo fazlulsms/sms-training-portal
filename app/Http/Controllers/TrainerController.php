@@ -21,9 +21,23 @@ class TrainerController extends Controller
 
     public function store(Request $request)
     {
-        Trainer::create($request->only([
-            'name', 'designation', 'organization', 'email', 'phone', 'qualification', 'status',
-        ]));
+        $request->validate([
+            'name'  => 'required|string|max:255',
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
+
+        $data = $request->only([
+            'name', 'designation', 'organization', 'email', 'phone',
+            'qualification', 'short_bio', 'expertise_areas', 'certifications',
+            'experience', 'display_order', 'status',
+        ]);
+        $data['is_public'] = $request->boolean('is_public');
+
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $request->file('photo')->store('trainers', 'public');
+        }
+
+        Trainer::create($data);
 
         return redirect('/trainers')->with('success', 'Trainer added successfully.');
     }
@@ -40,11 +54,22 @@ class TrainerController extends Controller
     {
         $trainer = Trainer::findOrFail($id);
 
-        $trainer->update($request->only([
-            'name', 'designation', 'organization', 'email', 'phone', 'qualification', 'status', 'user_id',
-        ]));
+        $request->validate([
+            'name'  => 'required|string|max:255',
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
 
-        // Guard: never change the currently logged-in user's own role.
+        $data = $request->only([
+            'name', 'designation', 'organization', 'email', 'phone',
+            'qualification', 'short_bio', 'expertise_areas', 'certifications',
+            'experience', 'display_order', 'status', 'user_id',
+        ]);
+        $data['is_public'] = $request->boolean('is_public');
+
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $request->file('photo')->store('trainers', 'public');
+        }
+
         $newUserId = $request->input('user_id') ?: null;
 
         if ($newUserId && $newUserId == auth()->id()) {
@@ -52,7 +77,6 @@ class TrainerController extends Controller
                 ->with('error', 'You cannot link your own account to a trainer profile. Create a separate user account for the trainer.');
         }
 
-        // Revert role on previously linked user if changed
         if ($trainer->getOriginal('user_id') && $trainer->getOriginal('user_id') != $newUserId) {
             User::where('id', $trainer->getOriginal('user_id'))->update(['role' => 'admin']);
         }
@@ -61,6 +85,8 @@ class TrainerController extends Controller
             User::where('id', $newUserId)->update(['role' => 'trainer']);
         }
 
+        $trainer->update($data);
+
         return redirect('/trainers')->with('success', 'Trainer updated successfully.');
     }
 
@@ -68,7 +94,6 @@ class TrainerController extends Controller
     {
         $trainer = Trainer::findOrFail($id);
 
-        // Revert linked user's role before deleting
         if ($trainer->user_id) {
             User::where('id', $trainer->user_id)->update(['role' => 'admin']);
         }

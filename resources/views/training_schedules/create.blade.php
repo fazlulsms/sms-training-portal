@@ -79,6 +79,17 @@
             <label style="display:block; margin-top:15px;">Venue</label>
             <input type="text" name="venue" class="form-control">
 
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:15px;">
+                <div>
+                    <label>City</label>
+                    <input type="text" name="city" class="form-control" placeholder="e.g. Dhaka">
+                </div>
+                <div>
+                    <label>Country</label>
+                    <input type="text" name="country" class="form-control" placeholder="e.g. Bangladesh">
+                </div>
+            </div>
+
             <label style="display:block; margin-top:15px;">Zoom Link</label>
             <input type="text" name="zoom_link" class="form-control">
 
@@ -87,18 +98,65 @@
                     <label>Maximum Participants</label>
                     <input type="number" name="max_participants" class="form-control">
                 </div>
-
                 <div>
-                    <label>Status</label>
-                    <select name="status" class="form-control">
-    <option value="Open">Open</option>
-    <option value="Closed">Closed</option>
-    <option value="Completed">Completed</option>
-    <option value="Postponed">Postponed</option>
-    <option value="Cancelled">Cancelled</option>
-</select>
-
+                    <label>Available Seats (auto-calc or set manually)</label>
+                    <input type="number" name="available_seats" class="form-control">
                 </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:15px;">
+                <div>
+                    <label>Status (legacy)</label>
+                    <select name="status" class="form-control">
+                        <option value="Open">Open</option>
+                        <option value="Closed">Closed</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Postponed">Postponed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Schedule Status (public)</label>
+                    <select name="schedule_status" class="form-control">
+                        <option value="Upcoming">Upcoming</option>
+                        <option value="Running">Running</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:15px;">
+                <div>
+                    <label>Registration Deadline</label>
+                    <input type="date" name="registration_deadline" class="form-control">
+                </div>
+                <div>
+                    <label>Discount Fee</label>
+                    <input type="number" step="0.01" name="discount_fee" class="form-control">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:15px;">
+                <div>
+                    <label>Start Time</label>
+                    <input type="time" name="time_start" class="form-control">
+                </div>
+                <div>
+                    <label>End Time</label>
+                    <input type="time" name="time_end" class="form-control">
+                </div>
+            </div>
+
+            <div style="display:flex; gap:24px; margin-top:18px; background:#f8fafc; border-radius:10px; padding:14px 16px;">
+                <label style="display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;">
+                    <input type="checkbox" name="is_public" value="1" style="width:18px;height:18px;">
+                    Show on Public Website
+                </label>
+                <label style="display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;">
+                    <input type="checkbox" name="is_featured" value="1" style="width:18px;height:18px;">
+                    Featured Schedule
+                </label>
             </div>
 
             <div style="margin-top:25px;">

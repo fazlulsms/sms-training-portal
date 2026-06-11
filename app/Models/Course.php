@@ -3,24 +3,47 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Course extends Model
 {
     protected $fillable = [
-        'name', 'code', 'slug', 'category', 'status',
+        'name', 'code', 'slug', 'category', 'category_id', 'status',
         'delivery_type', 'language', 'duration', 'cpd_hours',
         'course_type', 'description', 'short_description', 'full_description',
         'learning_objectives', 'course_outline', 'who_should_attend', 'prerequisites',
-        'banner_image', 'certificate_type',
+        'banner_image', 'certificate_type', 'certification_info',
         'course_fee', 'public_price', 'access_days', 'passing_score',
         'certificate_template', 'lesson_count', 'certification_remarks',
-        'is_public', 'is_featured',
+        'is_public', 'is_featured', 'display_order', 'featured_order',
+        'course_video_url', 'faq', 'seo_title', 'seo_description', 'seo_keywords',
     ];
 
     protected $casts = [
         'is_public'   => 'boolean',
         'is_featured' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Course $course) {
+            if (empty($course->slug) && !empty($course->name)) {
+                $base = Str::slug($course->name);
+                $slug = $base;
+                $i = 1;
+                while (static::where('slug', $slug)->where('id', '!=', $course->id ?? 0)->exists()) {
+                    $slug = "$base-$i";
+                    $i++;
+                }
+                $course->slug = $slug;
+            }
+        });
+    }
+
+    public function courseCategory()
+    {
+        return $this->belongsTo(CourseCategory::class, 'category_id');
+    }
 
     public function lessons()
     {

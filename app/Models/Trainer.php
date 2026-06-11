@@ -7,14 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 class Trainer extends Model
 {
     protected $fillable = [
-        'user_id',
-        'name',
-        'designation',
-        'organization',
-        'email',
-        'phone',
-        'qualification',
-        'status',
+        'user_id', 'name', 'designation', 'organization',
+        'email', 'phone', 'qualification',
+        'photo', 'short_bio', 'expertise_areas', 'certifications',
+        'experience', 'is_public', 'display_order', 'status',
+    ];
+
+    protected $casts = [
+        'is_public' => 'boolean',
+        'status'    => 'boolean',
     ];
 
     public function user()
@@ -25,5 +26,13 @@ class Trainer extends Model
     public function schedules()
     {
         return $this->hasMany(TrainingSchedule::class, 'trainer_id');
+    }
+
+    public function publicSchedules()
+    {
+        return $this->hasMany(TrainingSchedule::class, 'trainer_id')
+            ->where('is_public', true)
+            ->whereIn('schedule_status', ['Upcoming', 'Running'])
+            ->orderBy('start_date');
     }
 }
