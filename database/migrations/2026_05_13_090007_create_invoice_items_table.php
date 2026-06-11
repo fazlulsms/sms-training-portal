@@ -13,7 +13,7 @@ return new class extends Migration
 
             $table->foreignId('invoice_id')->constrained()->onDelete('cascade');
 
-            $table->foreignId('enrollment_id')->nullable()->constrained()->nullOnDelete();
+$table->foreignId('enrollment_id')->nullable()->constrained('elearning_enrollments')->nullOnDelete();
 
             $table->string('participant_name')->nullable();
 
