@@ -36,9 +36,6 @@ class ElearningLessonController extends Controller
             'required_passing_score' => 'nullable|integer|min:1|max:100',
             'certificate_eligible'   => 'nullable|boolean',
             'status'                 => 'required|in:active,inactive',
-            // Legacy fields — form uses legacy_ prefix to avoid cross-mapping with lesson_type select
-            'legacy_video_url'       => 'nullable|string|max:2048',
-            'legacy_lesson_notes'    => 'nullable|string',
         ]);
 
         $lesson = ElearningLesson::create([
@@ -53,22 +50,7 @@ class ElearningLessonController extends Controller
             'required_passing_score' => $validated['required_passing_score'] ?? null,
             'certificate_eligible'   => $request->boolean('certificate_eligible', true),
             'status'                 => $validated['status'],
-            // Map legacy_ form fields → DB column names
-            'video_url'              => $validated['legacy_video_url']       ?? null,
-            'lesson_content'         => $validated['legacy_lesson_notes']    ?? null,
         ]);
-
-        // If a legacy_video_url was supplied on create, auto-seed a Video block
-        if (!empty($validated['legacy_video_url'])) {
-            LessonBlock::create([
-                'lesson_id'  => $lesson->id,
-                'block_type' => 'video',
-                'title'      => 'Lesson Video',
-                'content'    => $validated['legacy_video_url'],
-                'sort_order' => 0,
-                'status'     => 'active',
-            ]);
-        }
 
         return redirect()
             ->route('elearning.lessons.edit', [$course, $lesson])
@@ -105,8 +87,6 @@ class ElearningLessonController extends Controller
             'required_passing_score' => 'nullable|integer|min:1|max:100',
             'certificate_eligible'   => 'nullable|boolean',
             'status'                 => 'required|in:active,inactive',
-            'legacy_video_url'       => 'nullable|string|max:2048',
-            'legacy_lesson_notes'    => 'nullable|string',
         ]);
 
         $lesson->update([
@@ -120,13 +100,47 @@ class ElearningLessonController extends Controller
             'required_passing_score' => $validated['required_passing_score'] ?? null,
             'certificate_eligible'   => $request->boolean('certificate_eligible', true),
             'status'                 => $validated['status'],
-            'video_url'              => $validated['legacy_video_url']       ?? null,
-            'lesson_content'         => $validated['legacy_lesson_notes']    ?? null,
         ]);
 
         return redirect()
             ->route('elearning.lessons.edit', [$course, $lesson])
             ->with('success', '✅ Lesson settings saved.');
+    }
+
+    public function preview(Course $course, ElearningLesson $lesson)
+    {
+        $lesson->load([
+            'course',
+            'resources',
+            'quizzes.questions',
+            'blocks' => fn ($q) => $q->where('status', 'active')->orderBy('sort_order'),
+        ]);
+
+        foreach ($lesson->quizzes as $quiz) {
+            $quiz->setRelation('attempts', collect());
+        }
+
+        $lessons = ElearningLesson::where('course_id', $course->id)
+            ->where('status', 'active')
+            ->orderBy('lesson_order')
+            ->get();
+
+        $currentIndex = $lessons->search(fn ($l) => $l->id === $lesson->id);
+        $previousLesson = $currentIndex > 0 ? $lessons[$currentIndex - 1] : null;
+        $nextLesson     = $currentIndex < $lessons->count() - 1 ? $lessons[$currentIndex + 1] : null;
+
+        return view('participant.lesson-show', [
+            'enrollment'     => null,
+            'lesson'         => $lesson,
+            'lessonProgress' => null,
+            'quizzesPassed'  => false,
+            'previousLesson' => $previousLesson,
+            'nextLesson'     => $nextLesson,
+            'lessons'        => $lessons,
+            'currentIndex'   => $currentIndex,
+            'previewMode'    => true,
+            'previewCourse'  => $course,
+        ]);
     }
 
     public function destroy(Course $course, ElearningLesson $lesson)

@@ -176,6 +176,18 @@
     My Courses
 </a>
 
+@php
+    $firstIncomplete = $enrollment->course->lessons->first(function($l) use ($lessonProgressMap) {
+        $lp = $lessonProgressMap->get($l->id);
+        return !$lp || $lp->status !== 'completed';
+    });
+    $firstInProgress = $enrollment->course->lessons->first(function($l) use ($lessonProgressMap) {
+        $lp = $lessonProgressMap->get($l->id);
+        return $lp && $lp->status === 'in_progress';
+    });
+    $resumeLesson = $firstInProgress ?? $firstIncomplete;
+@endphp
+
 {{-- ── Course Header ── --}}
 <div class="course-header">
     <div class="ch-title">{{ $enrollment->course->name ?? 'eLearning Course' }}</div>
@@ -208,6 +220,16 @@
             <span>{{ $enrollment->progress_percentage }}%</span>
         </div>
     </div>
+    @if($resumeLesson && $enrollment->access_status === 'unlocked' && $enrollment->completion_status !== 'completed')
+    <div style="margin-top:18px;position:relative;z-index:1;">
+        <a href="{{ route('participant.lesson.show', [$enrollment->id, $resumeLesson->id]) }}"
+           style="display:inline-flex;align-items:center;gap:8px;background:#fff;color:#1e3a8a;padding:11px 22px;border-radius:10px;font-weight:800;font-size:14px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.14);transition:box-shadow .15s;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            {{ $firstInProgress ? 'Resume Course' : 'Start Learning' }}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+    </div>
+    @endif
 </div>
 
 {{-- ── Certificate Panel ── --}}
@@ -381,21 +403,15 @@
         </div>
 
         {{-- Next action ── --}}
-        @php
-            $firstIncomplete = $enrollment->course->lessons->first(function($l) use ($lessonProgressMap) {
-                $lp = $lessonProgressMap->get($l->id);
-                return !$lp || $lp->status !== 'completed';
-            });
-        @endphp
-        @if($firstIncomplete && $enrollment->access_status === 'unlocked' && $enrollment->completion_status !== 'completed')
+        @if($resumeLesson && $enrollment->access_status === 'unlocked' && $enrollment->completion_status !== 'completed')
         <div class="sb-card">
-            <div class="sb-card-head">Next Up</div>
+            <div class="sb-card-head">{{ $firstInProgress ? 'In Progress' : 'Next Up' }}</div>
             <div class="sb-card-body">
-                <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:10px;line-height:1.4;">{{ $firstIncomplete->title }}</div>
-                <a href="{{ route('participant.lesson.show', [$enrollment->id, $firstIncomplete->id]) }}"
+                <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:10px;line-height:1.4;">{{ $resumeLesson->title }}</div>
+                <a href="{{ route('participant.lesson.show', [$enrollment->id, $resumeLesson->id]) }}"
                    style="display:flex;align-items:center;justify-content:center;gap:6px;background:#1e3a8a;color:#fff;text-decoration:none;font-weight:700;font-size:13px;padding:10px;border-radius:9px;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    Continue Learning
+                    {{ $firstInProgress ? 'Resume' : 'Continue Learning' }}
                 </a>
             </div>
         </div>

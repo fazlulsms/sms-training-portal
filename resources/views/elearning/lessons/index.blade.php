@@ -22,7 +22,6 @@
                     <th class="c" style="width:60px;">#</th>
                     <th>Lesson Title</th>
                     <th class="c">Duration</th>
-                    <th>Video</th>
                     <th class="c">Status</th>
                     <th class="c">Actions</th>
                 </tr>
@@ -33,13 +32,6 @@
                     <td class="c fw-bold text-muted">{{ $lesson->lesson_order }}</td>
                     <td class="td-main">{{ $lesson->title }}</td>
                     <td class="c text-muted">{{ $lesson->duration_minutes ? $lesson->duration_minutes . ' min' : '—' }}</td>
-                    <td>
-                        @if($lesson->video_url)
-                            <a href="{{ $lesson->video_url }}" target="_blank" class="btn btn-view btn-xs">Watch</a>
-                        @else
-                            <span class="text-muted text-small">No video</span>
-                        @endif
-                    </td>
                     <td class="c">
                         @if($lesson->status === 'published')
                             <span class="badge badge-success">Published</span>
@@ -51,6 +43,10 @@
                         <div class="dt-actions" style="justify-content:center;">
                             <a href="{{ route('elearning.resources.index', [$course, $lesson]) }}" class="btn btn-xs" style="background:#eef2ff;color:#4338ca;">Resources</a>
                             <a href="{{ route('elearning.quizzes.index', [$course, $lesson]) }}" class="btn btn-xs" style="background:#faf5ff;color:#7c3aed;">Quizzes</a>
+                            <a href="{{ route('elearning.lessons.preview', [$course, $lesson]) }}" class="btn btn-xs btn-sm" style="background:#fef3c7;color:#92400e;" target="_blank" title="Preview lesson as learner">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                Preview
+                            </a>
                             <a href="{{ route('elearning.lessons.edit', [$course, $lesson]) }}" class="btn btn-edit btn-xs">Edit</a>
                             <form action="{{ route('elearning.lessons.destroy', [$course, $lesson]) }}" method="POST"
                                   onsubmit="return confirm('Delete this lesson?')" style="margin:0;">

@@ -1,389 +1,321 @@
 @extends('layouts.learner-lesson')
-
 @section('page-title', $lesson->title)
-
 @section('content')
 
 @php
-    $lpMap       = $enrollment->lessonProgress->keyBy('lesson_id');
+    $previewMode = $previewMode ?? false;
+    $lpMap       = $previewMode ? collect() : $enrollment->lessonProgress->keyBy('lesson_id');
+    $courseName  = $previewMode ? ($previewCourse->name ?? $lesson->course->name) : $enrollment->course->name;
     $completedN  = $lpMap->where('status', 'completed')->count();
     $totalN      = $lessons->count();
     $pct         = $totalN > 0 ? round(($completedN / $totalN) * 100) : 0;
 
     $lessonBlocks    = $lesson->blocks;
     $hasBlocks       = $lessonBlocks->isNotEmpty();
-    $hasLegacy       = !$hasBlocks && (!empty($lesson->lesson_content) || !empty($lesson->video_url));
-
     $blockCount      = $hasBlocks ? $lessonBlocks->count() : 0;
     $isCompleted     = $lessonProgress?->isCompleted();
-    $isLocked        = $enrollment->access_status !== 'unlocked';
+    $isLocked        = $previewMode ? false : $enrollment->access_status !== 'unlocked';
+
+    $hasQuizzes    = $lesson->quizzes->isNotEmpty();
+    $hasResources  = $lesson->resources->isNotEmpty();
+    $hasActivities = $hasQuizzes || $hasResources;
+    $lastPanel     = $blockCount + ($hasActivities ? 1 : 0);
+
+    $blockTypeIcons = [
+        'rich_text'       => '📝', 'video'    => '🎬', 'audio'    => '🎧',
+        'image'           => '🖼️', 'gallery'  => '🎨', 'pdf'      => '📄',
+        'download'        => '📥', 'slides'   => '🖥️', 'accordion'=> '📂',
+        'knowledge_check' => '❓', 'scenario' => '🎭', 'matching' => '🔗',
+    ];
+
+    $ytBlocks = [];
+    if (!$previewMode) {
+        foreach ($lessonBlocks as $bi => $block) {
+            if ($block->block_type === 'video' &&
+                preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/', $block->content ?? '', $vm)) {
+                $ytBlocks[$block->id] = ['ytId' => $vm[1], 'step' => $bi + 1];
+            }
+        }
+    }
+
+    $stepTypes = array_merge(
+        ['overview'],
+        $lessonBlocks->map(fn($b) => $b->block_type)->values()->all(),
+        $hasActivities ? ['activities'] : []
+    );
 @endphp
 
 <style>
-/* ══ LESSON SHELL ══════════════════════════════════════════ */
-.ls-shell { display: flex; height: 100%; overflow: hidden; }
+/* ══ SHELL ══════════════════════════════════════════════════ */
+.lp-wrap  { display:flex; flex-direction:column; height:100%; overflow:hidden; }
+.ls-shell { display:flex; flex:1; min-height:0; overflow:hidden; }
+.ls-main  { flex:1; min-width:0; display:flex; flex-direction:column; overflow:hidden; background:#f4f5f7; }
 
-/* ══ CONTENT AREA ══════════════════════════════════════════ */
-.ls-main {
-    flex: 1; min-width: 0;
-    display: flex; flex-direction: column;
-    overflow: hidden; background: #f4f5f7;
+/* ── Step bar ─────────────────────────────────────────────── */
+.lf-stepbar {
+    flex-shrink:0; background:#fff; border-bottom:1px solid #e5e7eb;
+    display:flex; align-items:stretch; height:52px; position:relative; z-index:30;
+}
+.lf-sb-info {
+    display:flex; align-items:center; gap:9px; padding:0 18px; flex-shrink:0;
+    border-right:1px solid #f0f2f5; min-width:170px;
+}
+.lf-sb-icon { font-size:18px; flex-shrink:0; line-height:1; }
+.lf-sb-name { font-size:12.5px; font-weight:800; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; }
+.lf-sb-sub  { font-size:10.5px; color:#9ca3af; font-weight:600; margin-top:1px; }
+.lf-sb-track {
+    flex:1; display:flex; align-items:center; padding:0 14px;
+    overflow-x:auto; min-width:0;
+}
+.lf-sb-track::-webkit-scrollbar { height:0; }
+.lf-dot {
+    flex-shrink:0; width:26px; height:26px; border-radius:50%;
+    border:2px solid #e5e7eb; background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:800; color:#9ca3af;
+    cursor:pointer; transition:all .15s; font-family:inherit; padding:0;
+}
+.lf-dot:hover { border-color:#6366f1; color:#6366f1; transform:scale(1.1); }
+.lf-dot.done   { background:#dbeafe; border-color:#93c5fd; color:#1e40af; }
+.lf-dot.active { background:#1e3a8a; border-color:#1e3a8a; color:#fff; }
+.lf-dot.future { opacity:.28; cursor:not-allowed; }
+.lf-dot-line   { flex-shrink:0; height:2px; width:16px; background:#e5e7eb; transition:background .2s; }
+.lf-dot-line.done { background:#93c5fd; }
+.lf-sb-nav {
+    display:flex; align-items:center; gap:2px; padding:0 10px;
+    flex-shrink:0; border-left:1px solid #f0f2f5;
+}
+.lf-sb-btn {
+    width:32px; height:32px; border-radius:8px; border:none;
+    background:none; cursor:pointer; color:#6b7280;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .12s,color .12s; font-family:inherit;
+}
+.lf-sb-btn:hover:not(:disabled) { background:#f3f4f6; color:#111827; }
+.lf-sb-btn:disabled { opacity:.3; cursor:not-allowed; }
+.lf-progress-line {
+    position:absolute; bottom:0; left:0; height:3px;
+    background:linear-gradient(90deg,#1e3a8a,#6366f1);
+    border-radius:0 2px 0 0; transition:width .4s ease;
 }
 
-/* Scrollable body */
-.ls-scroll {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scroll-behavior: smooth;
+/* ── Viewport & panels ────────────────────────────────────── */
+.lf-viewport { flex:1; overflow:hidden; position:relative; }
+.lf-panel {
+    position:absolute; inset:0; overflow-y:auto; overflow-x:hidden; display:none;
 }
-.ls-scroll::-webkit-scrollbar { width: 6px; }
-.ls-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+.lf-panel::-webkit-scrollbar { width:5px; }
+.lf-panel::-webkit-scrollbar-thumb { background:#d1d5db; border-radius:10px; }
+.lf-panel.lf-active { display:block; }
+.lf-inner { max-width:860px; margin:0 auto; padding:28px 32px; width:100%; }
 
-/* Content wrapper — generous padding, max-width for comfortable reading */
-.ls-content-wrap {
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 32px 36px 120px;
-    width: 100%;
+/* ── Footer ───────────────────────────────────────────────── */
+.lf-footer {
+    flex-shrink:0; background:#fff; border-top:1px solid #e5e7eb;
+    padding:11px 20px; display:flex; align-items:center;
+    justify-content:space-between; gap:10px; flex-wrap:wrap;
+    box-shadow:0 -2px 10px rgba(15,23,42,.05);
 }
+.lf-foot-l { display:flex; align-items:center; gap:8px; }
+.lf-foot-c { font-size:11.5px; font-weight:700; color:#9ca3af; white-space:nowrap; }
+.lf-foot-r { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.lfb {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:9px 16px; border-radius:9px;
+    font-weight:700; font-size:13.5px; font-family:inherit;
+    text-decoration:none; border:none; cursor:pointer;
+    transition:background .15s,transform .1s; white-space:nowrap;
+}
+.lfb:active { transform:scale(.97); }
+.lfb-prev  { background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; }
+.lfb-prev:hover { background:#e9ecf0; }
+.lfb-next  { background:#1e3a8a; color:#fff; }
+.lfb-next:hover { background:#1d4ed8; }
+.lfb-ok    { background:#16a34a; color:#fff; }
+.lfb-ok:hover { background:#15803d; }
+.lfb-done  { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; cursor:default; }
+.lfb-blue  { background:#f0f4ff; color:#1e40af; border:1px solid #c7d2fe; }
+.lfb-blue:hover { background:#e0e7ff; }
+.lfb-teal  { background:#0f766e; color:#fff; }
+.lfb-teal:hover { background:#0d9488; }
+.lfb-dis    { background:#e5e7eb; color:#9ca3af; cursor:not-allowed; pointer-events:none; }
+.lfb-locked { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+.lfb-locked:hover { background:#fee2e2; }
+.lfb-amber { background:#fef3c7; color:#92400e; border:1px solid #fde68a; }
+.lfb-sm    { font-size:12px; padding:7px 12px; opacity:.75; }
 
-/* ══ LESSON OVERVIEW CARD ══════════════════════════════════ */
+/* ══ OVERVIEW CARD ══════════════════════════════════════════ */
 .lesson-overview {
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-    border-radius: 16px;
-    padding: 28px 32px;
-    color: #fff;
-    margin-bottom: 32px;
-    box-shadow: 0 8px 24px rgba(30,58,138,.22);
-    position: relative; overflow: hidden;
+    background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);
+    border-radius:16px; padding:28px 32px; color:#fff;
+    margin-bottom:20px; box-shadow:0 8px 24px rgba(30,58,138,.22);
+    position:relative; overflow:hidden;
 }
 .lesson-overview::before {
-    content: ''; position: absolute;
-    top: -40px; right: -40px;
-    width: 180px; height: 180px;
-    background: rgba(255,255,255,.05); border-radius: 50%;
+    content:''; position:absolute; top:-40px; right:-40px;
+    width:180px; height:180px; background:rgba(255,255,255,.05); border-radius:50%;
 }
-.lo-breadcrumb {
-    font-size: 12px; font-weight: 600; opacity: .7;
-    margin-bottom: 10px; position: relative; z-index: 1;
-    display: flex; align-items: center; gap: 6px;
-}
-.lo-title {
-    font-size: 22px; font-weight: 900;
-    margin: 0 0 20px; line-height: 1.3; position: relative; z-index: 1;
-}
-.lo-meta {
-    display: flex; flex-wrap: wrap; gap: 10px 20px;
-    position: relative; z-index: 1;
-}
-.lo-meta-item {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(255,255,255,.12);
-    padding: 5px 12px; border-radius: 20px;
-    font-size: 12.5px; font-weight: 600;
-}
+.lo-breadcrumb { font-size:12px; font-weight:600; opacity:.7; margin-bottom:10px; position:relative; z-index:1; display:flex; align-items:center; gap:6px; }
+.lo-title { font-size:22px; font-weight:900; margin:0 0 20px; line-height:1.3; position:relative; z-index:1; }
+.lo-meta  { display:flex; flex-wrap:wrap; gap:10px 20px; position:relative; z-index:1; }
+.lo-meta-item { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.12); padding:5px 12px; border-radius:20px; font-size:12.5px; font-weight:600; }
+.lo-obj  { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px 24px; margin-top:16px; }
+.lo-obj-head { font-size:12px; font-weight:800; color:#374151; text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; display:flex; align-items:center; gap:7px; }
+.lo-obj-body { font-size:14.5px; color:#4b5563; line-height:1.8; white-space:pre-line; }
+.lo-desc { background:#f8fafc; border:1px solid #e9ecf0; border-radius:10px; padding:16px 20px; margin-top:12px; font-size:14.5px; color:#374151; line-height:1.7; }
 
-/* ══ ALERTS ════════════════════════════════════════════════ */
-.ls-alert {
-    padding: 13px 18px; border-radius: 10px;
-    font-weight: 600; font-size: 14px; margin-bottom: 20px;
-    display: flex; align-items: flex-start; gap: 10px;
+/* ══ BLOCKS ════════════════════════════════════════════════ */
+.lb { background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 2px 8px rgba(15,23,42,.06); border:1px solid #e9ecf0; }
+.lb + .lb { margin-top:16px; }
+.lb-head { padding:14px 22px; border-bottom:1px solid #f0f2f5; display:flex; align-items:center; gap:10px; background:#fafbfc; }
+.lb-head-icon { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:15px; }
+.lh-text  { background:#eff6ff; } .lh-video { background:#f5f3ff; } .lh-audio { background:#ecfdf5; }
+.lh-image { background:#fdf2f8; } .lh-gall  { background:#fff7ed; } .lh-acc   { background:#f0fdf4; }
+.lh-pdf   { background:#fff1f2; } .lh-dl    { background:#f0fdf4; } .lh-slide { background:#eff6ff; }
+.lh-kc    { background:#fffbeb; } .lh-sc    { background:#faf5ff; } .lh-match { background:#f0fdfa; }
+.lb-head-label { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:#6b7280; }
+.lb-head-title { font-size:14.5px; font-weight:700; color:#111827; margin-left:4px; }
+.lb-body { padding:26px 28px; font-size:16px; line-height:1.85; color:#374151; }
+.lb-body.rt-body h1,.lb-body.rt-body h2,.lb-body.rt-body h3 { color:#111827; margin-top:1.5em; margin-bottom:.5em; }
+.lb-body.rt-body p  { margin:0 0 1.2em; }
+.lb-body.rt-body ul,.lb-body.rt-body ol { padding-left:1.5em; margin:0 0 1.2em; }
+.lb-body.rt-body li { margin-bottom:.4em; }
+.lb-body.rt-body strong { color:#111827; }
+.lb-body.rt-body code  { background:#f1f5f9; color:#be185d; padding:2px 6px; border-radius:4px; font-size:14px; }
+.video-wrap { position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; background:#000; }
+.video-wrap iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
+/* ── YouTube strict controls ──────────────────────────────── */
+.yt-resume-overlay {
+    position:absolute; inset:0; z-index:10; border-radius:10px;
+    background:rgba(0,0,0,.76); display:flex; align-items:center; justify-content:center;
 }
-.ls-alert-error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-.ls-alert-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-.ls-alert-info    { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.yt-resume-box {
+    background:#fff; border-radius:14px; padding:28px 32px; text-align:center;
+    max-width:288px; width:90%; box-shadow:0 16px 48px rgba(0,0,0,.38);
+}
+.yt-resume-icon  { font-size:38px; margin-bottom:8px; }
+.yt-resume-title { font-size:17px; font-weight:800; color:#111827; margin:0 0 4px; }
+.yt-resume-sub   { font-size:13px; color:#6b7280; margin:0 0 20px; }
+.yt-resume-btns  { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.yt-btn-resume  { background:#1e3a8a; color:#fff; border:none; padding:10px 20px; border-radius:9px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .12s; }
+.yt-btn-resume:hover { background:#1d4ed8; }
+.yt-btn-restart { background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; padding:10px 14px; border-radius:9px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+.yt-lock-msg { display:flex; align-items:center; gap:7px; margin-top:12px; padding:11px 16px; background:#fef2f2; border:1px solid #fecaca; border-radius:9px; font-size:13px; font-weight:700; color:#dc2626; }
+/* Hides YT title bar (top) and logo (bottom-right) */
+.yt-shield-top {
+    position:absolute; top:0; left:0; right:130px; height:62px;
+    background:linear-gradient(to bottom, rgba(0,0,0,.88) 55%, rgba(0,0,0,0) 100%);
+    pointer-events:all; z-index:4; cursor:default; border-radius:10px 0 0 0;
+}
+.yt-shield-logo {
+    position:absolute; bottom:0; left:0; right:0; height:72px;
+    background:#0a0a0a; pointer-events:all; z-index:4; cursor:default;
+    border-radius:0 0 10px 10px;
+}
+/* Panel completion lock message */
+.panel-lock-msg { display:flex; align-items:center; gap:7px; margin-top:12px; padding:11px 16px; background:#fef3c7; border:1px solid #fde68a; border-radius:9px; font-size:13px; font-weight:700; color:#92400e; }
+.acc-item { border-bottom:1px solid #f0f2f5; }
+.acc-item:last-child { border-bottom:none; }
+.acc-header { width:100%; background:none; border:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 28px; font-size:15px; font-weight:700; color:#111827; font-family:inherit; text-align:left; transition:background .12s; }
+.acc-header:hover { background:#fafbfc; }
+.acc-chevron { transition:transform .22s; flex-shrink:0; color:#9ca3af; }
+.acc-item.open .acc-chevron { transform:rotate(180deg); }
+.acc-body { padding:6px 28px 22px; font-size:15.5px; color:#4b5563; line-height:1.8; }
+.kc-question { font-size:16px; font-weight:700; color:#111827; margin:0 0 18px; line-height:1.55; }
+.kc-opt-label { display:flex; align-items:center; gap:12px; padding:13px 16px; border:1.5px solid #e5e7eb; border-radius:12px; cursor:pointer; margin-bottom:10px; font-size:15px; font-weight:600; color:#374151; transition:border-color .14s,background .14s; }
+.kc-opt-label:hover { border-color:#93c5fd; background:#f0f9ff; }
+.kc-opt-label input { display:none; }
+.kc-opt-label:has(input:checked) { border-color:#1e3a8a; background:#eff6ff; color:#1e40af; }
+.kc-opt-circle { width:20px; height:20px; border-radius:50%; border:2px solid #d1d5db; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:border-color .14s,background .14s; position:relative; }
+.kc-opt-label:has(input:checked) .kc-opt-circle { background:#1e3a8a; border-color:#1e3a8a; }
+.kc-opt-circle::after { content:''; width:7px; height:7px; border-radius:50%; background:white; opacity:0; position:absolute; transition:opacity .14s; }
+.kc-opt-label:has(input:checked) .kc-opt-circle::after { opacity:1; }
+.kc-opt-key { width:26px; height:26px; border-radius:7px; background:#f3f4f6; color:#6b7280; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0; }
+.kc-opt-label:has(input:checked) .kc-opt-key { background:#dbeafe; color:#1e40af; }
+.kc-opt-label.correct { border-color:#16a34a!important; background:#f0fdf4!important; color:#15803d!important; }
+.kc-opt-label.wrong   { border-color:#dc2626!important; background:#fef2f2!important; color:#991b1b!important; }
+.kc-result { padding:12px 16px; border-radius:10px; font-size:14px; font-weight:600; margin-top:14px; line-height:1.5; }
+.kc-result-pass { background:#dcfce7; color:#166534; }
+.kc-result-fail { background:#fee2e2; color:#991b1b; }
+.slide-panel { display:none; }
+.slide-panel.active { display:block; }
+.slide-nav { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:18px; padding-top:18px; border-top:1px solid #f0f2f5; }
+.slide-counter { font-size:13px; font-weight:700; color:#6b7280; }
+.sc-scenario-text { background:#f8fafc; border-left:4px solid #1e3a8a; padding:16px 20px; border-radius:0 10px 10px 0; font-size:15.5px; line-height:1.75; color:#374151; margin-bottom:20px; }
+.sc-opt { margin-bottom:10px; }
+.sc-opt-btn { width:100%; background:#f8fafc; border:1.5px solid #e5e7eb; border-radius:12px; padding:14px 16px; cursor:pointer; font-family:inherit; font-size:15px; font-weight:600; color:#374151; text-align:left; display:flex; align-items:center; gap:12px; transition:border-color .14s,background .14s; }
+.sc-opt-btn:hover { border-color:#93c5fd; background:#f0f9ff; }
+.sc-opt-btn.selected-correct { border-color:#16a34a; background:#f0fdf4; color:#166534; }
+.sc-opt-btn.selected-wrong   { border-color:#dc2626; background:#fef2f2; color:#991b1b; }
+.sc-opt-letter { width:28px; height:28px; border-radius:50%; background:#e5e7eb; color:#374151; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; flex-shrink:0; }
+.sc-exp { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:12px 16px; font-size:14px; color:#92400e; line-height:1.65; margin-top:8px; }
+.match-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media(max-width:600px){ .match-grid { grid-template-columns:1fr; } }
+.match-col-header { font-size:11px; font-weight:800; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+.match-term   { background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:14.5px; font-weight:700; color:#111827; margin-bottom:10px; }
+.match-select { width:100%; border:1.5px solid #e5e7eb; border-radius:10px; padding:10px 12px; font-family:inherit; font-size:14px; color:#374151; margin-bottom:10px; background:#fff; cursor:pointer; }
+.match-select:focus { outline:none; border-color:#6366f1; }
+.resource-row { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border:1px solid #e9ecf0; border-radius:10px; margin-bottom:10px; background:#fafbfc; gap:10px; }
+.resource-row:last-child { margin-bottom:0; }
+.resource-row a { color:#1e3a8a; font-weight:700; font-size:14.5px; text-decoration:none; }
+.resource-row a:hover { text-decoration:underline; }
+.resource-type { font-size:10.5px; color:#9ca3af; font-weight:700; text-transform:uppercase; }
+.quiz-row { padding:20px; border:1px solid #e9ecf0; border-radius:12px; margin-bottom:12px; background:#fafbfc; }
+.quiz-row:last-child { margin-bottom:0; }
+.quiz-name      { font-weight:800; font-size:15.5px; color:#111827; margin-bottom:6px; }
+.quiz-meta-line { font-size:13px; color:#6b7280; margin-bottom:14px; line-height:1.5; }
+.ls-alert { padding:13px 18px; border-radius:10px; font-weight:600; font-size:14px; margin-bottom:16px; display:flex; align-items:flex-start; gap:10px; }
+.ls-alert-error   { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
+.ls-alert-success { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+.lf-empty { text-align:center; padding:60px 20px; background:#fff; border-radius:14px; border:1px solid #e9ecf0; }
 
-/* ══ CONTENT BLOCKS ════════════════════════════════════════ */
-.lb {
-    background: #fff;
-    border-radius: 14px;
-    margin-bottom: 24px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(15,23,42,.06);
-    border: 1px solid #e9ecf0;
-}
+/* Lightbox */
+#lb-overlay { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.9); align-items:center; justify-content:center; flex-direction:column; gap:14px; }
+#lb-overlay.open { display:flex; }
+#lb-overlay img { max-width:90vw; max-height:82vh; border-radius:10px; object-fit:contain; }
+#lb-caption { color:rgba(255,255,255,.75); font-size:13px; }
+#lb-close { position:absolute; top:18px; right:22px; background:rgba(255,255,255,.1); border:none; color:white; width:36px; height:36px; border-radius:50%; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-family:inherit; }
 
-/* Block header — colored left-border accent style */
-.lb-head {
-    padding: 14px 22px;
-    border-bottom: 1px solid #f0f2f5;
-    display: flex; align-items: center; gap: 10px;
-    background: #fafbfc;
+@media(max-width:860px) {
+    .lf-inner { padding:20px 18px; }
+    .lo-title { font-size:19px; }
+    .lb-body  { padding:20px; font-size:15.5px; }
+    .lf-sb-info { min-width:0; }
+    .lf-sb-name { max-width:110px; }
 }
-.lb-head-icon {
-    width: 30px; height: 30px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; font-size: 15px;
-}
-.lh-text  { background: #eff6ff; }
-.lh-video { background: #f5f3ff; }
-.lh-audio { background: #ecfdf5; }
-.lh-image { background: #fdf2f8; }
-.lh-gall  { background: #fff7ed; }
-.lh-acc   { background: #f0fdf4; }
-.lh-pdf   { background: #fff1f2; }
-.lh-dl    { background: #f0fdf4; }
-.lh-slide { background: #eff6ff; }
-.lh-kc    { background: #fffbeb; }
-.lh-sc    { background: #faf5ff; }
-.lh-match { background: #f0fdfa; }
-.lh-legacy{ background: #f8f9fa; }
-
-.lb-head-label {
-    font-size: 12px; font-weight: 800;
-    text-transform: uppercase; letter-spacing: .6px;
-    color: #6b7280;
-}
-.lb-head-title {
-    font-size: 14.5px; font-weight: 700; color: #111827;
-    margin-left: 4px;
-}
-
-/* Block body */
-.lb-body {
-    padding: 26px 28px;
-    font-size: 16px; line-height: 1.85; color: #374151;
-}
-
-/* Rich text block body */
-.lb-body.rt-body h1, .lb-body.rt-body h2, .lb-body.rt-body h3 {
-    color: #111827; margin-top: 1.5em; margin-bottom: .5em;
-}
-.lb-body.rt-body p  { margin: 0 0 1.2em; }
-.lb-body.rt-body ul, .lb-body.rt-body ol { padding-left: 1.5em; margin: 0 0 1.2em; }
-.lb-body.rt-body li { margin-bottom: .4em; }
-.lb-body.rt-body strong { color: #111827; }
-.lb-body.rt-body code {
-    background: #f1f5f9; color: #be185d;
-    padding: 2px 6px; border-radius: 4px; font-size: 14px;
-}
-
-/* Video */
-.video-wrap {
-    position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
-    border-radius: 10px; background: #000;
-}
-.video-wrap iframe { position: absolute; top:0; left:0; width:100%; height:100%; border:0; }
-
-/* ── Accordion ─────────────────────────────────────────── */
-.acc-item { border-bottom: 1px solid #f0f2f5; }
-.acc-item:last-child { border-bottom: none; }
-.acc-header {
-    width: 100%; background: none; border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 16px 28px;
-    font-size: 15px; font-weight: 700; color: #111827;
-    font-family: inherit; text-align: left;
-    transition: background .12s;
-}
-.acc-header:hover { background: #fafbfc; }
-.acc-chevron { transition: transform .22s; flex-shrink: 0; color: #9ca3af; }
-.acc-item.open .acc-chevron { transform: rotate(180deg); }
-.acc-body {
-    padding: 6px 28px 22px;
-    font-size: 15.5px; color: #4b5563; line-height: 1.8;
-}
-
-/* ── Knowledge Check ───────────────────────────────────── */
-.kc-question { font-size: 16px; font-weight: 700; color: #111827; margin: 0 0 18px; line-height: 1.55; }
-.kc-opt-label {
-    display: flex; align-items: center; gap: 12px;
-    padding: 13px 16px; border: 1.5px solid #e5e7eb; border-radius: 12px;
-    cursor: pointer; margin-bottom: 10px;
-    font-size: 15px; font-weight: 600; color: #374151;
-    transition: border-color .14s, background .14s;
-}
-.kc-opt-label:hover { border-color: #93c5fd; background: #f0f9ff; }
-.kc-opt-label input { display: none; }
-.kc-opt-label:has(input:checked) { border-color: #1e3a8a; background: #eff6ff; color: #1e40af; }
-.kc-opt-circle {
-    width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d1d5db;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    transition: border-color .14s, background .14s; position: relative;
-}
-.kc-opt-label:has(input:checked) .kc-opt-circle { background: #1e3a8a; border-color: #1e3a8a; }
-.kc-opt-circle::after {
-    content: ''; width: 7px; height: 7px; border-radius: 50%;
-    background: white; opacity: 0; position: absolute; transition: opacity .14s;
-}
-.kc-opt-label:has(input:checked) .kc-opt-circle::after { opacity: 1; }
-.kc-opt-key {
-    width: 26px; height: 26px; border-radius: 7px; background: #f3f4f6; color: #6b7280;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 800; flex-shrink: 0;
-    transition: background .14s;
-}
-.kc-opt-label:has(input:checked) .kc-opt-key { background: #dbeafe; color: #1e40af; }
-.kc-opt-label.correct { border-color: #16a34a !important; background: #f0fdf4 !important; color: #15803d !important; }
-.kc-opt-label.wrong   { border-color: #dc2626 !important; background: #fef2f2 !important; color: #991b1b !important; }
-.kc-result-pass { background: #dcfce7; color: #166534; padding: 12px 16px; border-radius: 10px; font-size: 14px; font-weight: 700; margin-top: 14px; }
-.kc-result-fail { background: #fee2e2; color: #991b1b; padding: 12px 16px; border-radius: 10px; font-size: 14px; font-weight: 700; margin-top: 14px; }
-
-/* ── Slides ─────────────────────────────────────────────── */
-.slide-panel { display: none; }
-.slide-panel.active { display: block; }
-.slide-nav {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    margin-top: 18px; padding-top: 18px; border-top: 1px solid #f0f2f5;
-}
-.slide-counter { font-size: 13px; font-weight: 700; color: #6b7280; }
-
-/* ── Scenario ───────────────────────────────────────────── */
-.sc-scenario-text {
-    background: #f8fafc; border-left: 4px solid #1e3a8a;
-    padding: 16px 20px; border-radius: 0 10px 10px 0;
-    font-size: 15.5px; line-height: 1.75; color: #374151;
-    margin-bottom: 20px;
-}
-.sc-opt { margin-bottom: 10px; }
-.sc-opt-btn {
-    width: 100%; background: #f8fafc; border: 1.5px solid #e5e7eb; border-radius: 12px;
-    padding: 14px 16px; cursor: pointer; font-family: inherit;
-    font-size: 15px; font-weight: 600; color: #374151;
-    text-align: left; display: flex; align-items: center; gap: 12px;
-    transition: border-color .14s, background .14s;
-}
-.sc-opt-btn:hover { border-color: #93c5fd; background: #f0f9ff; }
-.sc-opt-btn.selected-correct { border-color: #16a34a; background: #f0fdf4; color: #166534; }
-.sc-opt-btn.selected-wrong   { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
-.sc-opt-letter {
-    width: 28px; height: 28px; border-radius: 50%; background: #e5e7eb; color: #374151;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 800; flex-shrink: 0;
-}
-.sc-exp {
-    background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
-    padding: 12px 16px; font-size: 14px; color: #92400e; line-height: 1.65;
-    margin-top: 8px;
-}
-
-/* ── Matching ────────────────────────────────────────────── */
-.match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-@media(max-width:600px){ .match-grid { grid-template-columns: 1fr; } }
-.match-col-header { font-size: 11px; font-weight: 800; color: #6b7280; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
-.match-term {
-    background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px;
-    padding: 12px 14px; font-size: 14.5px; font-weight: 700; color: #111827;
-    margin-bottom: 10px;
-}
-.match-select {
-    width: 100%; border: 1.5px solid #e5e7eb; border-radius: 10px;
-    padding: 10px 12px; font-family: inherit; font-size: 14px; color: #374151;
-    margin-bottom: 10px; background: #fff; cursor: pointer;
-}
-.match-select:focus { outline: none; border-color: #6366f1; }
-
-/* ── Resources row ──────────────────────────────────────── */
-.resource-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px; border: 1px solid #e9ecf0; border-radius: 10px;
-    margin-bottom: 10px; background: #fafbfc; gap: 10px;
-}
-.resource-row:last-child { margin-bottom: 0; }
-.resource-row a { color: #1e3a8a; font-weight: 700; font-size: 14.5px; text-decoration: none; }
-.resource-row a:hover { text-decoration: underline; }
-.resource-type { font-size: 10.5px; color: #9ca3af; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
-
-/* ── Quiz row ────────────────────────────────────────────── */
-.quiz-row {
-    padding: 20px; border: 1px solid #e9ecf0; border-radius: 12px;
-    margin-bottom: 12px; background: #fafbfc;
-}
-.quiz-name     { font-weight: 800; font-size: 15.5px; color: #111827; margin-bottom: 6px; }
-.quiz-meta-line{ font-size: 13px; color: #6b7280; margin-bottom: 14px; line-height: 1.5; }
-
-/* ── Lightbox ────────────────────────────────────────────── */
-#lb-overlay {
-    display: none; position: fixed; inset: 0; z-index: 9999;
-    background: rgba(0,0,0,.9); align-items: center; justify-content: center;
-    flex-direction: column; gap: 14px;
-}
-#lb-overlay.open { display: flex; }
-#lb-overlay img { max-width: 90vw; max-height: 82vh; border-radius: 10px; object-fit: contain; }
-#lb-caption { color: rgba(255,255,255,.75); font-size: 13px; }
-#lb-close {
-    position: absolute; top: 18px; right: 22px;
-    background: rgba(255,255,255,.1); border: none; color: white;
-    width: 36px; height: 36px; border-radius: 50%; font-size: 20px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-}
-
-/* ── Bottom navigation bar ───────────────────────────────── */
-.ls-bottom-bar {
-    position: sticky;
-    bottom: 0;
-    background: #fff;
-    border-top: 1px solid #e5e7eb;
-    padding: 14px 28px;
-    display: flex; align-items: center; justify-content: space-between; gap: 14px;
-    flex-wrap: wrap;
-    flex-shrink: 0;
-    z-index: 20;
-    box-shadow: 0 -4px 16px rgba(15,23,42,.06);
-}
-.ls-bottom-bar.completed-bar { background: #f0fdf4; border-top-color: #bbf7d0; }
-
-.lbb-hint {
-    font-size: 13.5px; font-weight: 600; color: #6b7280;
-    display: flex; align-items: center; gap: 8px;
-}
-.completed-bar .lbb-hint { color: #166534; }
-
-.lbb-progress {
-    font-size: 11.5px; color: #9ca3af; font-weight: 600;
-    display: flex; align-items: center; gap: 6px; white-space: nowrap;
-}
-
-.lbb-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-
-/* Buttons */
-.lbb-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 10px 18px; border-radius: 10px;
-    font-weight: 700; font-size: 13.5px; font-family: inherit;
-    text-decoration: none; border: none; cursor: pointer; white-space: nowrap;
-    transition: background .15s, transform .1s;
-}
-.lbb-btn:active { transform: scale(.97); }
-.btn-complete  { background: #16a34a; color: #fff; }
-.btn-complete:hover { background: #15803d; }
-.btn-next      { background: #1e3a8a; color: #fff; }
-.btn-next:hover{ background: #1d4ed8; }
-.btn-prev      { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
-.btn-prev:hover{ background: #e9ecf0; }
-.btn-disabled  { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; pointer-events: none; }
-.btn-overview  { background: #0f766e; color: #fff; }
-.btn-overview:hover { background: #0d9488; }
-
-/* ══ RESPONSIVE ════════════════════════════════════════════ */
-@media (max-width: 860px) {
-    .ls-content-wrap { padding: 20px 20px 100px; }
-    .lo-title { font-size: 19px; }
-    .lb-body { padding: 20px 20px; font-size: 15.5px; }
-    .acc-header { padding: 14px 20px; font-size: 14.5px; }
-    .acc-body   { padding: 6px 20px 18px; }
-    .ls-bottom-bar { padding: 12px 16px; }
-}
-
-@media (max-width: 500px) {
-    .ls-content-wrap { padding: 16px 14px 90px; }
-    .lo-title { font-size: 17px; }
-    .lo-meta  { gap: 8px 12px; }
-    .lo-meta-item { font-size: 12px; padding: 4px 10px; }
-    .lb-body { padding: 16px 16px; font-size: 15px; }
-    .lbb-btn  { padding: 9px 14px; font-size: 13px; }
-    .lesson-overview { padding: 22px 20px; }
+@media(max-width:500px) {
+    .lf-inner  { padding:14px 12px; }
+    .lo-title  { font-size:17px; }
+    .lb-body   { padding:16px; font-size:15px; }
+    .lfb       { padding:8px 12px; font-size:12.5px; }
+    .lf-sb-track { display:none; }
+    .lf-sb-info  { border-right:none; }
+    .lf-footer   { padding:10px 12px; }
 }
 </style>
 
+<div class="lp-wrap">
+{{-- Preview Banner --}}
+@if($previewMode)
+<div style="background:linear-gradient(90deg,#d97706,#b45309);color:white;padding:9px 18px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;flex-shrink:0;">
+    <span style="display:flex;align-items:center;gap:8px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Admin Preview — this is how the lesson looks to learners. Interactions are disabled.
+    </span>
+    <a href="{{ route('elearning.lessons.edit', [$previewCourse, $lesson]) }}"
+       style="color:white;text-decoration:none;background:rgba(255,255,255,.2);padding:4px 14px;border-radius:20px;font-size:12px;white-space:nowrap;">
+        ← Back to Builder
+    </a>
+</div>
+@endif
+
 <div class="ls-shell">
 
-    {{-- ══ LESSON NAVIGATION DRAWER ══════════════════════════ --}}
+    {{-- ══ SIDEBAR ════════════════════════════════════════════ --}}
     <aside class="ll-nav" id="llNav">
         <div class="ll-nav-header">
             <div class="ll-nav-org">SMS Training Services</div>
-            <div class="ll-nav-course">{{ $enrollment->course->name }}</div>
+            <div class="ll-nav-course">{{ $courseName }}</div>
             <div class="ll-nav-prog-track">
                 <div class="ll-nav-prog-fill" style="width:{{ $pct }}%"></div>
             </div>
@@ -392,23 +324,20 @@
                 <span>{{ $pct }}%</span>
             </div>
         </div>
-
         <nav class="ll-nav-list">
             <div class="ll-nav-section-label">Course Lessons</div>
-
             @foreach($lessons as $idx => $sLesson)
                 @php
                     $slp          = $lpMap->get($sLesson->id);
                     $slDone       = $slp && $slp->status === 'completed';
                     $slCurrent    = $sLesson->id === $lesson->id;
                     $prevDone     = $idx === 0 || ($lpMap->get($lessons[$idx - 1]->id)?->status === 'completed');
-                    $slAccessible = $slDone || $slCurrent || $prevDone;
+                    $slAccessible = $previewMode || $slDone || $slCurrent || $prevDone;
                     $stateClass   = $slCurrent ? 'active' : ($slAccessible ? '' : 'locked');
                     $iconClass    = $slCurrent ? 'li-active' : ($slDone ? 'li-done' : ($slAccessible ? 'li-ready' : 'li-locked'));
                 @endphp
-
                 @if($slAccessible && !$slCurrent)
-                    <a href="{{ route('participant.lesson.show', [$enrollment->id, $sLesson->id]) }}"
+                    <a href="{{ $previewMode ? route('elearning.lessons.preview', [$previewCourse, $sLesson]) : route('participant.lesson.show', [$enrollment->id, $sLesson->id]) }}"
                        class="ll-lesson-item {{ $stateClass }}"
                        onclick="document.getElementById('llNav').classList.remove('nav-open')">
                 @elseif($slCurrent)
@@ -416,7 +345,6 @@
                 @else
                     <span class="ll-lesson-item locked">
                 @endif
-
                     <div class="ll-item-icon {{ $iconClass }}">
                         @if($slDone)
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -428,14 +356,12 @@
                             {{ $idx + 1 }}
                         @endif
                     </div>
-
                     <div class="ll-item-body">
                         <div class="ll-item-title">{{ $sLesson->title }}</div>
                         <div class="ll-item-meta">
                             @if($sLesson->duration_minutes)
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                {{ $sLesson->duration_minutes }}m
-                                ·
+                                {{ $sLesson->duration_minutes }}m ·
                             @endif
                             @if($slDone) ✓ Completed
                             @elseif($slCurrent) ▶ In Progress
@@ -444,39 +370,35 @@
                             @endif
                         </div>
                     </div>
-
-                @if($slCurrent || !$slAccessible)
-                    </span>
-                @else
-                    </a>
-                @endif
+                @if($slCurrent || !$slAccessible) </span> @else </a> @endif
             @endforeach
         </nav>
     </aside>
 
-    {{-- Overlay for mobile --}}
     <div class="ll-nav-overlay" id="llNavOverlay" onclick="toggleNav()"></div>
 
-    {{-- ══ MAIN PANEL ════════════════════════════════════════ --}}
+    {{-- ══ MAIN PANEL ═════════════════════════════════════════ --}}
     <div class="ls-main">
 
-        {{-- Top bar --}}
+        {{-- Topbar --}}
         <div class="ll-topbar">
             <div class="ll-topbar-left">
-                <button class="ll-toggle-btn" onclick="toggleNav()" title="Toggle lesson list" aria-label="Toggle lesson navigation">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-                    </svg>
+                <button class="ll-toggle-btn" onclick="toggleNav()" type="button">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                 </button>
-
-                <a href="{{ route('participant.elearning-details', $enrollment->id) }}" class="ll-back-btn">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-                    My Course
-                </a>
-
+                @if($previewMode)
+                    <a href="{{ route('elearning.lessons.edit', [$previewCourse, $lesson]) }}" class="ll-back-btn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                        Builder
+                    </a>
+                @else
+                    <a href="{{ route('participant.elearning-details', $enrollment->id) }}" class="ll-back-btn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                        My Course
+                    </a>
+                @endif
                 <span class="ll-topbar-title">{{ $lesson->title }}</span>
             </div>
-
             <div class="ll-topbar-right">
                 @if($isCompleted)
                     <span class="ll-status-pill sp-done">
@@ -488,85 +410,143 @@
                 @else
                     <span class="ll-status-pill sp-pending">Not Started</span>
                 @endif
-
                 <span class="ll-lesson-counter">{{ $currentIndex + 1 }} / {{ $lessons->count() }}</span>
             </div>
         </div>
 
-        {{-- Scrollable lesson content --}}
-        <div class="ls-scroll">
-            <div class="ls-content-wrap">
+        {{-- Step indicator bar --}}
+        <div class="lf-stepbar">
+            <div class="lf-sb-info">
+                <div class="lf-sb-icon" id="lfIcon">📋</div>
+                <div>
+                    <div class="lf-sb-name" id="lfName">Overview</div>
+                    <div class="lf-sb-sub">Step <span id="lfNum">0</span> of {{ $lastPanel }}</div>
+                </div>
+            </div>
 
-                {{-- Flash messages --}}
-                @if(session('error'))
+            <div class="lf-sb-track" id="lfTrack">
+                <button class="lf-dot active" onclick="goToStep(0)" title="Overview" type="button">📋</button>
+                @foreach($lessonBlocks as $bi => $block)
+                <div class="lf-dot-line" id="lfLine{{ $bi }}"></div>
+                <button class="lf-dot" onclick="goToStep({{ $bi + 1 }})"
+                        title="{{ e($block->title ?: $block->getTypeLabel()) }}" type="button">{{ $bi + 1 }}</button>
+                @endforeach
+                @if($hasActivities)
+                <div class="lf-dot-line" id="lfLine{{ $blockCount }}"></div>
+                <button class="lf-dot" onclick="goToStep({{ $blockCount + 1 }})" title="Activities" type="button">★</button>
+                @endif
+            </div>
+
+            <div class="lf-sb-nav">
+                <button id="btnPrevTop" class="lf-sb-btn" onclick="prevStep()" type="button" disabled>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <button id="btnNextTop" class="lf-sb-btn" onclick="nextStep()" type="button">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+            </div>
+
+            <div id="lfProgress" class="lf-progress-line" style="width:0%"></div>
+        </div>
+
+        {{-- ── Viewport ──────────────────────────────────────── --}}
+        <div class="lf-viewport">
+
+            {{-- Panel 0: Lesson overview --}}
+            <div class="lf-panel lf-active" data-step="0">
+                <div class="lf-inner">
+
+                    @if(session('error'))
                     <div class="ls-alert ls-alert-error">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                         {{ session('error') }}
                     </div>
-                @endif
-                @if(session('success'))
+                    @endif
+                    @if(session('success'))
                     <div class="ls-alert ls-alert-success">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;"><polyline points="20 6 9 17 4 12"/></svg>
                         {{ session('success') }}
                     </div>
-                @endif
+                    @endif
 
-                {{-- ── Lesson Overview Card ─────────────────────────── --}}
-                <div class="lesson-overview">
-                    <div class="lo-breadcrumb">
-                        {{ $enrollment->course->name }}
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                        Lesson {{ $currentIndex + 1 }} of {{ $totalN }}
+                    <div class="lesson-overview">
+                        <div class="lo-breadcrumb">
+                            {{ $courseName }}
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                            Lesson {{ $currentIndex + 1 }} of {{ $totalN }}
+                        </div>
+                        <h1 class="lo-title">{{ $lesson->title }}</h1>
+                        <div class="lo-meta">
+                            @if($lesson->duration_minutes)
+                            <span class="lo-meta-item">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                {{ $lesson->duration_minutes }} minutes
+                            </span>
+                            @endif
+                            @if($blockCount > 0)
+                            <span class="lo-meta-item">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                                {{ $blockCount }} {{ Str::plural('section', $blockCount) }}
+                            </span>
+                            @endif
+                            @if($lesson->completion_rule === 'pass_quiz')
+                            <span class="lo-meta-item">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                Pass quiz to complete{{ $lesson->required_passing_score ? " ({$lesson->required_passing_score}%)" : '' }}
+                            </span>
+                            @else
+                            <span class="lo-meta-item">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                Mark complete when done
+                            </span>
+                            @endif
+                            @if($isCompleted)
+                            <span class="lo-meta-item" style="background:rgba(52,211,153,.2);color:#34d399;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                Completed
+                            </span>
+                            @endif
+                        </div>
                     </div>
-                    <h1 class="lo-title">{{ $lesson->title }}</h1>
-                    <div class="lo-meta">
-                        @if($lesson->duration_minutes)
-                        <span class="lo-meta-item">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            {{ $lesson->duration_minutes }} minutes
-                        </span>
-                        @endif
-                        @if($blockCount > 0)
-                        <span class="lo-meta-item">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                            {{ $blockCount }} {{ Str::plural('section', $blockCount) }}
-                        </span>
-                        @endif
-                        @if($lesson->completion_rule === 'pass_quiz')
-                        <span class="lo-meta-item">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                            Pass quiz to complete
-                            @if($lesson->required_passing_score) ({{ $lesson->required_passing_score }}%) @endif
-                        </span>
-                        @else
-                        <span class="lo-meta-item">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                            Mark complete when done
-                        </span>
-                        @endif
-                        @if($lesson->certificate_eligible ?? true)
-                        <span class="lo-meta-item">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
-                            Required for certificate
-                        </span>
-                        @endif
-                        @if($isCompleted)
-                        <span class="lo-meta-item" style="background:rgba(52,211,153,.2); color:#34d399;">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                            Completed
-                        </span>
-                        @endif
+
+                    @if($lesson->learning_objectives)
+                    <div class="lo-obj">
+                        <div class="lo-obj-head">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                            Learning Objectives
+                        </div>
+                        <div class="lo-obj-body">{{ $lesson->learning_objectives }}</div>
                     </div>
+                    @endif
+
+                    @if($lesson->short_description)
+                    <div class="lo-desc">{{ $lesson->short_description }}</div>
+                    @endif
+
+                    @if(!$hasBlocks && !$hasActivities)
+                    <div class="lf-empty" style="margin-top:20px;">
+                        <div style="font-size:48px;margin-bottom:14px;">📄</div>
+                        <div style="font-size:16px;font-weight:700;color:#6b7280;">No content has been added to this lesson yet.</div>
+                        <div style="font-size:14px;color:#9ca3af;margin-top:6px;">Please check back later or contact your administrator.</div>
+                    </div>
+                    @else
+                    <div style="margin-top:24px;text-align:center;">
+                        <button onclick="nextStep()" class="lfb lfb-next" type="button" style="padding:12px 28px;font-size:15px;">
+                            Start Lesson
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                    </div>
+                    @endif
+
                 </div>
+            </div>
 
-                {{-- ══════════════════════════════════════════════════════
-                     MULTI-BLOCK CONTENT (new system)
-                ══════════════════════════════════════════════════════ --}}
-                @if($hasBlocks)
-                @foreach($lessonBlocks as $block)
+            {{-- Block panels (1..N) --}}
+            @foreach($lessonBlocks as $bi => $block)
+            <div class="lf-panel" data-step="{{ $bi + 1 }}">
+                <div class="lf-inner">
                 @switch($block->block_type)
 
-                    {{-- ── Rich Text ─────────────────────────────────── --}}
                     @case('rich_text')
                     <div class="lb">
                         @if($block->title)
@@ -580,16 +560,24 @@
                     </div>
                     @break
 
-                    {{-- ── Video ─────────────────────────────────────── --}}
                     @case('video')
                     @php
-                        $vUrl = $block->content ?? '';
-                        if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/', $vUrl, $vm)) {
-                            $vUrl = 'https://www.youtube.com/embed/' . $vm[1] . '?rel=0';
-                        } elseif (preg_match('/vimeo\.com\/(\d+)/', $vUrl, $vm)) {
-                            $vUrl = 'https://player.vimeo.com/video/' . $vm[1];
+                        $vRaw = $block->content ?? '';
+                        $ytId = null;
+                        if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/', $vRaw, $vm)) {
+                            $ytId = $vm[1];
                         }
-                        $vIsEmbed = str_contains($vUrl, '/embed/') || str_contains($vUrl, 'player.vimeo');
+                        if ($ytId) {
+                            $vUrl     = 'https://www.youtube.com/embed/' . $ytId . '?rel=0&modestbranding=1';
+                            $vIsEmbed = true;
+                        } elseif (preg_match('/vimeo\.com\/(\d+)/', $vRaw, $vm)) {
+                            $vUrl     = 'https://player.vimeo.com/video/' . $vm[1];
+                            $vIsEmbed = true;
+                        } else {
+                            $vUrl     = $vRaw;
+                            $vIsEmbed = str_contains($vUrl, '/embed/') || str_contains($vUrl, 'player.vimeo');
+                        }
+                        $vIsYT = (bool)$ytId && !$previewMode;
                     @endphp
                     <div class="lb">
                         <div class="lb-head">
@@ -597,8 +585,28 @@
                             <span class="lb-head-label">Video</span>
                             <span class="lb-head-title">{{ $block->title ?: 'Video Lesson' }}</span>
                         </div>
-                        <div class="lb-body" style="padding: 20px 22px;">
-                            @if($vIsEmbed)
+                        <div class="lb-body" style="padding:20px 22px;">
+                            @if($vIsYT)
+                                <div class="video-wrap">
+                                    <div id="yt-player-{{ $block->id }}"></div>
+                                    <div class="yt-resume-overlay" id="yt-resume-{{ $block->id }}" style="display:none;">
+                                        <div class="yt-resume-box">
+                                            <div class="yt-resume-icon">▶</div>
+                                            <p class="yt-resume-title">Resume Video?</p>
+                                            <p class="yt-resume-sub">You were at <strong id="yt-resume-time-{{ $block->id }}">0:00</strong></p>
+                                            <div class="yt-resume-btns">
+                                                <button class="yt-btn-resume" onclick="ytResume('{{ $block->id }}')">▶ Resume</button>
+                                                <button class="yt-btn-restart" onclick="ytRestart('{{ $block->id }}')">↺ Start Over</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="yt-shield-top"></div>
+                                    <div class="yt-shield-logo"></div>
+                                </div>
+                                <div class="yt-lock-msg" id="yt-lock-msg-{{ $block->id }}" style="display:none;">
+                                    🔒 Watch the full video to continue to the next section.
+                                </div>
+                            @elseif($vIsEmbed)
                                 <div class="video-wrap"><iframe src="{{ $vUrl }}" allowfullscreen loading="lazy"></iframe></div>
                             @else
                                 <a href="{{ $block->content }}" target="_blank"
@@ -610,7 +618,6 @@
                     </div>
                     @break
 
-                    {{-- ── Audio ─────────────────────────────────────── --}}
                     @case('audio')
                     <div class="lb">
                         <div class="lb-head">
@@ -619,7 +626,7 @@
                             <span class="lb-head-title">{{ $block->title ?: 'Audio Lesson' }}</span>
                         </div>
                         <div class="lb-body">
-                            <audio controls style="width:100%; border-radius:10px; outline:none;">
+                            <audio controls style="width:100%;border-radius:10px;outline:none;">
                                 <source src="{{ $block->content }}" type="audio/mpeg">
                                 <a href="{{ $block->content }}" target="_blank">Download audio</a>
                             </audio>
@@ -627,7 +634,6 @@
                     </div>
                     @break
 
-                    {{-- ── Image ─────────────────────────────────────── --}}
                     @case('image')
                     <div class="lb">
                         @if($block->title)
@@ -637,19 +643,18 @@
                             <span class="lb-head-title">{{ $block->title }}</span>
                         </div>
                         @endif
-                        <div class="lb-body" style="text-align:center; padding: 24px;">
+                        <div class="lb-body" style="text-align:center;padding:24px;">
                             <img src="{{ $block->content }}"
                                  alt="{{ $block->settings_json['caption'] ?? $block->title ?? '' }}"
-                                 style="max-width:100%; border-radius:10px; cursor:zoom-in; box-shadow:0 2px 12px rgba(15,23,42,.10);"
+                                 style="max-width:100%;border-radius:10px;cursor:zoom-in;box-shadow:0 2px 12px rgba(15,23,42,.10);"
                                  onclick="openLightbox(this.src, this.alt)">
                             @if(!empty($block->settings_json['caption']))
-                                <p style="font-size:13.5px; color:#6b7280; margin-top:10px; font-style:italic;">{{ $block->settings_json['caption'] }}</p>
+                                <p style="font-size:13.5px;color:#6b7280;margin-top:10px;font-style:italic;">{{ $block->settings_json['caption'] }}</p>
                             @endif
                         </div>
                     </div>
                     @break
 
-                    {{-- ── Image Gallery ─────────────────────────────── --}}
                     @case('gallery')
                     @php $gItems = $block->getDecodedContent(); @endphp
                     <div class="lb">
@@ -659,14 +664,14 @@
                             <span class="lb-head-title">{{ $block->title ?: 'Image Gallery' }}</span>
                         </div>
                         <div class="lb-body">
-                            <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px;">
+                            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
                                 @foreach($gItems as $gi)
                                 <div style="text-align:center;">
                                     <img src="{{ $gi['url'] }}" alt="{{ $gi['caption'] ?? '' }}"
-                                         style="width:100%; border-radius:10px; cursor:zoom-in; object-fit:cover; height:150px; box-shadow:0 2px 8px rgba(15,23,42,.08);"
+                                         style="width:100%;border-radius:10px;cursor:zoom-in;object-fit:cover;height:150px;box-shadow:0 2px 8px rgba(15,23,42,.08);"
                                          onclick="openLightbox(this.src, '{{ addslashes($gi['caption'] ?? '') }}')">
                                     @if(!empty($gi['caption']))
-                                        <p style="font-size:12.5px; color:#6b7280; margin:6px 0 0; font-style:italic;">{{ $gi['caption'] }}</p>
+                                        <p style="font-size:12.5px;color:#6b7280;margin:6px 0 0;font-style:italic;">{{ $gi['caption'] }}</p>
                                     @endif
                                 </div>
                                 @endforeach
@@ -675,7 +680,6 @@
                     </div>
                     @break
 
-                    {{-- ── Accordion ─────────────────────────────────── --}}
                     @case('accordion')
                     @php $acItems = $block->getDecodedContent(); @endphp
                     <div class="lb">
@@ -686,24 +690,20 @@
                             <span class="lb-head-title">{{ $block->title }}</span>
                         </div>
                         @endif
-                        <div style="padding: 0;">
+                        <div>
                             @foreach($acItems as $ai => $item)
                             <div class="acc-item" id="acc-{{ $block->id }}-{{ $ai }}">
-                                <button type="button" class="acc-header"
-                                        onclick="toggleAcc('acc-{{ $block->id }}-{{ $ai }}')">
+                                <button type="button" class="acc-header" onclick="toggleAcc('acc-{{ $block->id }}-{{ $ai }}')">
                                     <span>{{ $item['title'] ?? '' }}</span>
                                     <svg class="acc-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
                                 </button>
-                                <div class="acc-body" style="display:none;">
-                                    {!! nl2br(e($item['body'] ?? '')) !!}
-                                </div>
+                                <div class="acc-body" style="display:none;">{!! nl2br(e($item['body'] ?? '')) !!}</div>
                             </div>
                             @endforeach
                         </div>
                     </div>
                     @break
 
-                    {{-- ── PDF ───────────────────────────────────────── --}}
                     @case('pdf')
                     <div class="lb">
                         <div class="lb-head">
@@ -713,8 +713,7 @@
                         </div>
                         <div class="lb-body">
                             <iframe src="{{ $block->content }}"
-                                    style="width:100%; height:520px; border:none; border-radius:10px; background:#f9fafb;">
-                            </iframe>
+                                    style="width:100%;height:520px;border:none;border-radius:10px;background:#f9fafb;"></iframe>
                             @if($block->settings_json['allow_download'] ?? true)
                             <div style="margin-top:12px;">
                                 <a href="{{ $block->content }}" target="_blank"
@@ -728,7 +727,6 @@
                     </div>
                     @break
 
-                    {{-- ── Download Resources ────────────────────────── --}}
                     @case('download')
                     @php $dlItems = $block->getDecodedContent(); @endphp
                     <div class="lb">
@@ -748,12 +746,8 @@
                     </div>
                     @break
 
-                    {{-- ── Slides ────────────────────────────────────── --}}
                     @case('slides')
-                    @php
-                        $slideItems = $block->getDecodedContent();
-                        $slideId    = 'slides-' . $block->id;
-                    @endphp
+                    @php $slideItems = $block->getDecodedContent(); $slideId = 'slides-' . $block->id; @endphp
                     <div class="lb">
                         <div class="lb-head">
                             <div class="lb-head-icon lh-slide">🖥️</div>
@@ -766,27 +760,25 @@
                                 <div class="slide-panel {{ $si === 0 ? 'active' : '' }}" data-slide="{{ $si }}">
                                     @if(!empty($slide['image_url']))
                                         <img src="{{ $slide['image_url'] }}" alt="{{ $slide['title'] ?? '' }}"
-                                             style="width:100%; max-height:340px; object-fit:contain; border-radius:10px; margin-bottom:16px;">
+                                             style="width:100%;max-height:340px;object-fit:contain;border-radius:10px;margin-bottom:16px;">
                                     @endif
                                     @if(!empty($slide['title']))
-                                        <h3 style="font-size:20px; font-weight:800; color:#111827; margin:0 0 10px;">{{ $slide['title'] }}</h3>
+                                        <h3 style="font-size:20px;font-weight:800;color:#111827;margin:0 0 10px;">{{ $slide['title'] }}</h3>
                                     @endif
                                     @if(!empty($slide['text']))
-                                        <div style="font-size:15.5px; color:#374151; line-height:1.8;">{!! $slide['text'] !!}</div>
+                                        <div style="font-size:15.5px;color:#374151;line-height:1.8;">{!! $slide['text'] !!}</div>
                                     @endif
                                 </div>
                                 @endforeach
                             </div>
                             <div class="slide-nav">
-                                <button type="button"
-                                        style="display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:9px 16px;border-radius:9px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;"
-                                        onclick="slidePrev('{{ $slideId }}')">
+                                <button type="button" onclick="slidePrev('{{ $slideId }}')"
+                                        style="display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:9px 16px;border-radius:9px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg> Prev
                                 </button>
                                 <span class="slide-counter" id="{{ $slideId }}-counter">1 / {{ count($slideItems) }}</span>
-                                <button type="button"
-                                        style="display:inline-flex;align-items:center;gap:6px;background:#1e3a8a;color:#fff;border:none;padding:9px 16px;border-radius:9px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;"
-                                        onclick="slideNext('{{ $slideId }}', {{ count($slideItems) }})">
+                                <button type="button" onclick="slideNext('{{ $slideId }}', {{ count($slideItems) }})"
+                                        style="display:inline-flex;align-items:center;gap:6px;background:#1e3a8a;color:#fff;border:none;padding:9px 16px;border-radius:9px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;">
                                     Next <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                                 </button>
                             </div>
@@ -794,7 +786,6 @@
                     </div>
                     @break
 
-                    {{-- ── Knowledge Check ───────────────────────────── --}}
                     @case('knowledge_check')
                     @php $kc = $block->getDecodedContent(); @endphp
                     <div class="lb">
@@ -810,11 +801,9 @@
                                     @foreach($kc['options'] ?? [] as $oi => $opt)
                                     <label class="kc-opt-label" id="kclbl-{{ $block->id }}-{{ $oi }}">
                                         @if(($kc['type'] ?? 'single') === 'multiple')
-                                            <input type="checkbox" name="kc_ans_{{ $block->id }}[]" value="{{ $oi }}"
-                                                   onchange="kcCheck('kc-{{ $block->id }}')">
+                                            <input type="checkbox" name="kc_ans_{{ $block->id }}[]" value="{{ $oi }}" onchange="kcCheck('kc-{{ $block->id }}')">
                                         @else
-                                            <input type="radio" name="kc_ans_{{ $block->id }}" value="{{ $oi }}"
-                                                   onchange="kcCheck('kc-{{ $block->id }}')">
+                                            <input type="radio" name="kc_ans_{{ $block->id }}" value="{{ $oi }}" onchange="kcCheck('kc-{{ $block->id }}')">
                                         @endif
                                         <span class="kc-opt-circle"></span>
                                         <span class="kc-opt-key">{{ chr(65 + $oi) }}</span>
@@ -833,9 +822,11 @@
                             </div>
                         </div>
                     </div>
+                    <div class="panel-lock-msg" id="block-lock-{{ $bi + 1 }}" style="display:none;">
+                        ❓ Submit your answer to continue to the next section.
+                    </div>
                     @break
 
-                    {{-- ── Scenario Exercise ─────────────────────────── --}}
                     @case('scenario')
                     @php $sc = $block->getDecodedContent(); @endphp
                     <div class="lb">
@@ -846,7 +837,7 @@
                         </div>
                         <div class="lb-body">
                             <div class="sc-scenario-text">{{ $sc['text'] ?? '' }}</div>
-                            <p style="font-size:14px; font-weight:700; color:#374151; margin-bottom:14px;">How would you respond?</p>
+                            <p style="font-size:14px;font-weight:700;color:#374151;margin-bottom:14px;">How would you respond?</p>
                             @foreach($sc['options'] ?? [] as $soi => $sopt)
                             <div class="sc-opt" id="scopt-{{ $block->id }}-{{ $soi }}">
                                 <button type="button" class="sc-opt-btn"
@@ -859,9 +850,11 @@
                             @endforeach
                         </div>
                     </div>
+                    <div class="panel-lock-msg" id="block-lock-{{ $bi + 1 }}" style="display:none;">
+                        ✋ Choose a response to continue to the next section.
+                    </div>
                     @break
 
-                    {{-- ── Matching Activity ─────────────────────────── --}}
                     @case('matching')
                     @php
                         $matchData  = $block->getDecodedContent();
@@ -876,7 +869,7 @@
                             <span class="lb-head-title">{{ $block->title ?: 'Matching Activity' }}</span>
                         </div>
                         <div class="lb-body">
-                            <p style="font-size:14px; color:#6b7280; margin-bottom:18px;">Match each term with the correct definition.</p>
+                            <p style="font-size:14px;color:#6b7280;margin-bottom:18px;">Match each term with the correct definition.</p>
                             <div class="match-grid" id="{{ $matchId }}">
                                 <div>
                                     <div class="match-col-header">Terms</div>
@@ -898,307 +891,369 @@
                                     @endforeach
                                 </div>
                             </div>
-                            <div id="{{ $matchId }}-result" style="display:none; margin-top:14px; padding:12px 16px; border-radius:10px; font-size:14px; font-weight:700;"></div>
+                            <div id="{{ $matchId }}-result" style="display:none;margin-top:14px;padding:12px 16px;border-radius:10px;font-size:14px;font-weight:700;"></div>
                         </div>
+                    </div>
+                    <div class="panel-lock-msg" id="block-lock-{{ $bi + 1 }}" style="display:none;">
+                        🔗 Match all items to continue to the next section.
                     </div>
                     @break
 
                 @endswitch
-                @endforeach
-                @endif
-
-                {{-- ══ LEGACY CONTENT (backward compatible) ══════════════ --}}
-                @if($hasLegacy)
-                    @if(!empty($lesson->lesson_content))
-                    <div class="lb">
-                        <div class="lb-head">
-                            <div class="lb-head-icon lh-legacy">📋</div>
-                            <span class="lb-head-label">Lesson Content</span>
-                        </div>
-                        <div class="lb-body rt-body">{!! nl2br(e($lesson->lesson_content)) !!}</div>
-                    </div>
-                    @endif
-                    @if(!empty($lesson->video_url))
-                    @php
-                        $lVUrl = $lesson->video_url;
-                        if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/', $lVUrl, $m))
-                            $lVUrl = 'https://www.youtube.com/embed/' . $m[1] . '?rel=0';
-                        $lVIsEmbed = str_contains($lVUrl, '/embed/') || str_contains($lVUrl, 'player.vimeo');
-                    @endphp
-                    <div class="lb">
-                        <div class="lb-head">
-                            <div class="lb-head-icon lh-video">🎬</div>
-                            <span class="lb-head-label">Video</span>
-                        </div>
-                        <div class="lb-body" style="padding: 20px 22px;">
-                            @if($lVIsEmbed)
-                                <div class="video-wrap"><iframe src="{{ $lVUrl }}" allowfullscreen></iframe></div>
-                            @else
-                                <a href="{{ $lesson->video_url }}" target="_blank"
-                                   style="display:inline-flex;align-items:center;gap:8px;background:#7c3aed;color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;text-decoration:none;font-size:15px;">
-                                    ▶ Open Video
-                                </a>
-                            @endif
-                        </div>
-                    </div>
-                    @endif
-                @endif
-
-                {{-- Legacy Resources --}}
-                @if($lesson->resources->isNotEmpty())
-                <div class="lb">
-                    <div class="lb-head">
-                        <div class="lb-head-icon lh-dl">📎</div>
-                        <span class="lb-head-label">Resources</span>
-                        <span class="lb-head-title">{{ $lesson->resources->count() }} attached file{{ $lesson->resources->count() !== 1 ? 's' : '' }}</span>
-                    </div>
-                    <div class="lb-body">
-                        @foreach($lesson->resources as $resource)
-                        <div class="resource-row">
-                            <a href="{{ $resource->external_url ?? asset('storage/' . $resource->file_path) }}" target="_blank">
-                                {{ $resource->title ?? 'Download' }}
-                            </a>
-                            <span class="resource-type">{{ $resource->resource_type ?? 'file' }}</span>
-                        </div>
-                        @endforeach
-                    </div>
                 </div>
-                @endif
+            </div>
+            @endforeach
 
-                {{-- Quizzes --}}
-                @if($lesson->quizzes->isNotEmpty())
-                <div class="lb">
-                    <div class="lb-head">
-                        <div class="lb-head-icon lh-kc">📝</div>
-                        <span class="lb-head-label">Assessment</span>
-                        <span class="lb-head-title">Lesson Quiz</span>
-                    </div>
-                    <div class="lb-body">
-                        @foreach($lesson->quizzes as $quiz)
-                        @php
-                            $bestAttempt  = $quiz->attempts->sortByDesc('score')->first();
-                            $quizPassed   = $bestAttempt && $bestAttempt->score >= $quiz->pass_mark;
-                            $attemptsUsed = $quiz->attempts->count();
-                            $attemptsLeft = $quiz->max_attempt - $attemptsUsed;
-                        @endphp
-                        <div class="quiz-row">
-                            <div class="quiz-name">{{ $quiz->title }}</div>
-                            <div class="quiz-meta-line">
-                                Passing score: <strong>{{ $quiz->pass_mark }}%</strong>
-                                &nbsp;·&nbsp; Max attempts: {{ $quiz->max_attempt }}
-                                @if($bestAttempt) &nbsp;·&nbsp; Your best: <strong style="color:{{ $bestAttempt->score >= $quiz->pass_mark ? '#16a34a' : '#dc2626' }};">{{ $bestAttempt->score }}%</strong> @endif
-                                @if(!$quizPassed && $attemptsLeft > 0) &nbsp;·&nbsp; {{ $attemptsLeft }} attempt{{ $attemptsLeft !== 1 ? 's' : '' }} left @endif
+            {{-- Activities panel (quizzes + resources) --}}
+            @if($hasActivities)
+            <div class="lf-panel" data-step="{{ $blockCount + 1 }}">
+                <div class="lf-inner">
+
+                    @if($hasResources)
+                    <div class="lb">
+                        <div class="lb-head">
+                            <div class="lb-head-icon lh-dl">📎</div>
+                            <span class="lb-head-label">Resources</span>
+                            <span class="lb-head-title">{{ $lesson->resources->count() }} attached file{{ $lesson->resources->count() !== 1 ? 's' : '' }}</span>
+                        </div>
+                        <div class="lb-body">
+                            @foreach($lesson->resources as $resource)
+                            <div class="resource-row">
+                                <a href="{{ $resource->external_url ?? asset('storage/' . $resource->file_path) }}" target="_blank">
+                                    {{ $resource->title ?? 'Download' }}
+                                </a>
+                                <span class="resource-type">{{ $resource->resource_type ?? 'file' }}</span>
                             </div>
-                            @if($quizPassed)
-                                <span style="display:inline-flex;align-items:center;gap:7px;background:#dcfce7;color:#166534;padding:9px 16px;border-radius:9px;font-weight:700;font-size:14px;">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                                    Passed — {{ $bestAttempt->score }}%
-                                </span>
-                            @elseif($attemptsLeft <= 0)
-                                <span style="background:#fee2e2;color:#991b1b;padding:9px 16px;border-radius:9px;font-weight:700;font-size:14px;display:inline-block;">No attempts remaining</span>
-                            @else
-                                <a href="{{ route('participant.quiz.start', ['enrollment' => $enrollment->id, 'quiz' => $quiz->id]) }}"
-                                   style="display:inline-flex;align-items:center;gap:7px;background:#d97706;color:#fff;padding:10px 20px;border-radius:9px;font-weight:700;font-size:14px;text-decoration:none;">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                                    {{ $bestAttempt ? 'Retake Quiz' : 'Start Quiz' }}
-                                </a>
-                            @endif
+                            @endforeach
                         </div>
-                        @endforeach
                     </div>
+                    @endif
+
+                    @if($hasQuizzes)
+                    <div class="lb" style="{{ $hasResources ? 'margin-top:16px;' : '' }}">
+                        <div class="lb-head">
+                            <div class="lb-head-icon lh-kc">📝</div>
+                            <span class="lb-head-label">Assessment</span>
+                            <span class="lb-head-title">Lesson Quiz</span>
+                        </div>
+                        <div class="lb-body">
+                            @foreach($lesson->quizzes as $quiz)
+                            @php
+                                $bestAttempt  = $quiz->attempts->sortByDesc('score')->first();
+                                $quizPassed   = $bestAttempt && $bestAttempt->score >= $quiz->pass_mark;
+                                $attemptsUsed = $quiz->attempts->count();
+                                $attemptsLeft = $quiz->max_attempt - $attemptsUsed;
+                            @endphp
+                            <div class="quiz-row">
+                                <div class="quiz-name">{{ $quiz->title }}</div>
+                                <div class="quiz-meta-line">
+                                    Passing score: <strong>{{ $quiz->pass_mark }}%</strong>
+                                    &nbsp;·&nbsp; Max attempts: {{ $quiz->max_attempt }}
+                                    @if($bestAttempt) &nbsp;·&nbsp; Your best: <strong style="color:{{ $bestAttempt->score >= $quiz->pass_mark ? '#16a34a' : '#dc2626' }};">{{ $bestAttempt->score }}%</strong> @endif
+                                    @if(!$quizPassed && $attemptsLeft > 0) &nbsp;·&nbsp; {{ $attemptsLeft }} attempt{{ $attemptsLeft !== 1 ? 's' : '' }} left @endif
+                                </div>
+                                @if($quizPassed)
+                                    <span style="display:inline-flex;align-items:center;gap:7px;background:#dcfce7;color:#166534;padding:9px 16px;border-radius:9px;font-weight:700;font-size:14px;">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                        Passed — {{ $bestAttempt->score }}%
+                                    </span>
+                                @elseif($attemptsLeft <= 0)
+                                    <span style="background:#fee2e2;color:#991b1b;padding:9px 16px;border-radius:9px;font-weight:700;font-size:14px;display:inline-block;">No attempts remaining</span>
+                                @elseif($previewMode)
+                                    <span style="display:inline-flex;align-items:center;gap:7px;background:#fef3c7;color:#92400e;padding:10px 20px;border-radius:9px;font-weight:700;font-size:14px;cursor:default;">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        Preview — Quiz disabled
+                                    </span>
+                                @else
+                                    <a href="{{ route('participant.quiz.start', ['enrollment' => $enrollment->id, 'quiz' => $quiz->id]) }}"
+                                       style="display:inline-flex;align-items:center;gap:7px;background:#d97706;color:#fff;padding:10px 20px;border-radius:9px;font-weight:700;font-size:14px;text-decoration:none;">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                        {{ $bestAttempt ? 'Retake Quiz' : 'Start Quiz' }}
+                                    </a>
+                                @endif
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
                 </div>
+            </div>
+            @endif
+
+        </div>{{-- /.lf-viewport --}}
+
+        {{-- ── Footer ──────────────────────────────────────────── --}}
+        <div class="lf-footer">
+
+            <div class="lf-foot-l">
+                <button id="btnPrevFoot" class="lfb lfb-prev" onclick="prevStep()" type="button" style="display:none;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                    Back
+                </button>
+                @if($previousLesson)
+                <a href="{{ $previewMode ? route('elearning.lessons.preview', [$previewCourse, $previousLesson]) : route('participant.lesson.show', [$enrollment->id, $previousLesson->id]) }}"
+                   class="lfb lfb-sm" style="background:#f3f4f6;color:#6b7280;border:1px solid #e5e7eb;" title="Go to previous lesson">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                    Prev Lesson
+                </a>
                 @endif
+            </div>
 
-                {{-- Empty state --}}
-                @if(!$hasBlocks && !$hasLegacy && $lesson->resources->isEmpty() && $lesson->quizzes->isEmpty())
-                <div style="text-align:center; padding:60px 20px; background:#fff; border-radius:16px; border: 1px solid #e9ecf0;">
-                    <div style="font-size:48px; margin-bottom:14px;">📄</div>
-                    <div style="font-size:16px; font-weight:700; color:#6b7280;">No content has been added to this lesson yet.</div>
-                    <div style="font-size:14px; color:#9ca3af; margin-top:6px;">Please check back later or contact your administrator.</div>
-                </div>
-                @endif
+            <div class="lf-foot-c" id="lfFootC">Overview</div>
 
-            </div>{{-- /.ls-content-wrap --}}
+            <div class="lf-foot-r">
+                <button id="btnNextFoot" class="lfb lfb-next" onclick="nextStep()" type="button">
+                    Next
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
 
-            {{-- ══ STICKY BOTTOM BAR ════════════════════════════════ --}}
-            <div class="ls-bottom-bar {{ $isCompleted ? 'completed-bar' : '' }}">
-
-                <div class="lbb-hint">
-                    @if($isCompleted)
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                        Lesson completed!
-                    @elseif($lesson->quizzes->isNotEmpty() && !$quizzesPassed)
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                        Pass the quiz to complete this lesson
+                @if(!$isCompleted && !$previewMode)
+                <form method="POST" action="{{ route('participant.lesson.complete', [$enrollment->id, $lesson->id]) }}" style="margin:0;display:none;" id="frmComplete">
+                    @csrf
+                    @if($quizzesPassed || $lesson->quizzes->isEmpty())
+                        <button type="submit" class="lfb lfb-ok">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            Mark Complete
+                        </button>
                     @else
-                        Mark this lesson as complete when you're ready.
+                        <span class="lfb lfb-dis">Complete Quiz First</span>
                     @endif
-                    <span class="lbb-progress">
-                        {{ $completedN }}/{{ $totalN }} lessons &nbsp;·&nbsp; {{ $pct }}%
-                    </span>
-                </div>
+                </form>
+                @elseif($isCompleted)
+                <span class="lfb lfb-done" id="doneChip" style="display:none;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    Completed
+                </span>
+                @elseif($previewMode)
+                <span class="lfb lfb-amber" id="previewChip" style="display:none;cursor:default;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Preview
+                </span>
+                @endif
 
-                <div class="lbb-actions">
-                    @if($previousLesson)
-                        <a href="{{ route('participant.lesson.show', [$enrollment->id, $previousLesson->id]) }}"
-                           class="lbb-btn btn-prev">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-                            Previous
-                        </a>
-                    @endif
+                @if($nextLesson)
+                <a href="{{ $previewMode ? route('elearning.lessons.preview', [$previewCourse, $nextLesson]) : route('participant.lesson.show', [$enrollment->id, $nextLesson->id]) }}"
+                   class="lfb lfb-blue" id="btnNextLesson" style="display:none;">
+                    Next Lesson
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+                @else
+                <a href="{{ $previewMode ? route('elearning.lessons.index', $previewCourse) : route('participant.elearning-details', $enrollment->id) }}"
+                   class="lfb lfb-teal" id="btnCourseOv" style="display:none;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    {{ $previewMode ? 'All Lessons' : 'Course Overview' }}
+                </a>
+                @endif
+            </div>
 
-                    @if(!$isCompleted)
-                        @if($quizzesPassed || $lesson->quizzes->isEmpty())
-                            <form method="POST" action="{{ route('participant.lesson.complete', [$enrollment->id, $lesson->id]) }}" style="margin:0;">
-                                @csrf
-                                <button type="submit" class="lbb-btn btn-complete">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                                    Mark Complete
-                                </button>
-                            </form>
-                        @else
-                            <span class="lbb-btn btn-disabled">Complete Quiz First</span>
-                        @endif
-                    @endif
-
-                    @if($isCompleted && $nextLesson)
-                        <a href="{{ route('participant.lesson.show', [$enrollment->id, $nextLesson->id]) }}"
-                           class="lbb-btn btn-next">
-                            Next Lesson
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                        </a>
-                    @elseif($isCompleted && !$nextLesson)
-                        <a href="{{ route('participant.elearning-details', $enrollment->id) }}"
-                           class="lbb-btn btn-overview">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                            Course Overview
-                        </a>
-                    @elseif(!$isCompleted && $nextLesson)
-                        <span class="lbb-btn btn-disabled">
-                            Next — Complete first
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        </span>
-                    @endif
-                </div>
-
-            </div>{{-- /.ls-bottom-bar --}}
-
-        </div>{{-- /.ls-scroll --}}
+        </div>
 
     </div>{{-- /.ls-main --}}
-
 </div>{{-- /.ls-shell --}}
+</div>{{-- /.lp-wrap --}}
 
 {{-- Lightbox --}}
 <div id="lb-overlay" onclick="if(event.target===this)closeLightbox()">
-    <button id="lb-close" onclick="closeLightbox()">✕</button>
+    <button id="lb-close" onclick="closeLightbox()" type="button">✕</button>
     <img id="lb-img" src="" alt="">
     <div id="lb-caption"></div>
 </div>
 
 <script>
-// ── Nav toggle ───────────────────────────────────────────
-const llNav     = document.getElementById('llNav');
-const llOverlay = document.getElementById('llNavOverlay');
-const isMobile  = () => window.innerWidth <= 860;
+const STEP_ICONS  = {!! json_encode(array_merge(['📋'], $lessonBlocks->map(fn($b) => $blockTypeIcons[$b->block_type] ?? '📦')->values()->all(), $hasActivities ? ['📌'] : [])) !!};
+const STEP_LABELS = {!! json_encode(array_merge(['Overview'], $lessonBlocks->map(fn($b) => $b->title ?: $b->getTypeLabel())->values()->all(), $hasActivities ? ['Activities'] : [])) !!};
+const LAST        = {{ $lastPanel }};
+const HAS_ACT     = {{ $hasActivities ? 'true' : 'false' }};
+const STEP_TYPES  = {!! json_encode($stepTypes) !!};
+const AUTO_DONE   = new Set(['overview','rich_text','audio','image','gallery','pdf','download','slides','accordion','activities']);
 
-function toggleNav() {
-    if (isMobile()) {
-        llNav.classList.toggle('nav-open');
-        llOverlay.classList.toggle('show');
-    } else {
-        llNav.classList.toggle('nav-collapsed');
+const stepDone = { 0: true }; // overview always done
+let cur = 0;
+const panels = document.querySelectorAll('.lf-panel');
+const dots   = document.querySelectorAll('#lfTrack .lf-dot');
+const lines  = document.querySelectorAll('#lfTrack .lf-dot-line');
+
+function getFrontier() {
+    for (let i = 0; i <= LAST; i++) { if (!stepDone[i]) return i; }
+    return LAST;
+}
+
+function goToStep(n) {
+    if (n < 0 || n > LAST) return;
+    if (n > getFrontier()) return; // block jumping ahead of the furthest reached step
+    // Pause any YT video on the panel we're leaving
+    const leavingBid = currentYtBlockId();
+    if (leavingBid && ytStates[leavingBid]?.player?.pauseVideo) {
+        ytStates[leavingBid].player.pauseVideo();
     }
+    panels.forEach((p, i) => p.classList.toggle('lf-active', i === n));
+    dots.forEach((d, i) => {
+        d.classList.remove('active','done');
+        if (i < n) d.classList.add('done');
+        else if (i === n) d.classList.add('active');
+    });
+    lines.forEach((l, i) => l.classList.toggle('done', i < n));
+    cur = n;
+    if (AUTO_DONE.has(STEP_TYPES[n])) stepDone[n] = true;
+    renderUI();
+    document.querySelector('.lf-panel.lf-active')?.scrollTo({ top: 0 });
 }
-
-// Close overlay on resize to desktop
-window.addEventListener('resize', () => {
-    if (!isMobile()) {
-        llNav.classList.remove('nav-open');
-        llOverlay.classList.remove('show');
+function prevStep() { goToStep(cur - 1); }
+function nextStep() {
+    if (isCurrentPanelLocked()) {
+        const bid = currentYtBlockId();
+        if (bid) {
+            const msg = document.getElementById('yt-lock-msg-' + bid);
+            if (msg) { msg.style.display = 'flex'; setTimeout(() => { msg.style.display = 'none'; }, 3500); }
+        } else {
+            const msg = document.getElementById('block-lock-' + cur);
+            if (msg) { msg.style.display = 'flex'; setTimeout(() => { msg.style.display = 'none'; }, 3500); }
+        }
+        return;
     }
-});
-
-// ── Lightbox ──────────────────────────────────────────────
-function openLightbox(src, caption) {
-    document.getElementById('lb-img').src = src;
-    document.getElementById('lb-caption').textContent = caption || '';
-    document.getElementById('lb-overlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
-function closeLightbox() {
-    document.getElementById('lb-overlay').classList.remove('open');
-    document.body.style.overflow = '';
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
-
-// ── Accordion ─────────────────────────────────────────────
-function toggleAcc(id) {
-    const item = document.getElementById(id);
-    const body = item.querySelector('.acc-body');
-    const open = item.classList.toggle('open');
-    body.style.display = open ? 'block' : 'none';
+    goToStep(cur + 1);
 }
 
-// ── Slides ────────────────────────────────────────────────
-function slidePrev(id) {
-    const panels = document.getElementById(id).querySelectorAll('.slide-panel');
-    let cur = [...panels].findIndex(p => p.classList.contains('active'));
-    if (cur > 0) {
-        panels[cur].classList.remove('active');
-        panels[cur - 1].classList.add('active');
-        updateSlideCounter(id, cur - 1, panels.length);
+function renderUI() {
+    const isLast = cur === LAST;
+
+    // Step bar info
+    document.getElementById('lfIcon').textContent = STEP_ICONS[cur]  || '📋';
+    document.getElementById('lfName').textContent = STEP_LABELS[cur] || '';
+    document.getElementById('lfNum').textContent  = cur;
+
+    // Progress line
+    document.getElementById('lfProgress').style.width = (LAST > 0 ? (cur / LAST) * 100 : 100) + '%';
+
+    // Footer center
+    document.getElementById('lfFootC').textContent =
+        cur === 0 ? 'Overview'
+        : (isLast && HAS_ACT) ? 'Activities'
+        : `Section ${cur} of ${LAST}`;
+
+    // Prev
+    const fp = document.getElementById('btnPrevFoot');
+    const tp = document.getElementById('btnPrevTop');
+    if (fp) fp.style.display = cur === 0 ? 'none' : '';
+    if (tp) tp.disabled = cur === 0;
+
+    // Next — locked check applies even on the last panel (e.g. unfinished video)
+    const fn = document.getElementById('btnNextFoot');
+    const tn = document.getElementById('btnNextTop');
+    const locked = isCurrentPanelLocked();
+    if (fn) {
+        fn.style.display = (isLast && !locked) ? 'none' : '';
+        if (fn.style.display !== 'none') {
+            fn.className = 'lfb ' + (locked ? 'lfb-locked' : 'lfb-next');
+            const t = STEP_TYPES[cur];
+            const lockLabel = t === 'video' ? '🔒 Watch First'
+                : t === 'knowledge_check' ? '❓ Answer First'
+                : t === 'scenario'        ? '✋ Choose First'
+                : t === 'matching'        ? '🔗 Match First'
+                : '🔒 Complete First';
+            fn.innerHTML = (locked ? lockLabel : (cur === LAST - 1 ? 'Finish' : 'Next')) +
+                ' <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
+        }
     }
-}
-function slideNext(id, total) {
-    const panels = document.getElementById(id).querySelectorAll('.slide-panel');
-    let cur = [...panels].findIndex(p => p.classList.contains('active'));
-    if (cur < panels.length - 1) {
-        panels[cur].classList.remove('active');
-        panels[cur + 1].classList.add('active');
-        updateSlideCounter(id, cur + 1, panels.length);
-    }
-}
-function updateSlideCounter(id, cur, total) {
-    const el = document.getElementById(id + '-counter');
-    if (el) el.textContent = (cur + 1) + ' / ' + total;
-}
+    if (tn) tn.disabled = locked || isLast;
 
-// ── Knowledge Check ───────────────────────────────────────
-function kcCheck() {}
-function kcSubmit(id, correctMap, explanation) {
-    const wrap   = document.getElementById(id);
-    const type   = wrap.dataset.type;
-    let userAnswers = [];
-
-    if (type === 'multiple') {
-        wrap.querySelectorAll('input[type=checkbox]:checked').forEach(cb => userAnswers.push(parseInt(cb.value)));
-    } else {
-        const radio = wrap.querySelector('input[type=radio]:checked');
-        if (radio) userAnswers.push(parseInt(radio.value));
-    }
-
-    if (!userAnswers.length) { alert('Please select an answer first.'); return; }
-
-    const correctIndices = correctMap.filter(o => o.correct).map(o => o.idx);
-    const isCorrect = correctIndices.length === userAnswers.length &&
-                      correctIndices.every(i => userAnswers.includes(i));
-
-    wrap.querySelectorAll('.kc-opt-label').forEach((lbl, i) => {
-        lbl.querySelector('input').disabled = true;
-        if (correctIndices.includes(i)) lbl.classList.add('correct');
-        else if (userAnswers.includes(i)) lbl.classList.add('wrong');
+    // Completion actions — only when on last step AND fully done (not locked)
+    const showCompletion = isLast && !locked;
+    ['frmComplete','doneChip','previewChip','btnNextLesson','btnCourseOv'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = showCompletion ? '' : 'none';
     });
 
-    const resEl = wrap.querySelector('.kc-result');
-    resEl.style.display = 'block';
-    resEl.className = 'kc-result ' + (isCorrect ? 'kc-result-pass' : 'kc-result-fail');
-    resEl.innerHTML = (isCorrect ? '✅ Correct!' : '❌ Incorrect.')
-                    + (explanation ? ' <span style="font-weight:400;">' + explanation + '</span>' : '');
-    wrap.querySelector('button[onclick^="kcSubmit"]').style.display = 'none';
+    // Dim dots beyond the current frontier
+    const frontier = getFrontier();
+    dots.forEach((d, i) => d.classList.toggle('future', i > frontier));
 }
 
-// ── Scenario ──────────────────────────────────────────────
+// Nav toggle
+const llNav = document.getElementById('llNav');
+const llOvl = document.getElementById('llNavOverlay');
+function toggleNav() {
+    if (window.innerWidth <= 860) { llNav.classList.toggle('nav-open'); llOvl.classList.toggle('show'); }
+    else llNav.classList.toggle('nav-collapsed');
+}
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 860) { llNav.classList.remove('nav-open'); llOvl.classList.remove('show'); }
+});
+
+// Lightbox
+function openLightbox(src, cap) {
+    document.getElementById('lb-img').src = src;
+    document.getElementById('lb-caption').textContent = cap || '';
+    document.getElementById('lb-overlay').classList.add('open');
+}
+function closeLightbox() { document.getElementById('lb-overlay').classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+// Accordion
+function toggleAcc(id) {
+    const item = document.getElementById(id);
+    item.querySelector('.acc-body').style.display = item.classList.toggle('open') ? 'block' : 'none';
+}
+
+// Slides
+function slidePrev(id) {
+    const ps = document.getElementById(id).querySelectorAll('.slide-panel');
+    let c = [...ps].findIndex(p => p.classList.contains('active'));
+    if (c > 0) { ps[c].classList.remove('active'); ps[--c].classList.add('active'); }
+    const el = document.getElementById(id + '-counter');
+    if (el) el.textContent = (c + 1) + ' / ' + ps.length;
+}
+function slideNext(id, total) {
+    const ps = document.getElementById(id).querySelectorAll('.slide-panel');
+    let c = [...ps].findIndex(p => p.classList.contains('active'));
+    if (c < ps.length - 1) { ps[c].classList.remove('active'); ps[++c].classList.add('active'); }
+    const el = document.getElementById(id + '-counter');
+    if (el) el.textContent = (c + 1) + ' / ' + ps.length;
+}
+
+// Knowledge check
+function kcCheck() {}
+function kcSubmit(id, correctMap, explanation) {
+    const wrap = document.getElementById(id);
+    const type = wrap.dataset.type;
+    let ans = [];
+    if (type === 'multiple') wrap.querySelectorAll('input[type=checkbox]:checked').forEach(cb => ans.push(parseInt(cb.value)));
+    else { const r = wrap.querySelector('input[type=radio]:checked'); if (r) ans.push(parseInt(r.value)); }
+    if (!ans.length) { alert('Please select an answer first.'); return; }
+    const correctIdx = correctMap.filter(o => o.correct).map(o => o.idx);
+    const ok = correctIdx.length === ans.length && correctIdx.every(i => ans.includes(i));
+    const res = wrap.querySelector('.kc-result');
+    if (ok) {
+        wrap.querySelectorAll('.kc-opt-label').forEach((lbl, i) => {
+            lbl.querySelector('input').disabled = true;
+            if (correctIdx.includes(i)) lbl.classList.add('correct');
+            else if (ans.includes(i)) lbl.classList.add('wrong');
+        });
+        res.style.display = 'block';
+        res.className = 'kc-result kc-result-pass';
+        res.innerHTML = '✅ Correct!' + (explanation ? ' <span style="font-weight:400;">' + explanation + '</span>' : '');
+        wrap.querySelector('button[onclick^="kcSubmit"]').style.display = 'none';
+        markStepDone(cur);
+    } else {
+        // Mark user selection wrong, don't lock inputs — allow retry
+        wrap.querySelectorAll('.kc-opt-label').forEach((lbl, i) => {
+            lbl.classList.remove('correct','wrong');
+            if (ans.includes(i)) lbl.classList.add('wrong');
+        });
+        res.style.display = 'block';
+        res.className = 'kc-result kc-result-fail';
+        res.innerHTML = '❌ Incorrect — try again.';
+        // Auto-reset after 1.4s for clean retry
+        setTimeout(() => {
+            wrap.querySelectorAll('.kc-opt-label').forEach(lbl => lbl.classList.remove('wrong'));
+            wrap.querySelectorAll('input[type=radio],input[type=checkbox]').forEach(inp => inp.checked = false);
+            res.style.display = 'none';
+        }, 1400);
+    }
+}
+
+// Scenario
 function scSelect(blockId, idx, options) {
     document.querySelectorAll(`[id^="scopt-${blockId}-"] .sc-opt-btn`).forEach(btn => { btn.disabled = true; });
     options.forEach((opt, i) => {
@@ -1207,28 +1262,196 @@ function scSelect(blockId, idx, options) {
         if (btn && i === idx) btn.classList.add(opt.correct ? 'selected-correct' : 'selected-wrong');
         if (exp && opt.explanation) { exp.style.display = 'block'; exp.textContent = opt.explanation; }
     });
+    markStepDone(cur);
 }
 
-// ── Matching ──────────────────────────────────────────────
+// Matching — runs on every dropdown change; only unlocks when ALL pairs correct
 function checkMatch(id, total) {
-    let correct = 0;
+    let correct = 0, filled = 0;
     for (let i = 0; i < total; i++) {
         const sel = document.getElementById(id + '-sel-' + i);
         if (!sel) continue;
+        if (sel.value) filled++;
         if (sel.value === sel.dataset.correct) {
             sel.style.borderColor = '#16a34a'; sel.style.background = '#f0fdf4'; correct++;
         } else if (sel.value) {
+            sel.style.borderColor = '#dc2626'; sel.style.background = '#fef2f2';
+        } else {
             sel.style.borderColor = '#e5e7eb'; sel.style.background = '';
         }
     }
     const res = document.getElementById(id + '-result');
-    if (res && correct === total) {
-        res.style.display = 'block'; res.style.color = '#166534';
-        res.style.background = '#dcfce7'; res.style.padding = '12px 16px';
-        res.style.borderRadius = '10px';
+    if (!res) return;
+    if (correct === total) {
+        res.style.display = 'block'; res.style.color = '#166534'; res.style.background = '#dcfce7';
+        res.style.borderRadius = '10px'; res.style.padding = '12px 16px';
         res.textContent = '✅ All ' + total + ' pairs matched correctly!';
+        markStepDone(cur);
+    } else if (filled === total) {
+        res.style.display = 'block'; res.style.color = '#991b1b'; res.style.background = '#fef2f2';
+        res.style.borderRadius = '10px'; res.style.padding = '12px 16px';
+        res.textContent = correct + ' of ' + total + ' correct — fix the red items and try again.';
+    } else {
+        res.style.display = 'none';
     }
 }
+
+// ── YouTube IFrame API ────────────────────────────────────────
+const YT_BLOCKS = {!! json_encode($ytBlocks) !!};
+const ytStates  = {};
+
+(function initYT() {
+    if (!Object.keys(YT_BLOCKS).length) return;
+    Object.keys(YT_BLOCKS).forEach(bid => {
+        ytStates[bid] = {
+            player: null, ready: false, pollId: null,
+            hw:   parseFloat(localStorage.getItem('yt_hw_' + bid) || '0'),
+            done: localStorage.getItem('yt_done_' + bid) === '1',
+        };
+    });
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+})();
+
+window.onYouTubeIframeAPIReady = function() {
+    Object.entries(YT_BLOCKS).forEach(([bid, info]) => {
+        ytStates[bid].player = new YT.Player('yt-player-' + bid, {
+            videoId: info.ytId,
+            playerVars: {
+                rel: 0, modestbranding: 1, enablejsapi: 1,
+                origin: window.location.origin,
+                iv_load_policy: 3,
+            },
+            events: {
+                onReady:       e => ytOnReady(bid),
+                onStateChange: e => ytOnState(bid, e),
+            },
+        });
+    });
+};
+
+function ytFmt(sec) {
+    sec = Math.floor(sec || 0);
+    return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+}
+
+function ytOnReady(bid) {
+    const state = ytStates[bid];
+    state.ready = true;
+    if (!state.done && state.hw > 5) {
+        const el = document.getElementById('yt-resume-time-' + bid);
+        if (el) el.textContent = ytFmt(state.hw);
+        const ov = document.getElementById('yt-resume-' + bid);
+        if (ov) ov.style.display = 'flex';
+    }
+}
+
+function ytOnState(bid, e) {
+    const state = ytStates[bid];
+    if (e.data === YT.PlayerState.PLAYING) {
+        clearInterval(state.pollId);
+        state.pollId = setInterval(() => ytPoll(bid), 500);
+    } else {
+        clearInterval(state.pollId);
+        state.pollId = null;
+    }
+    // Catch forward scrub while paused/buffering (before PLAYING poll starts)
+    if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.BUFFERING) {
+        if (state.ready && state.player.getCurrentTime) {
+            const ct = state.player.getCurrentTime();
+            if (ct > state.hw + 1.5) {
+                state.player.seekTo(state.hw, true);
+            }
+        }
+    }
+    if (e.data === YT.PlayerState.ENDED) {
+        const dur = (state.player.getDuration && state.player.getDuration()) || 1;
+        if (state.hw / dur >= 0.95) {
+            // Legitimately watched enough — mark complete
+            state.done = true;
+            localStorage.setItem('yt_done_' + bid, '1');
+            renderUI();
+        } else {
+            // Scrubbed to end without watching — revert to highwater mark
+            state.player.seekTo(state.hw, true);
+            state.player.pauseVideo();
+        }
+    }
+}
+
+function ytPoll(bid) {
+    const state = ytStates[bid];
+    if (!state.player || !state.ready) return;
+    if (state.player.getPlayerState() !== YT.PlayerState.PLAYING) return;
+    const ct  = state.player.getCurrentTime();
+    const dur = state.player.getDuration() || 1;
+    // Anti-skip: revert forward jumps beyond highwater mark
+    if (ct > state.hw + 1.5) {
+        state.player.seekTo(state.hw, true);
+        return;
+    }
+    if (ct > state.hw) {
+        state.hw = ct;
+        localStorage.setItem('yt_hw_' + bid, ct);
+    }
+    if (!state.done && dur > 1 && ct / dur >= 0.95) {
+        state.done = true;
+        localStorage.setItem('yt_done_' + bid, '1');
+        clearInterval(state.pollId);
+        state.pollId = null;
+        renderUI();
+    }
+}
+
+function ytResume(bid) {
+    const state = ytStates[bid];
+    const ov = document.getElementById('yt-resume-' + bid);
+    if (ov) ov.style.display = 'none';
+    if (state.player && state.ready) {
+        state.player.seekTo(state.hw, true);
+        state.player.playVideo();
+    }
+}
+
+function ytRestart(bid) {
+    const state = ytStates[bid];
+    const ov = document.getElementById('yt-resume-' + bid);
+    if (ov) ov.style.display = 'none';
+    state.hw   = 0;
+    state.done = false;
+    localStorage.removeItem('yt_hw_'   + bid);
+    localStorage.removeItem('yt_done_' + bid);
+    if (state.player && state.ready) {
+        state.player.seekTo(0, true);
+        state.player.playVideo();
+    }
+    renderUI();
+}
+
+function currentYtBlockId() {
+    for (const [bid, info] of Object.entries(YT_BLOCKS)) {
+        if (info.step === cur) return bid;
+    }
+    return null;
+}
+
+function isCurrentPanelLocked() {
+    if (stepDone[cur]) return false;
+    const t = STEP_TYPES[cur];
+    if (t === 'video') {
+        const bid = currentYtBlockId();
+        return bid ? !(ytStates[bid]?.done) : false;
+    }
+    return t === 'knowledge_check' || t === 'scenario' || t === 'matching';
+}
+
+function markStepDone(n) {
+    stepDone[n] = true;
+    renderUI();
+}
+
+renderUI();
 </script>
 
 @endsection
