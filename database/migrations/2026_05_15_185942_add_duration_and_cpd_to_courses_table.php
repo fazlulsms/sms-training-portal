@@ -8,15 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('elearning_courses', function (Blueprint $table) {
-            $table->string('duration')->nullable();
-            $table->integer('cpd_hours')->nullable();
+        Schema::table('courses', function (Blueprint $table) {
+            if (!Schema::hasColumn('courses', 'duration')) {
+                $table->string('duration')->nullable();
+            }
+            if (!Schema::hasColumn('courses', 'cpd_hours')) {
+                $table->integer('cpd_hours')->nullable();
+            }
         });
     }
 
     public function down(): void
     {
-        Schema::table('elearning_courses', function (Blueprint $table) {
+        Schema::table('courses', function (Blueprint $table) {
             $table->dropColumn(['duration', 'cpd_hours']);
         });
     }

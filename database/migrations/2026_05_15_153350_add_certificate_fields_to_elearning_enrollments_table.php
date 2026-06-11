@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('elearning_enrollments', function (Blueprint $table) {
-            $table->string('certificate_number')->nullable()->after('status');
+            $table->string('certificate_number')->nullable()->after('certificate_status');
             $table->date('certificate_issue_date')->nullable()->after('certificate_number');
             $table->boolean('certificate_generated')->default(false)->after('certificate_issue_date');
         });

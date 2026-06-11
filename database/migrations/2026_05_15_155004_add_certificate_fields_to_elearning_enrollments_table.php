@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('elearning_enrollments', function (Blueprint $table) {
             if (!Schema::hasColumn('elearning_enrollments', 'certificate_number')) {
-                $table->string('certificate_number')->nullable()->after('status');
+                $table->string('certificate_number')->nullable()->after('certificate_status');
             }
 
             if (!Schema::hasColumn('elearning_enrollments', 'completion_date')) {

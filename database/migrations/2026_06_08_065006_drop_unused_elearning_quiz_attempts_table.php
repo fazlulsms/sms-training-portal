@@ -32,7 +32,9 @@ return new class extends Migration
             return;
         }
 
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
         Schema::dropIfExists('elearning_quiz_attempts');
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 
     public function down(): void
