@@ -13,7 +13,7 @@ return new class extends Migration
 
             $table->foreignId('invoice_id')->constrained()->onDelete('cascade');
 
-$table->foreignId('enrollment_id')->nullable()->constrained('elearning_enrollments')->nullOnDelete();
+            $table->unsignedBigInteger('enrollment_id')->nullable(); // loose ref to elearning_enrollments — no FK to avoid ordering dependency
 
             $table->string('participant_name')->nullable();
 

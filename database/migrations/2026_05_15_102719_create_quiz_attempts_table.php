@@ -11,8 +11,8 @@ return new class extends Migration
         Schema::create('quiz_attempts', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('enrollment_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('quiz_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('enrollment_id')->nullable(); // nullable — made nullable by fix_quiz_attempts_for_elearning migration
+            $table->unsignedBigInteger('quiz_id')->nullable(); // no db-level FK: no standalone quizzes table
 
             $table->integer('total_questions');
             $table->integer('correct_answers');
