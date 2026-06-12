@@ -192,9 +192,9 @@ body { margin:0; font-family:'Inter',sans-serif; background:#f8fafc; color:#1118
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Full Name *</label>
-                    <input type="text" name="name" class="form-input {{ $errors->has('name') ? 'is-invalid' : '' }}"
-                           value="{{ old('name') }}" placeholder="As per NID / Passport" required>
-                    @error('name')<p class="form-error">{{ $message }}</p>@enderror
+                    <input type="text" name="full_name" class="form-input {{ $errors->has('full_name') ? 'is-invalid' : '' }}"
+                           value="{{ old('full_name') }}" placeholder="As per NID / Passport" required>
+                    @error('full_name')<p class="form-error">{{ $message }}</p>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label">Email Address *</label>
@@ -208,10 +208,6 @@ body { margin:0; font-family:'Inter',sans-serif; background:#f8fafc; color:#1118
                     <input type="text" name="phone" class="form-input {{ $errors->has('phone') ? 'is-invalid' : '' }}"
                            value="{{ old('phone') }}" placeholder="+880 1X-XXXXXXXXX" required>
                     @error('phone')<p class="form-error">{{ $message }}</p>@enderror
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Date of Birth</label>
-                    <input type="date" name="date_of_birth" class="form-input" value="{{ old('date_of_birth') }}">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Gender</label>
@@ -242,7 +238,7 @@ body { margin:0; font-family:'Inter',sans-serif; background:#f8fafc; color:#1118
                 </div>
                 <div class="form-group">
                     <label class="form-label">Organization / Company</label>
-                    <input type="text" name="organization" class="form-input" value="{{ old('organization') }}">
+                    <input type="text" name="company" class="form-input" value="{{ old('company') }}">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Industry / Sector</label>
@@ -286,7 +282,7 @@ body { margin:0; font-family:'Inter',sans-serif; background:#f8fafc; color:#1118
                 </div>
                 <div class="form-group" style="grid-column:1/-1;">
                     <label class="form-label">Full Address</label>
-                    <input type="text" name="address" class="form-input" value="{{ old('address') }}" placeholder="Street, area, postal code">
+                    <input type="text" name="full_address" class="form-input" value="{{ old('full_address') }}" placeholder="Street, area, postal code">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Emergency Contact Name</label>
@@ -309,8 +305,8 @@ body { margin:0; font-family:'Inter',sans-serif; background:#f8fafc; color:#1118
             <div class="mode-cards">
                 @if(in_array($schedule->training_mode, ['Physical','Hybrid']))
                 <label class="mode-card-label">
-                    <input type="radio" name="participation_mode" value="Physical"
-                           {{ old('participation_mode', $schedule->training_mode !== 'Online' ? 'Physical' : '') === 'Physical' ? 'checked' : '' }}>
+                    <input type="radio" name="selected_mode" value="Physical"
+                           {{ old('selected_mode', $schedule->training_mode !== 'Online' ? 'Physical' : '') === 'Physical' ? 'checked' : '' }}>
                     <div class="mode-card">
                         <div class="mode-card-icon">🏢</div>
                         <div class="mode-card-name">Physical</div>
@@ -322,8 +318,8 @@ body { margin:0; font-family:'Inter',sans-serif; background:#f8fafc; color:#1118
                 @endif
                 @if(in_array($schedule->training_mode, ['Online','Hybrid']))
                 <label class="mode-card-label">
-                    <input type="radio" name="participation_mode" value="Online"
-                           {{ old('participation_mode', $schedule->training_mode === 'Online' ? 'Online' : '') === 'Online' ? 'checked' : '' }}>
+                    <input type="radio" name="selected_mode" value="Online"
+                           {{ old('selected_mode', $schedule->training_mode === 'Online' ? 'Online' : '') === 'Online' ? 'checked' : '' }}>
                     <div class="mode-card">
                         <div class="mode-card-icon">💻</div>
                         <div class="mode-card-name">Online</div>
@@ -334,10 +330,10 @@ body { margin:0; font-family:'Inter',sans-serif; background:#f8fafc; color:#1118
                 </label>
                 @endif
             </div>
-            @error('participation_mode')<p class="form-error" style="margin-top:8px;">{{ $message }}</p>@enderror
+            @error('selected_mode')<p class="form-error" style="margin-top:8px;">{{ $message }}</p>@enderror
         </div>
         @else
-        <input type="hidden" name="participation_mode" value="{{ $schedule->training_mode }}">
+        <input type="hidden" name="selected_mode" value="{{ $schedule->training_mode }}">
         @endif
 
         {{-- Section 5: Dietary / Special --}}
@@ -397,6 +393,8 @@ body { margin:0; font-family:'Inter',sans-serif; background:#f8fafc; color:#1118
         <div class="policy-box" style="margin-top:16px;">
             📋 <strong>Payment notice:</strong> Course fee is payable upon confirmation. You will receive payment instructions via email after enrollment. Payment can be made via bank transfer, bKash, or online payment gateway.
         </div>
+
+        <input type="hidden" name="payment_method" value="manual">
 
         <button type="submit" class="enroll-submit" style="margin-top:20px;">
             ✅ Complete Enrollment
