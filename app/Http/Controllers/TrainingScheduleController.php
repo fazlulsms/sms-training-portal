@@ -117,6 +117,10 @@ class TrainingScheduleController extends Controller
         $data['is_public']   = $request->boolean('is_public');
         $data['is_featured'] = $request->boolean('is_featured');
 
+        if (empty($data['training_title'])) {
+            $data['training_title'] = Course::find($data['course_id'])?->name ?? '';
+        }
+
         TrainingSchedule::create($data);
 
         return redirect('/training-schedules')->with('success', 'Training Schedule Added Successfully');
@@ -162,6 +166,10 @@ class TrainingScheduleController extends Controller
         ]);
         $data['is_public']   = $request->boolean('is_public');
         $data['is_featured'] = $request->boolean('is_featured');
+
+        if (empty($data['training_title'])) {
+            $data['training_title'] = Course::find($data['course_id'])?->name ?? $schedule->training_title ?? '';
+        }
 
         $schedule->update($data);
 
