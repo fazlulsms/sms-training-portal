@@ -362,7 +362,15 @@ body { margin:0; font-family:'Inter',sans-serif; background:#f8fafc; color:#1118
         </div>
 
         {{-- Fee Summary --}}
-        <div class="fee-summary">
+        @php
+            $currency    = $schedule->currency ?? 'BDT';
+            $physicalFee = (int) ($schedule->physical_fee ?? 0);
+            $onlineFee   = (int) ($schedule->online_fee   ?? 0);
+        @endphp
+        <div class="fee-summary"
+             data-physical="{{ $physicalFee }}"
+             data-online="{{ $onlineFee }}"
+             data-currency="{{ $currency }}">
             <div class="fee-row">
                 <span class="fee-label">Course</span>
                 <span class="fee-value" style="font-size:13px;max-width:220px;text-align:right;">{{ $schedule->course?->name ?? $schedule->training_title }}</span>
@@ -375,18 +383,13 @@ body { margin:0; font-family:'Inter',sans-serif; background:#f8fafc; color:#1118
                 <span class="fee-label">Dates</span>
                 <span class="fee-value">{{ \Carbon\Carbon::parse($schedule->start_date)->format('d M') }} – {{ \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') }}</span>
             </div>
-            @php
-                $enrollFee = $schedule->discount_fee ?? ($schedule->training_mode === 'Online' ? $schedule->online_fee : ($schedule->physical_fee ?? $schedule->online_fee));
-            @endphp
-            @if($enrollFee)
-            <div class="fee-row">
-                <span class="fee-label">Enrollment Fee</span>
-                <span class="fee-value">{{ $schedule->currency ?? 'BDT' }} {{ number_format($enrollFee) }}</span>
+            <div class="fee-row" id="feeLineRow">
+                <span class="fee-label">Enrollment Fee (<span id="feeModeLbl">—</span>)</span>
+                <span class="fee-value" id="feeLine">{{ $currency }} —</span>
             </div>
-            @endif
             <div class="fee-row">
                 <span class="fee-label">Total Due</span>
-                <span class="fee-value">{{ $schedule->currency ?? 'BDT' }} {{ $enrollFee ? number_format($enrollFee) : 'TBA' }}</span>
+                <span class="fee-value" id="feeTotal">{{ $currency }} —</span>
             </div>
         </div>
 
@@ -407,6 +410,35 @@ body { margin:0; font-family:'Inter',sans-serif; background:#f8fafc; color:#1118
         </div>
     </form>
 </div>
+
+<script>
+(function () {
+    var summary  = document.querySelector('.fee-summary');
+    var physical = parseInt(summary.dataset.physical, 10);
+    var online   = parseInt(summary.dataset.online,   10);
+    var currency = summary.dataset.currency;
+
+    function fmt(n) {
+        return currency + ' ' + n.toLocaleString();
+    }
+
+    function update(mode) {
+        var fee = (mode === 'Online') ? online : physical;
+        document.getElementById('feeModeLbl').textContent = mode || '—';
+        document.getElementById('feeLine').textContent    = fee ? fmt(fee) : (currency + ' TBA');
+        document.getElementById('feeTotal').textContent   = fee ? fmt(fee) : (currency + ' TBA');
+    }
+
+    // Update when user changes selection
+    document.querySelectorAll('input[name="selected_mode"]').forEach(function (radio) {
+        radio.addEventListener('change', function () { update(this.value); });
+    });
+
+    // Initialise from whichever radio is already checked on load
+    var checked = document.querySelector('input[name="selected_mode"]:checked');
+    update(checked ? checked.value : '');
+})();
+</script>
 
 </body>
 </html>
