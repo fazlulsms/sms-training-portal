@@ -41,6 +41,7 @@ use App\Http\Controllers\ParticipantExamController;
 use App\Http\Controllers\CourseCategoryController;
 use App\Http\Controllers\CorporateInquiryController;
 use App\Http\Controllers\AiController;
+use App\Http\Controllers\AiPromptTemplateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -378,6 +379,20 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/ai/settings', [AiController::class, 'settings'])->name('ai.settings');
     Route::get('/ai/test',     [AiController::class, 'test'])    ->name('ai.test');
     Route::post('/ai/test',    [AiController::class, 'runTest']) ->name('ai.test.run');
+
+    // ── AI Prompt Templates ────────────────────────────────────
+    Route::get( '/ai/prompt-templates',                                    [AiPromptTemplateController::class, 'index'])    ->name('ai.prompt-templates.index');
+    Route::get( '/ai/prompt-templates/create',                             [AiPromptTemplateController::class, 'create'])   ->name('ai.prompt-templates.create');
+    Route::post('/ai/prompt-templates',                                    [AiPromptTemplateController::class, 'store'])    ->name('ai.prompt-templates.store');
+    Route::get( '/ai/prompt-templates/{promptTemplate}',                   [AiPromptTemplateController::class, 'show'])     ->name('ai.prompt-templates.show');
+    Route::get( '/ai/prompt-templates/{promptTemplate}/edit',              [AiPromptTemplateController::class, 'edit'])     ->name('ai.prompt-templates.edit');
+    Route::put( '/ai/prompt-templates/{promptTemplate}',                   [AiPromptTemplateController::class, 'update'])   ->name('ai.prompt-templates.update');
+    Route::delete('/ai/prompt-templates/{promptTemplate}',                 [AiPromptTemplateController::class, 'destroy'])  ->name('ai.prompt-templates.destroy');
+    Route::post('/ai/prompt-templates/{promptTemplate}/clone',             [AiPromptTemplateController::class, 'clone'])    ->name('ai.prompt-templates.clone');
+    Route::post('/ai/prompt-templates/{promptTemplate}/toggle',            [AiPromptTemplateController::class, 'toggle'])   ->name('ai.prompt-templates.toggle');
+    Route::get( '/ai/prompt-templates/{promptTemplate}/versions',          [AiPromptTemplateController::class, 'versions']) ->name('ai.prompt-templates.versions');
+    Route::post('/ai/prompt-templates/{promptTemplate}/rollback/{version}',[AiPromptTemplateController::class, 'rollback']) ->name('ai.prompt-templates.rollback');
+    Route::post('/ai/prompt-templates/{promptTemplate}/test',              [AiPromptTemplateController::class, 'test'])     ->name('ai.prompt-templates.test');
 
 }); // end admin middleware group
 

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\AiPromptTemplate;
 use App\Models\AiUsageLog;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -104,6 +105,102 @@ class OpenAIService
         } catch (\Throwable $e) {
             Log::error('OpenAI unexpected error', ['message' => $e->getMessage()]);
             $this->log($userId, $feature, 'failed', error: $e->getMessage());
+            return $this->result(false, error: 'An unexpected error occurred. Please try again.');
+        }
+    }
+
+    /**
+     * Execute a saved prompt template with a variable test input.
+     *
+     * Builds the full system + user prompt from the template, respects the
+     * template's model/temperature/max_tokens overrides, and returns the same
+     * result shape as generateText() plus 'response_time_ms'.
+     */
+    public function generateFromTemplate(
+        AiPromptTemplate $template,
+        string           $testInput,
+        ?int             $userId = null
+    ): array {
+        if (! config('ai.enabled')) {
+            $this->log($userId, $template->template_code, 'disabled', error: 'AI feature is disabled.');
+            return $this->result(false, error: 'AI feature is currently disabled. Enable AI_FEATURE_ENABLED in settings.');
+        }
+
+        if (empty(config('ai.api_key'))) {
+            $this->log($userId, $template->template_code, 'failed', error: 'API key not configured.');
+            return $this->result(false, error: 'OpenAI API key is not configured.');
+        }
+
+        $todayCount = AiUsageLog::today()->count();
+        if ($todayCount >= config('ai.daily_request_limit', 100)) {
+            $this->log($userId, $template->template_code, 'limit_reached', error: 'Daily request limit reached.');
+            return $this->result(false, error: 'Daily AI request limit reached. Try again tomorrow.');
+        }
+
+        try {
+            $model       = $template->effectiveModel();
+            $maxTokens   = $template->effectiveMaxTokens();
+            $temperature = $template->effectiveTemperature();
+
+            $startMs = (int) round(microtime(true) * 1000);
+
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . config('ai.api_key'),
+                'Content-Type'  => 'application/json',
+            ])
+            ->timeout(config('ai.timeout', 30))
+            ->post(self::API_BASE . '/chat/completions', [
+                'model'       => $model,
+                'messages'    => [
+                    ['role' => 'system', 'content' => $template->fullSystemPrompt()],
+                    ['role' => 'user',   'content' => $template->buildUserPrompt($testInput)],
+                ],
+                'max_tokens'  => $maxTokens,
+                'temperature' => $temperature,
+            ]);
+
+            $responseTimeMs = (int) round(microtime(true) * 1000) - $startMs;
+
+            if ($response->failed()) {
+                $errorBody = $response->json('error.message') ?? $response->body();
+                Log::error('OpenAI template error', ['status' => $response->status(), 'body' => $errorBody]);
+                $this->log($userId, $template->template_code, 'failed', error: $errorBody);
+                return $this->result(false, error: 'OpenAI API error: ' . $errorBody);
+            }
+
+            $data  = $response->json();
+            $text  = $data['choices'][0]['message']['content'] ?? '';
+            $usage = $data['usage'] ?? [];
+
+            $cost = $this->estimateCost(
+                $usage['prompt_tokens']     ?? 0,
+                $usage['completion_tokens'] ?? 0,
+                $model
+            );
+
+            $this->log($userId, $template->template_code, 'success',
+                promptTokens:     $usage['prompt_tokens']     ?? 0,
+                completionTokens: $usage['completion_tokens'] ?? 0,
+                totalTokens:      $usage['total_tokens']      ?? 0,
+                costUsd:          $cost,
+            );
+
+            return $this->result(true, text: $text, usage: [
+                'prompt_tokens'     => $usage['prompt_tokens']     ?? 0,
+                'completion_tokens' => $usage['completion_tokens'] ?? 0,
+                'total_tokens'      => $usage['total_tokens']      ?? 0,
+                'estimated_cost'    => $cost,
+                'model'             => $model,
+                'response_time_ms'  => $responseTimeMs,
+            ]);
+
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::error('OpenAI template timeout', ['message' => $e->getMessage()]);
+            $this->log($userId, $template->template_code, 'failed', error: 'Connection timeout: ' . $e->getMessage());
+            return $this->result(false, error: 'Request timed out. The OpenAI API did not respond in time.');
+        } catch (\Throwable $e) {
+            Log::error('OpenAI template unexpected error', ['message' => $e->getMessage()]);
+            $this->log($userId, $template->template_code, 'failed', error: $e->getMessage());
             return $this->result(false, error: 'An unexpected error occurred. Please try again.');
         }
     }

@@ -47,6 +47,59 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | SMS Master System Prompt
+    |--------------------------------------------------------------------------
+    | Prepended automatically to every prompt template's system_prompt.
+    | Update here or override per-template in the Prompt Templates admin.
+    |--------------------------------------------------------------------------
+    */
+    'master_system_prompt' => env('AI_MASTER_SYSTEM_PROMPT',
+        "You are SMS Training Academy AI — an expert training content assistant for SMS Training Services.\n\n" .
+        "All outputs must:\n" .
+        "- Be professional, practical, and workplace-relevant\n" .
+        "- Follow adult learning principles (ADDIE, Bloom's Taxonomy)\n" .
+        "- Be audit-focused with real compliance scenarios\n" .
+        "- Include concrete workplace examples\n" .
+        "- Be suitable for professional paid training programmes\n" .
+        "- Support continual improvement and evidence-based practice\n" .
+        "- Reflect international standards and best practices\n\n" .
+        "Core focus areas:\n" .
+        "ISO 9001, ISO 14001, ISO 45001, ISO 50001, ISO 22000, SLCP, Higg FEM/FSLM, " .
+        "ESG, Sustainability Reporting, Social Compliance Auditing, Grievance Management, " .
+        "Management Systems, Internal Auditing, Root Cause Analysis, Risk Assessment."
+    ),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Prompt Template Categories
+    |--------------------------------------------------------------------------
+    */
+    'prompt_categories' => [
+        'Training AI' => [
+            'course_generator'        => 'Course Generator',
+            'lesson_generator'        => 'Lesson Generator',
+            'quiz_generator'          => 'Quiz Generator',
+            'case_study_generator'    => 'Case Study Generator',
+            'trainer_guide_generator' => 'Trainer Guide Generator',
+        ],
+        'Marketing AI' => [
+            'facebook_post'    => 'Facebook Post',
+            'linkedin_post'    => 'LinkedIn Post',
+            'website_content'  => 'Website Content',
+            'email_campaign'   => 'Email Campaign',
+        ],
+        'Learning AI' => [
+            'learning_assistant'    => 'Learning Assistant',
+            'study_guide_generator' => 'Study Guide Generator',
+        ],
+        'Administration AI' => [
+            'general_purpose'         => 'General Purpose',
+            'internal_documentation'  => 'Internal Documentation',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Future AI Feature Modules (placeholders — not yet implemented)
     |--------------------------------------------------------------------------
     |
