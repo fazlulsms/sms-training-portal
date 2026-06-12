@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FeedbackTemplateController;
+use App\Http\Controllers\FeedbackResponseController;
+use App\Http\Controllers\FeedbackSubmissionController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\TrainingScheduleController;
@@ -406,6 +409,25 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/ai/course-generator/{course}/generate-next',     [AiCourseGeneratorController::class, 'generateNext'])     ->name('ai.course-generator.generate-next');
     Route::post('/ai/course-generator/{course}/generate-module-quiz', [AiCourseGeneratorController::class, 'generateModuleQuiz'])->name('ai.course-generator.generate-module-quiz');
 
+    // ── Training Feedback & Evaluation ────────────────────────
+    Route::prefix('feedback')->name('feedback.')->group(function () {
+        // Templates
+        Route::get( 'templates',                          [FeedbackTemplateController::class, 'index'])   ->name('templates.index');
+        Route::get( 'templates/create',                   [FeedbackTemplateController::class, 'create'])  ->name('templates.create');
+        Route::post('templates',                          [FeedbackTemplateController::class, 'store'])   ->name('templates.store');
+        Route::get( 'templates/{template}',               [FeedbackTemplateController::class, 'show'])    ->name('templates.show');
+        Route::get( 'templates/{template}/edit',          [FeedbackTemplateController::class, 'edit'])    ->name('templates.edit');
+        Route::put( 'templates/{template}',               [FeedbackTemplateController::class, 'update'])  ->name('templates.update');
+        Route::delete('templates/{template}',             [FeedbackTemplateController::class, 'destroy']) ->name('templates.destroy');
+        Route::post('templates/{template}/clone',         [FeedbackTemplateController::class, 'clone'])   ->name('templates.clone');
+        // Responses
+        Route::get( 'responses',                          [FeedbackResponseController::class, 'index'])            ->name('responses.index');
+        Route::get( 'responses/{response}',               [FeedbackResponseController::class, 'show'])             ->name('responses.show');
+        Route::delete('responses/{response}',             [FeedbackResponseController::class, 'destroy'])          ->name('responses.destroy');
+        Route::post('responses/{response}/approve-testimonial', [FeedbackResponseController::class, 'approveTestimonial'])->name('responses.approve-testimonial');
+        Route::post('assign',                             [FeedbackResponseController::class, 'assign'])           ->name('assign');
+    });
+
     // ── AI Trainer Profile Generator (super_admin only) ────────
     Route::get( '/ai/trainer-profile',           [AiTrainerProfileController::class, 'index'])    ->name('ai.trainer-profile.index');
     Route::post('/ai/trainer-profile/generate',  [AiTrainerProfileController::class, 'generate']) ->name('ai.trainer-profile.generate');
@@ -414,6 +436,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/ai/trainer-profile/cancel',    [AiTrainerProfileController::class, 'cancel'])   ->name('ai.trainer-profile.cancel');
 
 }); // end admin middleware group
+
+// ── Feedback Submission (public — token-based, no auth required) ──
+Route::get( '/feedback/{token}',         [FeedbackSubmissionController::class, 'show'])    ->name('feedback.show');
+Route::post('/feedback/{token}',         [FeedbackSubmissionController::class, 'submit'])  ->name('feedback.submit');
+Route::get( '/feedback/{token}/thankyou',[FeedbackSubmissionController::class, 'thankyou'])->name('feedback.thankyou');
 
 /*
 |--------------------------------------------------------------------------
