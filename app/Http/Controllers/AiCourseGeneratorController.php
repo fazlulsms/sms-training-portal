@@ -10,6 +10,7 @@ use App\Services\OpenAIService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class AiCourseGeneratorController extends Controller
 {
@@ -42,7 +43,10 @@ class AiCourseGeneratorController extends Controller
             'standard'        => 'nullable|string|max:200',
             'instructions'    => 'nullable|string|max:1000',
             'course_type'     => 'required|in:ilt,elearning',
+            'generation_mode' => 'nullable|in:structure,complete',
         ]);
+
+        $data['generation_mode'] = $data['generation_mode'] ?? 'structure';
 
         $template = AiPromptTemplate::where('template_code', self::TEMPLATE_CODE)
             ->where('is_active', true)
@@ -156,9 +160,10 @@ class AiCourseGeneratorController extends Controller
             return redirect()->back()->with('error', 'Session expired. Please generate again.');
         }
 
-        $formData   = $draft['form_data'];
-        $aiOutput   = $draft['ai_output'];
-        $courseType = $formData['course_type'];
+        $formData        = $draft['form_data'];
+        $aiOutput        = $draft['ai_output'];
+        $courseType      = $formData['course_type'];
+        $generationMode  = $formData['generation_mode'] ?? 'structure';
 
         if (empty($formData['course_name'])) {
             return redirect()->back()->with('error', 'Course name is missing from the draft. Please regenerate.');
@@ -280,28 +285,67 @@ class AiCourseGeneratorController extends Controller
                 if ($courseType === 'elearning') {
                     $lessonOrder = 1;
                     foreach ($aiOutput['modules'] ?? [] as $module) {
-                        foreach ($module['lessons'] ?? [] as $lesson) {
+                        foreach ($module['lessons'] ?? [] as $lessonData) {
                             ElearningLesson::create([
-                                'course_id'       => $course->id,
-                                'title'           => $lesson['title'] ?? 'Untitled Lesson',
-                                'lesson_order'    => $lessonOrder++,
-                                'status'          => 'draft',
-                                'lesson_type'     => 'mixed',
-                                'completion_rule' => 'manual',
+                                'course_id'           => $course->id,
+                                'title'               => $lessonData['title'] ?? 'Untitled Lesson',
+                                'short_description'   => $lessonData['description'] ?? null,
+                                'learning_objectives' => isset($lessonData['learning_objectives'])
+                                    ? (is_array($lessonData['learning_objectives'])
+                                        ? implode("\n", $lessonData['learning_objectives'])
+                                        : $lessonData['learning_objectives'])
+                                    : null,
+                                'lesson_order'        => $lessonOrder++,
+                                'status'              => 'draft',
+                                'lesson_type'         => 'mixed',
+                                'completion_rule'     => 'manual',
                             ]);
                         }
                     }
                 }
             });
 
+            // Mode B — generate full lesson content after transaction commits
+            if ($courseType === 'elearning' && $generationMode === 'complete') {
+                set_time_limit(300);
+
+                $contentLevel = match ($formData['learning_level']) {
+                    'Beginner' => 'Awareness',
+                    'Advanced' => 'Advanced',
+                    default    => 'Professional',
+                };
+
+                $lessons = ElearningLesson::where('course_id', $course->id)
+                    ->orderBy('lesson_order')
+                    ->get();
+
+                $totalBlocks = 0;
+                foreach ($lessons as $lesson) {
+                    try {
+                        $count = AiLessonContentController::generateAndSaveBlocks($course, $lesson, $contentLevel);
+                        $totalBlocks += $count;
+                    } catch (\Throwable $e) {
+                        Log::warning('AiCourseGenerator Mode B: lesson content failed', [
+                            'lesson_id' => $lesson->id,
+                            'error'     => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
+
             session()->forget(self::SESSION_KEY);
+
+            $lessonCount  = $courseType === 'elearning' ? ElearningLesson::where('course_id', $course->id)->count() : 0;
+            $successMsg   = '✨ AI-generated course "' . $formData['course_name'] . '" saved as draft.';
+            if ($courseType === 'elearning' && $generationMode === 'complete') {
+                $successMsg .= " Full lesson content generated for {$lessonCount} lessons.";
+            }
 
             $editUrl = $courseType === 'elearning'
                 ? route('elearning.courses.edit', $course->id)
                 : url('/admin/courses/edit/' . $course->id);
 
-            return redirect($editUrl)
-                ->with('success', '✨ AI-generated course "' . $formData['course_name'] . '" saved as draft. Review and publish when ready.');
+            return redirect($editUrl)->with('success', $successMsg);
 
         } catch (\Throwable $e) {
             return redirect()->back()

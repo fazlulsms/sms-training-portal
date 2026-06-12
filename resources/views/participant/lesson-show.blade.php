@@ -899,6 +899,165 @@
                     </div>
                     @break
 
+                    {{-- ── Fun Fact ───────────────────────────── --}}
+                    @case('fun_fact')
+                    @php $ffD = $block->getDecodedContent(); @endphp
+                    <div class="lb">
+                        @if($block->title)
+                        <div class="lb-head">
+                            <div class="lb-head-icon" style="background:#fef3c7; color:#92400e;">{{ $ffD['icon'] ?? '💡' }}</div>
+                            <span class="lb-head-label">Fun Fact</span>
+                            <span class="lb-head-title">{{ $block->title }}</span>
+                        </div>
+                        @endif
+                        <div class="lb-body" style="background:linear-gradient(135deg,#fffbeb,#fef9c3); border-left:4px solid #f59e0b; border-radius:0 0 10px 10px; padding:18px 20px;">
+                            <div style="font-size:32px; margin-bottom:10px;">{{ $ffD['icon'] ?? '💡' }}</div>
+                            @if(!empty($ffD['title']))<div style="font-size:15px; font-weight:800; color:#92400e; margin-bottom:8px;">{{ $ffD['title'] }}</div>@endif
+                            <p style="font-size:14px; color:#78350f; margin:0; line-height:1.65;">{{ $ffD['content'] ?? '' }}</p>
+                        </div>
+                    </div>
+                    @break
+
+                    {{-- ── Reflection ─────────────────────────── --}}
+                    @case('reflection')
+                    @php $refD = $block->getDecodedContent(); @endphp
+                    <div class="lb">
+                        @if($block->title)
+                        <div class="lb-head">
+                            <div class="lb-head-icon" style="background:#ede9fe; color:#7c3aed;">🤔</div>
+                            <span class="lb-head-label">Reflection</span>
+                            <span class="lb-head-title">{{ $block->title }}</span>
+                        </div>
+                        @endif
+                        <div class="lb-body" style="background:linear-gradient(135deg,#faf5ff,#f3e8ff); border-left:4px solid #8b5cf6; border-radius:0 0 10px 10px; padding:18px 20px;">
+                            @if(!empty($refD['prompt']))<p style="font-size:14px; font-weight:600; color:#5b21b6; margin:0 0 14px; line-height:1.55;">🤔 {{ $refD['prompt'] }}</p>@endif
+                            @if(!empty($refD['questions']))
+                            <ul style="margin:0; padding-left:18px; color:#6d28d9; line-height:1.8;">
+                                @foreach($refD['questions'] as $rq)<li style="font-size:13.5px; margin-bottom:4px;">{{ $rq }}</li>@endforeach
+                            </ul>
+                            @endif
+                            <div style="margin-top:14px; padding:10px 14px; background:rgba(139,92,246,.08); border-radius:8px; font-size:12px; color:#7c3aed; font-style:italic;">
+                                💭 Take a moment to think about this before continuing.
+                            </div>
+                        </div>
+                    </div>
+                    @break
+
+                    {{-- ── Click to Reveal ─────────────────────── --}}
+                    @case('click_reveal')
+                    @php $crD = $block->getDecodedContent(); $crId = 'cr-' . $bi; @endphp
+                    <div class="lb">
+                        @if($block->title)
+                        <div class="lb-head">
+                            <div class="lb-head-icon" style="background:#e0f2fe; color:#0369a1;">💬</div>
+                            <span class="lb-head-label">Click to Reveal</span>
+                            <span class="lb-head-title">{{ $block->title }}</span>
+                        </div>
+                        @endif
+                        <div class="lb-body" style="padding:18px 20px;">
+                            <p style="font-size:14px; font-weight:600; color:var(--text); margin:0 0 14px; line-height:1.55;">{{ $crD['question'] ?? '' }}</p>
+                            <button onclick="toggleReveal('{{ $crId }}')"
+                                    id="{{ $crId }}-btn"
+                                    style="background:#0ea5e9; color:#fff; border:none; border-radius:8px; padding:10px 20px; font-size:13px; font-weight:700; cursor:pointer; transition:background .15s;">
+                                👁 Reveal Answer
+                            </button>
+                            <div id="{{ $crId }}" style="display:none; margin-top:14px; padding:14px 18px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px;">
+                                <p style="font-size:14px; font-weight:700; color:#0369a1; margin:0 0 8px;">✅ {{ $crD['answer'] ?? '' }}</p>
+                                @if(!empty($crD['explanation']))<p style="font-size:13px; color:#64748b; margin:0; font-style:italic;">{{ $crD['explanation'] }}</p>@endif
+                            </div>
+                        </div>
+                    </div>
+                    @break
+
+                    {{-- ── Myth vs Fact ────────────────────────── --}}
+                    @case('myth_fact')
+                    @php $mfD = $block->getDecodedContent(); @endphp
+                    <div class="lb">
+                        @if($block->title)
+                        <div class="lb-head">
+                            <div class="lb-head-icon" style="background:#fee2e2; color:#b91c1c;">⚡</div>
+                            <span class="lb-head-label">Myth vs Fact</span>
+                            <span class="lb-head-title">{{ $block->title }}</span>
+                        </div>
+                        @endif
+                        <div class="lb-body" style="padding:16px 20px;">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                                <div style="background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; padding:16px;">
+                                    <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#b91c1c; margin-bottom:8px; letter-spacing:.5px;">❌ Myth</div>
+                                    <p style="font-size:13.5px; color:#7f1d1d; margin:0; line-height:1.6; font-style:italic;">{{ $mfD['myth'] ?? '' }}</p>
+                                </div>
+                                <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; padding:16px;">
+                                    <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#15803d; margin-bottom:8px; letter-spacing:.5px;">✅ Fact</div>
+                                    <p style="font-size:13.5px; color:#14532d; margin:0; line-height:1.6; font-weight:600;">{{ $mfD['fact'] ?? '' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @break
+
+                    {{-- ── Workplace Example ───────────────────── --}}
+                    @case('workplace_example')
+                    @php $weD = $block->getDecodedContent(); @endphp
+                    <div class="lb">
+                        @if($block->title)
+                        <div class="lb-head">
+                            <div class="lb-head-icon" style="background:#d1fae5; color:#065f46;">🏭</div>
+                            <span class="lb-head-label">Workplace Example</span>
+                            <span class="lb-head-title">{{ $block->title }}</span>
+                        </div>
+                        @endif
+                        <div class="lb-body" style="padding:16px 20px;">
+                            <div style="display:flex; flex-direction:column; gap:10px;">
+                                @foreach($weD['examples'] ?? [] as $ex)
+                                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start;">
+                                    <div style="flex-shrink:0; background:#10b981; color:#fff; border-radius:7px; padding:4px 10px; font-size:11px; font-weight:800; white-space:nowrap; margin-top:2px;">
+                                        {{ $ex['context'] ?? '' }}
+                                    </div>
+                                    <p style="font-size:13.5px; color:#065f46; margin:0; line-height:1.6;">{{ $ex['description'] ?? '' }}</p>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    @break
+
+                    {{-- ── Case Study ──────────────────────────── --}}
+                    @case('case_study')
+                    @php $csD = $block->getDecodedContent(); @endphp
+                    <div class="lb">
+                        @if($block->title)
+                        <div class="lb-head">
+                            <div class="lb-head-icon" style="background:#e0e7ff; color:#4338ca;">📋</div>
+                            <span class="lb-head-label">Case Study</span>
+                            <span class="lb-head-title">{{ $block->title }}</span>
+                        </div>
+                        @endif
+                        <div class="lb-body" style="padding:18px 20px;">
+                            <div style="background:#f5f3ff; border-left:4px solid #6366f1; border-radius:8px; padding:14px 18px; margin-bottom:16px; font-size:13.5px; color:#3730a3; line-height:1.65;">
+                                {{ $csD['case_description'] ?? '' }}
+                            </div>
+                            @if(!empty($csD['questions']))
+                            <div style="margin-bottom:16px;">
+                                <div style="font-size:12px; font-weight:800; text-transform:uppercase; color:#4338ca; margin-bottom:8px; letter-spacing:.5px;">Discussion Questions</div>
+                                <ol style="margin:0; padding-left:18px; color:var(--text); line-height:1.8;">
+                                    @foreach($csD['questions'] as $csq)<li style="font-size:13.5px; margin-bottom:4px;">{{ $csq }}</li>@endforeach
+                                </ol>
+                            </div>
+                            @endif
+                            @if(!empty($csD['expected_response']))
+                            <details style="border:1px solid #c7d2fe; border-radius:8px; overflow:hidden;">
+                                <summary style="background:#e0e7ff; padding:10px 16px; cursor:pointer; font-size:13px; font-weight:700; color:#3730a3; list-style:none; display:flex; justify-content:space-between; align-items:center;">
+                                    💡 View Expected Response <span>▼</span>
+                                </summary>
+                                <div style="padding:14px 18px; font-size:13.5px; color:var(--text); line-height:1.65;">
+                                    {{ $csD['expected_response'] }}
+                                </div>
+                            </details>
+                            @endif
+                        </div>
+                    </div>
+                    @break
+
                 @endswitch
                 </div>
             </div>
@@ -1066,7 +1225,21 @@ const STEP_LABELS = {!! json_encode(array_merge(['Overview'], $lessonBlocks->map
 const LAST        = {{ $lastPanel }};
 const HAS_ACT     = {{ $hasActivities ? 'true' : 'false' }};
 const STEP_TYPES  = {!! json_encode($stepTypes) !!};
-const AUTO_DONE   = new Set(['overview','rich_text','audio','image','gallery','pdf','download','slides','accordion','activities']);
+const AUTO_DONE   = new Set(['overview','rich_text','audio','image','gallery','pdf','download','slides','accordion','activities','fun_fact','reflection','click_reveal','myth_fact','workplace_example','case_study']);
+
+function toggleReveal(id) {
+    const el = document.getElementById(id);
+    const btn = document.getElementById(id + '-btn');
+    if (el.style.display === 'none') {
+        el.style.display = 'block';
+        btn.textContent = '🙈 Hide Answer';
+        btn.style.background = '#64748b';
+    } else {
+        el.style.display = 'none';
+        btn.textContent = '👁 Reveal Answer';
+        btn.style.background = '#0ea5e9';
+    }
+}
 
 const stepDone = { 0: true }; // overview always done
 let cur = 0;

@@ -456,6 +456,146 @@
     </script>
     @break
 
+{{-- ══════════════════════════════════════════════════════
+     FUN FACT
+══════════════════════════════════════════════════════ --}}
+@case('fun_fact')
+    @php $ffData = is_array($block?->getDecodedContent()) ? $block->getDecodedContent() : []; @endphp
+    <label class="fl">Icon / Emoji</label>
+    <input type="text" name="ff_icon" class="fi" value="{{ $ffData['icon'] ?? '💡' }}" placeholder="💡">
+    <label class="fl">Headline</label>
+    <input type="text" name="ff_title" class="fi" value="{{ $ffData['title'] ?? 'Did You Know?' }}" placeholder="Did You Know?">
+    <label class="fl">Fun Fact Content</label>
+    <textarea name="ff_content" class="fi" rows="4" placeholder="Enter an interesting and engaging fact relevant to the lesson topic...">{{ $ffData['content'] ?? '' }}</textarea>
+    @break
+
+{{-- ══════════════════════════════════════════════════════
+     REFLECTION
+══════════════════════════════════════════════════════ --}}
+@case('reflection')
+    @php
+        $refData = is_array($block?->getDecodedContent()) ? $block->getDecodedContent() : [];
+        $refQuestions = $refData['questions'] ?? ['', ''];
+    @endphp
+    <label class="fl">Opening Prompt</label>
+    <textarea name="ref_prompt" class="fi" rows="3" placeholder="e.g. Think about your own workplace. How are issues currently reported?">{{ $refData['prompt'] ?? '' }}</textarea>
+    <label class="fl" style="margin-top:14px;">Reflection Questions</label>
+    <div id="ref-rows">
+        @foreach($refQuestions as $rq)
+        <div class="rep-row">
+            <input type="text" name="ref_questions[]" class="fi" value="{{ $rq }}" placeholder="Question for learner to reflect on...">
+            <button type="button" class="btn-rmv" onclick="removeRow(this)">✕</button>
+        </div>
+        @endforeach
+    </div>
+    <button type="button" class="btn-addrow" onclick="addRefRow()">+ Add Question</button>
+    <script>
+    function addRefRow() {
+        const c = document.getElementById('ref-rows');
+        const r = document.createElement('div');
+        r.className = 'rep-row';
+        r.innerHTML = '<input type="text" name="ref_questions[]" class="fi" placeholder="Reflection question...">'
+                    + '<button type="button" class="btn-rmv" onclick="removeRow(this)">✕</button>';
+        c.appendChild(r);
+    }
+    </script>
+    @break
+
+{{-- ══════════════════════════════════════════════════════
+     CLICK TO REVEAL
+══════════════════════════════════════════════════════ --}}
+@case('click_reveal')
+    @php $crData = is_array($block?->getDecodedContent()) ? $block->getDecodedContent() : []; @endphp
+    <label class="fl">Question / Prompt</label>
+    <textarea name="cr_question" class="fi" rows="3" placeholder="e.g. What is the first step when a grievance is raised?">{{ $crData['question'] ?? '' }}</textarea>
+    <label class="fl">Hidden Answer</label>
+    <textarea name="cr_answer" class="fi" rows="3" placeholder="The answer revealed when learner clicks...">{{ $crData['answer'] ?? '' }}</textarea>
+    <label class="fl">Explanation <span style="font-weight:400; color:var(--text-muted);">(optional)</span></label>
+    <textarea name="cr_explanation" class="fi" rows="2" placeholder="Why this answer matters...">{{ $crData['explanation'] ?? '' }}</textarea>
+    @break
+
+{{-- ══════════════════════════════════════════════════════
+     MYTH VS FACT
+══════════════════════════════════════════════════════ --}}
+@case('myth_fact')
+    @php $mfData = is_array($block?->getDecodedContent()) ? $block->getDecodedContent() : []; @endphp
+    <label class="fl">❌ Myth (common misconception)</label>
+    <textarea name="mf_myth" class="fi" rows="3" placeholder="e.g. Anonymous complaints cannot be investigated.">{{ $mfData['myth'] ?? '' }}</textarea>
+    <label class="fl">✅ Fact (correct information)</label>
+    <textarea name="mf_fact" class="fi" rows="3" placeholder="e.g. Anonymous complaints often reveal important hidden risks and can be investigated.">{{ $mfData['fact'] ?? '' }}</textarea>
+    @break
+
+{{-- ══════════════════════════════════════════════════════
+     WORKPLACE EXAMPLE
+══════════════════════════════════════════════════════ --}}
+@case('workplace_example')
+    @php
+        $weData = is_array($block?->getDecodedContent()) ? $block->getDecodedContent() : [];
+        $weExamples = $weData['examples'] ?? [['context'=>'Manufacturing / Factory','description'=>''],['context'=>'Office / Corporate','description'=>''],['context'=>'Service Sector','description'=>'']];
+    @endphp
+    <div id="we-rows">
+        @foreach($weExamples as $we)
+        <div class="rep-row" style="flex-direction:column; gap:6px;">
+            <div style="display:grid; grid-template-columns:180px 1fr 36px; gap:7px; align-items:start;">
+                <input type="text" name="we_context[]" class="fi" value="{{ $we['context'] ?? '' }}" placeholder="Context (e.g. Factory)">
+                <textarea name="we_description[]" class="fi" rows="2" placeholder="Example description...">{{ $we['description'] ?? '' }}</textarea>
+                <button type="button" class="btn-rmv" onclick="removeRow(this.closest('.rep-row'))">✕</button>
+            </div>
+        </div>
+        @endforeach
+    </div>
+    <button type="button" class="btn-addrow" onclick="addWeRow()">+ Add Example</button>
+    <script>
+    function addWeRow() {
+        const c = document.getElementById('we-rows');
+        const r = document.createElement('div');
+        r.className = 'rep-row';
+        r.style.flexDirection = 'column';
+        r.style.gap = '6px';
+        r.innerHTML = '<div style="display:grid;grid-template-columns:180px 1fr 36px;gap:7px;align-items:start;">'
+                    + '<input type="text" name="we_context[]" class="fi" placeholder="Context">'
+                    + '<textarea name="we_description[]" class="fi" rows="2" placeholder="Example description..."></textarea>'
+                    + '<button type="button" class="btn-rmv" onclick="removeRow(this.closest(\'.rep-row\'))">✕</button>'
+                    + '</div>';
+        c.appendChild(r);
+    }
+    </script>
+    @break
+
+{{-- ══════════════════════════════════════════════════════
+     CASE STUDY
+══════════════════════════════════════════════════════ --}}
+@case('case_study')
+    @php
+        $csData = is_array($block?->getDecodedContent()) ? $block->getDecodedContent() : [];
+        $csQuestions = $csData['questions'] ?? [''];
+    @endphp
+    <label class="fl">Case Description</label>
+    <textarea name="cs_case" class="fi" rows="5" placeholder="Describe a real-world scenario or case for learners to analyse...">{{ $csData['case_description'] ?? '' }}</textarea>
+    <label class="fl" style="margin-top:14px;">Discussion Questions</label>
+    <div id="cs-rows">
+        @foreach($csQuestions as $csq)
+        <div class="rep-row">
+            <input type="text" name="cs_questions[]" class="fi" value="{{ $csq }}" placeholder="Discussion question...">
+            <button type="button" class="btn-rmv" onclick="removeRow(this)">✕</button>
+        </div>
+        @endforeach
+    </div>
+    <button type="button" class="btn-addrow" onclick="addCsRow()">+ Add Question</button>
+    <label class="fl" style="margin-top:14px;">Expected Response / Model Answer <span style="font-weight:400; color:var(--text-muted);">(shown after learner submits)</span></label>
+    <textarea name="cs_response" class="fi" rows="4" placeholder="Model answer or expected response...">{{ $csData['expected_response'] ?? '' }}</textarea>
+    <script>
+    function addCsRow() {
+        const c = document.getElementById('cs-rows');
+        const r = document.createElement('div');
+        r.className = 'rep-row';
+        r.innerHTML = '<input type="text" name="cs_questions[]" class="fi" placeholder="Discussion question...">'
+                    + '<button type="button" class="btn-rmv" onclick="removeRow(this)">✕</button>';
+        c.appendChild(r);
+    }
+    </script>
+    @break
+
 @endswitch
 
 {{-- Shared helper: remove a .rep-row --}}

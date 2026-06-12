@@ -140,6 +140,33 @@
                 </div>
             </div>
 
+            {{-- Generation Mode (eLearning only) --}}
+            @if(($aiCourseType ?? 'ilt') === 'elearning')
+            <div id="genModeSection" style="margin-top:18px; border:1.5px solid #c7d2fe; border-radius:10px; overflow:hidden;">
+                <div style="background:#e0e7ff; padding:8px 14px; font-size:12px; font-weight:800; text-transform:uppercase; color:#3730a3; letter-spacing:.5px;">
+                    ✨ Generation Mode
+                </div>
+                <div style="padding:14px; display:flex; flex-direction:column; gap:10px;">
+                    <label style="display:flex; gap:12px; align-items:flex-start; cursor:pointer; padding:10px 12px; border-radius:8px; border:1.5px solid #c7d2fe; background:#f5f3ff;">
+                        <input type="radio" name="ai_gen_mode" value="structure" id="modeA" checked
+                               style="margin-top:3px; accent-color:#6366f1;" onchange="updateModeUI()">
+                        <div>
+                            <div style="font-size:13px; font-weight:700; color:#3730a3;">Mode A — Structure Only</div>
+                            <div style="font-size:12px; color:#6d28d9; margin-top:2px;">Generate course outline with lesson shells. You manually add content blocks to each lesson.</div>
+                        </div>
+                    </label>
+                    <label style="display:flex; gap:12px; align-items:flex-start; cursor:pointer; padding:10px 12px; border-radius:8px; border:1.5px solid #a3e635; background:#f7fee7;">
+                        <input type="radio" name="ai_gen_mode" value="complete" id="modeB"
+                               style="margin-top:3px; accent-color:#4d7c0f;" onchange="updateModeUI()">
+                        <div>
+                            <div style="font-size:13px; font-weight:700; color:#365314;">Mode B — Complete eLearning</div>
+                            <div style="font-size:12px; color:#4d7c0f; margin-top:2px;">Auto-generates full lesson content (10–14 varied blocks per lesson). Takes 1–3 minutes. No manual work needed.</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            @endif
+
             {{-- Generate button --}}
             <div style="margin-top:20px; display:flex; gap:10px; align-items:center;">
                 <button type="button" id="aiGenerateBtn" onclick="submitAiGenerate()"
@@ -162,8 +189,8 @@
         <div id="aiLoadingState" style="display:none; padding:50px 24px; text-align:center;">
             <div style="width:44px; height:44px; border:4px solid #e9ecf0; border-top-color:#1e3a8a; border-radius:50%;
                         animation:aiSpin 1s linear infinite; margin:0 auto 16px;"></div>
-            <div style="font-size:16px; font-weight:700; color:#1e3a8a; margin-bottom:6px;">Generating your course…</div>
-            <div style="font-size:13.5px; color:#6b7280; line-height:1.6;">
+            <div id="aiLoadingTitle" style="font-size:16px; font-weight:700; color:#1e3a8a; margin-bottom:6px;">Generating your course…</div>
+            <div id="aiLoadingSubtitle" style="font-size:13.5px; color:#6b7280; line-height:1.6;">
                 SMS Training AI is generating a 90–95% complete course structure.<br>
                 This usually takes 20–45 seconds. Please wait…
             </div>
@@ -197,6 +224,17 @@ function showAiForm() {
     document.getElementById('aiFormError').style.display    = 'none';
 }
 
+function updateModeUI() {
+    const modeB = document.getElementById('modeB');
+    if (!modeB) return;
+    const btn = document.getElementById('aiGenerateBtn');
+    if (modeB.checked) {
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Generate Complete eLearning';
+    } else {
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Generate Course';
+    }
+}
+
 async function submitAiGenerate() {
     const courseName    = document.getElementById('ai_course_name').value.trim();
     const duration      = document.getElementById('ai_duration').value.trim();
@@ -206,29 +244,36 @@ async function submitAiGenerate() {
     const level         = document.getElementById('ai_learning_level').value;
     const standard      = document.getElementById('ai_standard').value.trim();
     const instructions  = document.getElementById('ai_instructions').value.trim();
+    const modeBEl       = document.getElementById('modeB');
+    const generationMode = (modeBEl && modeBEl.checked) ? 'complete' : 'structure';
 
     if (!courseName)    { showAiError('Course Name is required.'); return; }
     if (!duration)      { showAiError('Duration is required.'); return; }
     if (!targetAud)     { showAiError('Target Audience is required.'); return; }
 
-    // Show loading
+    // Show loading with mode-appropriate message
     document.getElementById('aiModalForm').style.display    = 'none';
     document.getElementById('aiLoadingState').style.display = 'block';
+    if (generationMode === 'complete') {
+        document.getElementById('aiLoadingTitle').textContent    = 'Generating complete eLearning course…';
+        document.getElementById('aiLoadingSubtitle').innerHTML   = 'AI is building course structure AND generating full lesson content.<br>This can take 1–3 minutes for a full course. Please wait…';
+    }
 
     try {
         const res  = await fetch(AI_GENERATE_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': AI_CSRF, 'Accept': 'application/json' },
             body: JSON.stringify({
-                course_name:     courseName,
-                duration:        duration,
-                language:        language,
-                target_audience: targetAud,
-                industry:        industry,
-                learning_level:  level,
-                standard:        standard,
-                instructions:    instructions,
-                course_type:     AI_COURSE_TYPE,
+                course_name:      courseName,
+                duration:         duration,
+                language:         language,
+                target_audience:  targetAud,
+                industry:         industry,
+                learning_level:   level,
+                standard:         standard,
+                instructions:     instructions,
+                course_type:      AI_COURSE_TYPE,
+                generation_mode:  generationMode,
             }),
         });
 

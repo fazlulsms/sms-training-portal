@@ -122,13 +122,19 @@ class LessonBlockController extends Controller
         return match ($type) {
 
             // JSON array types ─────────────────────────────
-            'accordion' => $this->buildAccordionJson($request),
-            'gallery'   => $this->buildGalleryJson($request),
-            'slides'    => $this->buildSlidesJson($request),
-            'download'  => $this->buildDownloadJson($request),
-            'knowledge_check' => $this->buildKnowledgeCheckJson($request),
-            'scenario'  => $this->buildScenarioJson($request),
-            'matching'  => $this->buildMatchingJson($request),
+            'accordion'         => $this->buildAccordionJson($request),
+            'gallery'           => $this->buildGalleryJson($request),
+            'slides'            => $this->buildSlidesJson($request),
+            'download'          => $this->buildDownloadJson($request),
+            'knowledge_check'   => $this->buildKnowledgeCheckJson($request),
+            'scenario'          => $this->buildScenarioJson($request),
+            'matching'          => $this->buildMatchingJson($request),
+            'fun_fact'          => $this->buildFunFactJson($request),
+            'reflection'        => $this->buildReflectionJson($request),
+            'click_reveal'      => $this->buildClickRevealJson($request),
+            'myth_fact'         => $this->buildMythFactJson($request),
+            'workplace_example' => $this->buildWorkplaceExampleJson($request),
+            'case_study'        => $this->buildCaseStudyJson($request),
 
             // Flat content ─────────────────────────────────
             default     => $request->content,
@@ -256,6 +262,64 @@ class LessonBlockController extends Controller
             }
         }
         return json_encode(['pairs' => $pairs]);
+    }
+
+    private function buildFunFactJson(Request $request): string
+    {
+        return json_encode([
+            'icon'    => $request->input('ff_icon', '💡'),
+            'title'   => $request->input('ff_title', 'Did You Know?'),
+            'content' => $request->input('ff_content', ''),
+        ]);
+    }
+
+    private function buildReflectionJson(Request $request): string
+    {
+        $questions = array_filter(array_map('trim', $request->input('ref_questions', [])));
+        return json_encode([
+            'prompt'    => $request->input('ref_prompt', ''),
+            'questions' => array_values($questions),
+        ]);
+    }
+
+    private function buildClickRevealJson(Request $request): string
+    {
+        return json_encode([
+            'question'    => $request->input('cr_question', ''),
+            'answer'      => $request->input('cr_answer', ''),
+            'explanation' => $request->input('cr_explanation', ''),
+        ]);
+    }
+
+    private function buildMythFactJson(Request $request): string
+    {
+        return json_encode([
+            'myth' => $request->input('mf_myth', ''),
+            'fact' => $request->input('mf_fact', ''),
+        ]);
+    }
+
+    private function buildWorkplaceExampleJson(Request $request): string
+    {
+        $contexts  = $request->input('we_context', []);
+        $descs     = $request->input('we_description', []);
+        $examples  = [];
+        foreach ($contexts as $i => $ctx) {
+            if (trim($ctx) !== '') {
+                $examples[] = ['context' => $ctx, 'description' => $descs[$i] ?? ''];
+            }
+        }
+        return json_encode(['examples' => $examples]);
+    }
+
+    private function buildCaseStudyJson(Request $request): string
+    {
+        $questions = array_filter(array_map('trim', $request->input('cs_questions', [])));
+        return json_encode([
+            'case_description'  => $request->input('cs_case', ''),
+            'questions'         => array_values($questions),
+            'expected_response' => $request->input('cs_response', ''),
+        ]);
     }
 
     private function renormalizeOrder(ElearningLesson $lesson): void
