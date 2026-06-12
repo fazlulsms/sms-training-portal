@@ -40,6 +40,7 @@ use App\Http\Controllers\TrainingExamController;
 use App\Http\Controllers\ParticipantExamController;
 use App\Http\Controllers\CourseCategoryController;
 use App\Http\Controllers\CorporateInquiryController;
+use App\Http\Controllers\AiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -372,6 +373,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         Route::post('/demo/recalculate/{enrollmentId}',    [DemoController::class, 'recalculate'])    ->name('recalculate');
         Route::post('/demo/reset-journey',                 [DemoController::class, 'resetDemoJourney'])->name('reset-journey');
     });
+
+    // ── AI Administration (super_admin only) ──────────────────
+    Route::get('/ai/settings', [AiController::class, 'settings'])->name('ai.settings');
+    Route::get('/ai/test',     [AiController::class, 'test'])    ->name('ai.test');
+    Route::post('/ai/test',    [AiController::class, 'runTest']) ->name('ai.test.run');
 
 }); // end admin middleware group
 

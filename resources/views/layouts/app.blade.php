@@ -516,7 +516,8 @@
 
         {{-- D. Administration ──────────────────────────── --}}
         @php
-            $adminActive = request()->is('users*') || request()->is('settings*') || request()->is('profile*');
+            $adminActive = request()->is('users*') || request()->is('settings*')
+                        || request()->is('profile*') || request()->is('admin/ai*');
         @endphp
         <div class="sb-group sg-admin"
              x-data="{ open: {{ $adminActive ? 'true' : 'false' }} }">
@@ -554,6 +555,20 @@
                     <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
                     My Profile
                 </a>
+
+                @if(auth()->user()?->isSuperAdmin())
+                <div style="margin:10px 12px 4px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#64748b;">AI Administration</div>
+                <a href="{{ route('ai.settings') }}"
+                   class="sb-sub {{ request()->is('admin/ai/settings') ? 'active' : '' }}">
+                    <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l3 3"/><circle cx="18" cy="5" r="3"/></svg></span>
+                    AI Settings
+                </a>
+                <a href="{{ route('ai.test') }}"
+                   class="sb-sub {{ request()->is('admin/ai/test') ? 'active' : '' }}">
+                    <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
+                    AI Test
+                </a>
+                @endif
 
             </div>
         </div>
