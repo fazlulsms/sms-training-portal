@@ -17,11 +17,14 @@ class Course extends Model
         'certificate_template', 'lesson_count', 'certification_remarks',
         'is_public', 'is_featured', 'display_order', 'featured_order',
         'course_video_url', 'faq', 'seo_title', 'seo_description', 'seo_keywords',
+        'ai_generated', 'ai_course_structure',
     ];
 
     protected $casts = [
-        'is_public'   => 'boolean',
-        'is_featured' => 'boolean',
+        'is_public'           => 'boolean',
+        'is_featured'         => 'boolean',
+        'ai_generated'        => 'boolean',
+        'ai_course_structure' => 'array',
     ];
 
     protected static function booted(): void

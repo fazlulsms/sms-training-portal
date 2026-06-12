@@ -42,6 +42,7 @@ use App\Http\Controllers\CourseCategoryController;
 use App\Http\Controllers\CorporateInquiryController;
 use App\Http\Controllers\AiController;
 use App\Http\Controllers\AiPromptTemplateController;
+use App\Http\Controllers\AiCourseGeneratorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -205,7 +206,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // Courses
     Route::get('/courses', [CourseController::class, 'index']);
     Route::get('/courses/export', [CourseController::class, 'exportCsv'])->name('admin.courses.export');
-    Route::get('/courses/create', [CourseController::class, 'create']);
+    Route::get('/courses/create', [CourseController::class, 'create'])->name('admin.courses.create');
     Route::post('/courses/store', [CourseController::class, 'store']);
     Route::get('/courses/edit/{id}', [CourseController::class, 'edit']);
     Route::post('/courses/update/{id}', [CourseController::class, 'update']);
@@ -393,6 +394,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get( '/ai/prompt-templates/{promptTemplate}/versions',          [AiPromptTemplateController::class, 'versions']) ->name('ai.prompt-templates.versions');
     Route::post('/ai/prompt-templates/{promptTemplate}/rollback/{version}',[AiPromptTemplateController::class, 'rollback']) ->name('ai.prompt-templates.rollback');
     Route::post('/ai/prompt-templates/{promptTemplate}/test',              [AiPromptTemplateController::class, 'test'])     ->name('ai.prompt-templates.test');
+
+    // ── AI Course Generator (super_admin only) ─────────────────
+    Route::post('/ai/course-generator/generate', [AiCourseGeneratorController::class, 'generate'])->name('ai.course-generator.generate');
+    Route::get( '/ai/course-generator/preview',  [AiCourseGeneratorController::class, 'preview']) ->name('ai.course-generator.preview');
+    Route::post('/ai/course-generator/save',     [AiCourseGeneratorController::class, 'save'])    ->name('ai.course-generator.save');
+    Route::post('/ai/course-generator/cancel',   [AiCourseGeneratorController::class, 'cancel'])  ->name('ai.course-generator.cancel');
 
 }); // end admin middleware group
 

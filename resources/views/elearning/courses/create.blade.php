@@ -32,7 +32,13 @@
 
 <div style="max-width:1000px; margin:auto;">
 <div style="background:#fff; padding:28px; border-radius:14px; box-shadow:0 4px 16px rgba(0,0,0,.07);">
-    <h2 style="font-size:24px; font-weight:800; color:#111827; margin-bottom:24px;">Create eLearning Course</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:10px;">
+        <h2 style="font-size:24px; font-weight:800; color:#111827; margin:0;">Create eLearning Course</h2>
+        @if(auth()->user()?->isSuperAdmin())
+            @php $aiCourseType = 'elearning'; @endphp
+            @include('ai.course-generator._modal')
+        @endif
+    </div>
 
     @if($errors->any())
     <div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:8px; padding:14px; margin-bottom:20px;">
