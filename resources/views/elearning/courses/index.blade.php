@@ -38,22 +38,42 @@
                     <th class="c">Access</th>
                     <th class="c">Pass %</th>
                     <th class="c">Status</th>
+                    <th class="c">Public</th>
                     <th class="c">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($courses as $course)
                 <tr data-status="{{ $course->status == 1 ? 'active' : 'inactive' }}">
-                    <td class="td-main">{{ $course->name }}</td>
+                    <td class="td-main">
+                        {{ $course->name }}
+                        @if($course->language)
+                        <span style="font-size:11px; color:#6b7280; font-weight:500; margin-left:4px;">· {{ $course->language }}</span>
+                        @endif
+                    </td>
                     <td><span class="td-mono">{{ $course->code }}</span></td>
-                    <td class="r fw-bold">{{ number_format($course->course_fee, 2) }}</td>
-                    <td class="c text-muted">{{ $course->access_days }} days</td>
-                    <td class="c text-muted">{{ $course->passing_score }}%</td>
+                    <td class="r fw-bold">
+                        {{ $course->public_price ? number_format($course->public_price, 2) : ($course->course_fee ? number_format($course->course_fee, 2) : '—') }}
+                    </td>
+                    <td class="c text-muted">{{ $course->access_days ? $course->access_days.' days' : '—' }}</td>
+                    <td class="c text-muted">{{ $course->passing_score ? $course->passing_score.'%' : '—' }}</td>
                     <td class="c">
                         @if($course->status == 1)
                             <span class="badge badge-success">Active</span>
                         @else
                             <span class="badge badge-secondary">Inactive</span>
+                        @endif
+                    </td>
+                    <td class="c">
+                        @if($course->is_public && $course->slug)
+                            <a href="{{ route('public.course.detail', $course->slug) }}" target="_blank"
+                               style="font-size:11.5px; font-weight:700; color:#16a34a; text-decoration:none;" title="View on public site">
+                                ✓ Live
+                            </a>
+                        @elseif($course->is_public)
+                            <span style="font-size:11.5px; color:#16a34a; font-weight:700;">✓ Public</span>
+                        @else
+                            <span style="font-size:11.5px; color:#9ca3af;">Hidden</span>
                         @endif
                     </td>
                     <td class="c">
@@ -71,7 +91,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7">
+                    <td colspan="8">
                         <div class="empty-state">
                             <div class="empty-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>

@@ -3,87 +3,110 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\CourseCategory;
 use Illuminate\Http\Request;
 
 class ElearningCourseController extends Controller
 {
     public function index()
     {
-        $courses = Course::where('course_type', 'elearning')
+        $courses = Course::where(function ($q) {
+                $q->where('course_type', 'elearning')
+                  ->orWhere('delivery_type', 'eLearning');
+            })
             ->latest()
-            ->paginate(10);
+            ->paginate(15);
 
         return view('elearning.courses.index', compact('courses'));
     }
 
     public function create()
     {
-        return view('elearning.courses.create');
+        $categories = CourseCategory::orderBy('name')->get();
+        return view('elearning.courses.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'required|string|max:100',
-            'description' => 'nullable|string',
-            'course_fee' => 'nullable|numeric',
-            'access_days' => 'nullable|integer',
-            'passing_score' => 'required|integer|min:1|max:100',
-            'duration' => 'nullable|string|max:100',
-            'cpd_hours' => 'nullable|integer|min:0',
-            'status' => 'required|in:1,0',
+            'name'         => 'required|string|max:255',
+            'code'         => 'nullable|string|max:100',
+            'status'       => 'required|in:0,1',
+            'slug'         => 'nullable|string|max:255|unique:courses,slug',
+            'banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'passing_score'=> 'nullable|integer|min:1|max:100',
         ]);
 
-        Course::create([
-            'name' => $request->name,
-            'code' => $request->code,
-            'description' => $request->description,
-            'course_fee' => $request->course_fee,
-            'access_days' => $request->access_days,
-            'passing_score' => $request->passing_score,
-            'duration' => $request->duration,
-            'cpd_hours' => $request->cpd_hours,
-            'status' => $request->status,
-            'course_type' => 'elearning',
+        $data = $request->only([
+            'name', 'code', 'slug', 'category', 'category_id', 'status',
+            'language', 'duration', 'cpd_hours',
+            'short_description', 'full_description', 'learning_objectives',
+            'course_outline', 'who_should_attend', 'prerequisites',
+            'certificate_type', 'certification_remarks', 'certification_info',
+            'course_fee', 'public_price', 'access_days', 'passing_score',
+            'is_public', 'is_featured', 'display_order', 'featured_order',
+            'course_video_url', 'faq', 'seo_title', 'seo_description', 'seo_keywords',
         ]);
+
+        $data['course_type']   = 'elearning';
+        $data['delivery_type'] = 'eLearning';
+        $data['is_public']     = $request->boolean('is_public');
+        $data['is_featured']   = $request->boolean('is_featured');
+
+        if ($request->hasFile('banner_image')) {
+            $data['banner_image'] = $request->file('banner_image')->store('courses', 'public');
+        }
+
+        Course::create($data);
 
         return redirect()
             ->route('elearning.courses.index')
             ->with('success', 'eLearning course created successfully.');
     }
 
+    public function show(Course $course)
+    {
+        return redirect()->route('elearning.lessons.index', $course->id);
+    }
+
     public function edit(Course $course)
     {
-        return view('elearning.courses.edit', compact('course'));
+        $categories = CourseCategory::orderBy('name')->get();
+        return view('elearning.courses.edit', compact('course', 'categories'));
     }
 
     public function update(Request $request, Course $course)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'required|string|max:100',
-            'description' => 'nullable|string',
-            'course_fee' => 'nullable|numeric',
-            'access_days' => 'nullable|integer',
-            'passing_score' => 'required|integer|min:1|max:100',
-            'duration' => 'nullable|string|max:100',
-            'cpd_hours' => 'nullable|integer|min:0',
-            'status' => 'required|in:1,0',
+            'name'         => 'required|string|max:255',
+            'code'         => 'nullable|string|max:100',
+            'status'       => 'required|in:0,1',
+            'slug'         => 'nullable|string|max:255|unique:courses,slug,' . $course->id,
+            'banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'passing_score'=> 'nullable|integer|min:1|max:100',
         ]);
 
-        $course->update([
-            'name' => $request->name,
-            'code' => $request->code,
-            'description' => $request->description,
-            'course_fee' => $request->course_fee,
-            'access_days' => $request->access_days,
-            'passing_score' => $request->passing_score,
-            'duration' => $request->duration,
-            'cpd_hours' => $request->cpd_hours,
-            'status' => (int) $request->status,
-            'course_type' => 'elearning',
+        $data = $request->only([
+            'name', 'code', 'slug', 'category', 'category_id', 'status',
+            'language', 'duration', 'cpd_hours',
+            'short_description', 'full_description', 'learning_objectives',
+            'course_outline', 'who_should_attend', 'prerequisites',
+            'certificate_type', 'certification_remarks', 'certification_info',
+            'course_fee', 'public_price', 'access_days', 'passing_score',
+            'is_public', 'is_featured', 'display_order', 'featured_order',
+            'course_video_url', 'faq', 'seo_title', 'seo_description', 'seo_keywords',
         ]);
+
+        $data['course_type']   = 'elearning';
+        $data['delivery_type'] = 'eLearning';
+        $data['is_public']     = $request->boolean('is_public');
+        $data['is_featured']   = $request->boolean('is_featured');
+
+        if ($request->hasFile('banner_image')) {
+            $data['banner_image'] = $request->file('banner_image')->store('courses', 'public');
+        }
+
+        $course->update($data);
 
         return redirect()
             ->route('elearning.courses.index')
@@ -97,8 +120,5 @@ class ElearningCourseController extends Controller
         return redirect()
             ->route('elearning.courses.index')
             ->with('success', 'Course deleted successfully.');
-    }public function show(Course $course)
-{
-    return redirect()->route('elearning.lessons.index', $course->id);
-}
+    }
 }

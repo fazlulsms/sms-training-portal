@@ -134,26 +134,46 @@
                     @else 🎓 @endif
                 </div>
                 <div class="cd-enroll-card-body">
-                    @if($course->min_fee)
-                    <div class="cd-enroll-price">
-                        BDT {{ number_format($course->min_fee) }}
-                        @if($course->min_fee != $course->max_fee) – {{ number_format($course->max_fee) }} @endif
-                        <small>per participant</small>
-                    </div>
-                    @endif
-
-                    @if($course->publicSchedules->count())
-                    <a href="#schedules" class="cd-enroll-btn">📅 View Open Schedules</a>
+                    @if($course->delivery_type === 'eLearning')
+                        {{-- eLearning price --}}
+                        @php $elPrice = $course->public_price ?? $course->course_fee; @endphp
+                        @if($elPrice)
+                        <div class="cd-enroll-price">
+                            BDT {{ number_format($elPrice) }}
+                            <small>one-time</small>
+                        </div>
+                        @endif
+                        <a href="{{ route('elearning.public.register', $course->id) }}" class="cd-enroll-btn">🎓 Enroll Online</a>
+                        <hr class="cd-enroll-divider">
+                        <div class="cd-enroll-feature"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Self-paced learning</div>
+                        @if($course->access_days)
+                        <div class="cd-enroll-feature"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> {{ $course->access_days }}-day access</div>
+                        @endif
+                        <div class="cd-enroll-feature"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Certificate of completion</div>
+                        @if($course->cpd_hours)
+                        <div class="cd-enroll-feature"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> {{ $course->cpd_hours }} CPD Hours</div>
+                        @endif
                     @else
-                    <a href="mailto:training@smscert.com" class="cd-enroll-btn">📧 Contact to Enroll</a>
-                    @endif
-
-                    <hr class="cd-enroll-divider">
-                    <div class="cd-enroll-feature"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Professional certificate</div>
-                    <div class="cd-enroll-feature"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Expert instructors</div>
-                    <div class="cd-enroll-feature"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Flexible delivery modes</div>
-                    @if($course->cpd_hours)
-                    <div class="cd-enroll-feature"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> {{ $course->cpd_hours }} CPD Hours</div>
+                        {{-- ILT price --}}
+                        @if($course->min_fee)
+                        <div class="cd-enroll-price">
+                            BDT {{ number_format($course->min_fee) }}
+                            @if($course->min_fee != $course->max_fee) – {{ number_format($course->max_fee) }} @endif
+                            <small>per participant</small>
+                        </div>
+                        @endif
+                        @if($course->publicSchedules->count())
+                        <a href="#schedules" class="cd-enroll-btn">📅 View Open Schedules</a>
+                        @else
+                        <a href="mailto:training@smscert.com" class="cd-enroll-btn">📧 Contact to Enroll</a>
+                        @endif
+                        <hr class="cd-enroll-divider">
+                        <div class="cd-enroll-feature"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Professional certificate</div>
+                        <div class="cd-enroll-feature"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Expert instructors</div>
+                        <div class="cd-enroll-feature"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Flexible delivery modes</div>
+                        @if($course->cpd_hours)
+                        <div class="cd-enroll-feature"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> {{ $course->cpd_hours }} CPD Hours</div>
+                        @endif
                     @endif
                 </div>
             </div>
