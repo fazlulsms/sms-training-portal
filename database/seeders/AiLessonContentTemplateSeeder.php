@@ -9,14 +9,15 @@ class AiLessonContentTemplateSeeder extends Seeder
 {
     public function run(): void
     {
-        // Keep v2 active — add v3 as the new default
         AiPromptTemplate::updateOrCreate(
             ['template_code' => 'lesson_content_generator_json_v2'],
             [
-                'template_name' => 'Lesson Content Generator v2 (Content Mix Engine)',
-                'category'      => 'elearning',
-                'description'   => 'Generates self-paced eLearning lesson blocks — varied block types. (Superseded by v3)',
-                'is_active'     => false,
+                'template_name'        => 'Lesson Content Generator v2 (Content Mix Engine)',
+                'category'             => 'elearning',
+                'description'          => 'Generates self-paced eLearning lesson blocks — varied block types. (Superseded by v3)',
+                'system_prompt'        => 'You are an expert eLearning instructional designer. Generate professional lesson content.',
+                'user_prompt_template' => '{input}',
+                'is_active'            => false,
             ]
         );
 
