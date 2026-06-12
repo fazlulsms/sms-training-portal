@@ -17,31 +17,46 @@ class PublicController extends Controller
     // ── Homepage ─────────────────────────────────────────────
     public function home()
     {
-        $featuredCourses = Course::where('is_public', true)
-            ->where('is_featured', true)
-            ->withCount(['trainingSchedules as open_schedules_count' => fn($q) => $q->where('is_public', true)])
-            ->orderBy('featured_order')
-            ->latest()
-            ->take(6)
-            ->get();
+        // featured_order / display_order columns live in the June-12 migration;
+        // guard so the homepage doesn't 500 on staging until migrate runs.
+        try {
+            $featuredCourses = Course::where('is_public', true)
+                ->where('is_featured', true)
+                ->withCount(['trainingSchedules as open_schedules_count' => fn($q) => $q->where('is_public', true)])
+                ->orderBy('featured_order')
+                ->latest()
+                ->take(6)
+                ->get();
+        } catch (\Exception $e) {
+            $featuredCourses = collect();
+        }
 
-        $elearningCourses = Course::where('is_public', true)
-            ->where('delivery_type', 'eLearning')
-            ->latest()->take(4)->get();
+        try {
+            $elearningCourses = Course::where('is_public', true)
+                ->where('delivery_type', 'eLearning')
+                ->latest()->take(4)->get();
+        } catch (\Exception $e) {
+            $elearningCourses = collect();
+        }
 
-        $upcomingSchedules = TrainingSchedule::with('course', 'trainer')
-            ->where('is_public', true)
-            ->whereIn('schedule_status', ['Upcoming', 'Running'])
-            ->where(function ($q) {
-                $q->whereNull('registration_deadline')
-                  ->orWhere('registration_deadline', '>=', now()->toDateString());
-            })
-            ->orderBy('start_date')
-            ->take(6)
-            ->get();
+        try {
+            $upcomingSchedules = TrainingSchedule::with('course', 'trainer')
+                ->where('is_public', true)
+                ->whereIn('schedule_status', ['Upcoming', 'Running'])
+                ->where(function ($q) {
+                    $q->whereNull('registration_deadline')
+                      ->orWhere('registration_deadline', '>=', now()->toDateString());
+                })
+                ->orderBy('start_date')
+                ->take(6)
+                ->get();
+        } catch (\Exception $e) {
+            $upcomingSchedules = collect();
+        }
 
         $featuredTestimonials = Testimonial::featured()->latest()->take(6)->get();
         $latestBlogs          = BlogPost::published()->with('category')->latest('published_at')->take(3)->get();
+
         try {
             $featuredTrainers = Trainer::where('is_public', true)->where('status', 1)
                                     ->orderBy('display_order')->take(6)->get();
@@ -60,20 +75,28 @@ class PublicController extends Controller
 
         // Fall back to string-based categories if none in course_categories table
         if ($categories->isEmpty()) {
-            $categories = Course::where('is_public', true)
-                ->select('category')
-                ->whereNotNull('category')
-                ->distinct()
-                ->pluck('category')
-                ->map(fn($c) => (object)['name' => $c, 'slug' => \Illuminate\Support\Str::slug($c), 'icon' => null]);
+            try {
+                $categories = Course::where('is_public', true)
+                    ->select('category')
+                    ->whereNotNull('category')
+                    ->distinct()
+                    ->pluck('category')
+                    ->map(fn($c) => (object)['name' => $c, 'slug' => \Illuminate\Support\Str::slug($c), 'icon' => null]);
+            } catch (\Exception $e) {
+                $categories = collect();
+            }
         }
 
-        $stats = [
-            'courses'      => Course::where('is_public', true)->count(),
-            'schedules'    => TrainingSchedule::where('is_public', true)->count(),
-            'testimonials' => Testimonial::approved()->count(),
-            'blogs'        => BlogPost::published()->count(),
-        ];
+        try {
+            $stats = [
+                'courses'      => Course::where('is_public', true)->count(),
+                'schedules'    => TrainingSchedule::where('is_public', true)->count(),
+                'testimonials' => Testimonial::approved()->count(),
+                'blogs'        => BlogPost::published()->count(),
+            ];
+        } catch (\Exception $e) {
+            $stats = ['courses' => 0, 'schedules' => 0, 'testimonials' => 0, 'blogs' => 0];
+        }
 
         return view('public.home', compact(
             'featuredCourses', 'elearningCourses', 'upcomingSchedules',
