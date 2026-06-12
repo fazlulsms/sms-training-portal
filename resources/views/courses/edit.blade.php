@@ -41,19 +41,39 @@
     @endif
 
     @if(session('success'))
-    <div style="background:#dcfce7; border:1px solid #86efac; border-radius:8px; padding:12px 16px; margin-bottom:20px; color:#166534; font-weight:600;">
-        {{ session('success') }}
+    <div style="background:#dcfce7; border:1px solid #86efac; border-radius:8px; padding:12px 16px; margin-bottom:20px;">
+        <div style="color:#166534; font-weight:700; margin-bottom:8px;">✓ {{ session('success') }}</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; font-size:13px;">
+            @if($course->course_type === 'elearning')
+            <a href="{{ route('elearning.lessons.index', $course->id) }}"
+               style="background:#16a34a; color:#fff; padding:5px 12px; border-radius:6px; text-decoration:none; font-weight:600;">
+                📚 Manage Lessons
+            </a>
+            @endif
+            @if($course->is_public && $course->slug)
+            <a href="{{ route('public.course.detail', $course->slug) }}" target="_blank"
+               style="background:#2563eb; color:#fff; padding:5px 12px; border-radius:6px; text-decoration:none; font-weight:600;">
+                🌐 View Public Page
+            </a>
+            @endif
+            <a href="/admin/courses"
+               style="background:#6b7280; color:#fff; padding:5px 12px; border-radius:6px; text-decoration:none; font-weight:600;">
+                ← Course List
+            </a>
+        </div>
     </div>
     @endif
 
     <div class="tab-nav">
-        <button class="tab-btn active" onclick="showTab('basic',this)" type="button">Basic Info</button>
-        <button class="tab-btn" onclick="showTab('content',this)" type="button">Public Content</button>
-        <button class="tab-btn" onclick="showTab('seo',this)" type="button">Visibility &amp; SEO</button>
+        <button class="tab-btn active" id="tab-btn-basic"    onclick="showTab('basic',this)"    type="button">Basic Info</button>
+        <button class="tab-btn"         id="tab-btn-content" onclick="showTab('content',this)"  type="button">Public Content</button>
+        <button class="tab-btn"         id="tab-btn-seo"     onclick="showTab('seo',this)"      type="button">Visibility &amp; SEO</button>
     </div>
 
-    <form method="POST" action="/admin/courses/update/{{ $course->id }}" enctype="multipart/form-data">
+    <form method="POST" action="/admin/courses/update/{{ $course->id }}" enctype="multipart/form-data" id="courseEditForm">
         @csrf
+        <input type="hidden" name="_action" id="courseAction" value="save">
+        <input type="hidden" name="_tab"    id="courseTab"    value="basic">
 
         {{-- ── TAB 1: Basic Info ──────────────────────────────── --}}
         <div id="tab-basic" class="tab-panel active">
@@ -239,12 +259,24 @@
             </div>
         </div>
 
-        <div style="display:flex; gap:12px; margin-top:28px; padding-top:20px; border-top:1px solid #e5e7eb;">
-            <button type="submit" style="background:#1e3a8a; color:#fff; padding:12px 28px; border:none; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer;">
-                Update Course
+        <div style="display:flex; gap:10px; margin-top:28px; padding-top:20px; border-top:1px solid #e5e7eb; flex-wrap:wrap; align-items:center;">
+            <button type="button" onclick="submitCourse('save')"
+                    style="background:#1e3a8a; color:#fff; padding:11px 26px; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer;">
+                💾 Save Changes
             </button>
-            <a href="/admin/courses" style="background:#6b7280; color:#fff; padding:12px 20px; border-radius:8px; text-decoration:none; font-weight:600; font-size:15px;">
-                Back
+            <button type="button" onclick="submitCourse('back')"
+                    style="background:#6b7280; color:#fff; padding:11px 22px; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer;">
+                Save &amp; Back to List
+            </button>
+            @if($course->course_type === 'elearning')
+            <button type="button" onclick="submitCourse('lessons')"
+                    style="background:#16a34a; color:#fff; padding:11px 22px; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer;">
+                Save &amp; Manage Lessons →
+            </button>
+            @endif
+            <a href="/admin/courses"
+               style="background:#f1f5f9; color:#374151; padding:11px 18px; border-radius:8px; text-decoration:none; font-weight:600; font-size:14px; margin-left:auto;">
+                Cancel
             </a>
         </div>
     </form>
@@ -257,6 +289,21 @@ function showTab(name, btn) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
     btn.classList.add('active');
+    document.getElementById('courseTab').value = name;
 }
+
+function submitCourse(action) {
+    document.getElementById('courseAction').value = action;
+    document.getElementById('courseEditForm').submit();
+}
+
+// Restore active tab from URL ?tab= parameter
+(function () {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    if (tab && document.getElementById('tab-' + tab)) {
+        const btn = document.getElementById('tab-btn-' + tab);
+        if (btn) showTab(tab, btn);
+    }
+})();
 </script>
 @endsection

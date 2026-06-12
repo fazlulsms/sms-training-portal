@@ -116,9 +116,24 @@ class ElearningCourseController extends Controller
 
         $course->update($data);
 
-        return redirect()
-            ->route('elearning.courses.index')
-            ->with('success', 'eLearning course updated successfully.');
+        $action = $request->input('_action', 'save');
+        $tab    = in_array($request->input('_tab'), ['basic', 'content', 'seo'])
+                  ? $request->input('_tab')
+                  : 'basic';
+
+        if ($action === 'back') {
+            return redirect()->route('elearning.courses.index')
+                ->with('success', 'Course updated successfully.');
+        }
+
+        if ($action === 'lessons') {
+            return redirect()->route('elearning.lessons.index', $course->id)
+                ->with('success', 'Course updated successfully. Now manage your lessons.');
+        }
+
+        return redirect()->route('elearning.courses.edit', $course->id)
+            ->with('success', 'Course updated successfully.')
+            ->with('active_tab', $tab);
     }
 
     public function destroy(Course $course)

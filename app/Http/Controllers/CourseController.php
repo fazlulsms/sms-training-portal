@@ -106,7 +106,7 @@ class CourseController extends Controller
 
         Course::create($data);
 
-        return redirect('/courses')->with('success', 'Course Added Successfully');
+        return redirect('/admin/courses')->with('success', 'Course added successfully.');
     }
 
     public function edit($id)
@@ -153,7 +153,23 @@ class CourseController extends Controller
 
         $course->update($data);
 
-        return redirect('/courses')->with('success', 'Course Updated Successfully');
+        $action = $request->input('_action', 'save');
+        $tab    = in_array($request->input('_tab'), ['basic', 'content', 'seo'])
+                  ? $request->input('_tab')
+                  : 'basic';
+
+        if ($action === 'back') {
+            return redirect('/admin/courses')
+                ->with('success', 'Course updated successfully.');
+        }
+
+        if ($action === 'lessons' && $course->course_type === 'elearning') {
+            return redirect()->route('elearning.lessons.index', $id)
+                ->with('success', 'Course updated successfully.');
+        }
+
+        return redirect('/admin/courses/edit/' . $id . '?tab=' . $tab)
+            ->with('success', 'Course updated successfully.');
     }
 
     public function delete($id)
