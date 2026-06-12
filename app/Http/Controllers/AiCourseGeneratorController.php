@@ -6,6 +6,9 @@ use App\Models\AiPromptTemplate;
 use App\Models\Course;
 use App\Models\CourseCategory;
 use App\Models\ElearningLesson;
+use App\Models\ElearningQuiz;
+use App\Models\ElearningQuizQuestion;
+use App\Models\LessonBlock;
 use App\Services\OpenAIService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -305,43 +308,24 @@ class AiCourseGeneratorController extends Controller
                 }
             });
 
-            // Mode B — generate full lesson content after transaction commits
-            if ($courseType === 'elearning' && $generationMode === 'complete') {
-                set_time_limit(300);
+            session()->forget(self::SESSION_KEY);
 
+            // Mode B — hand off to progress page; AJAX drives per-lesson generation
+            if ($courseType === 'elearning' && $generationMode === 'complete') {
                 $contentLevel = match ($formData['learning_level']) {
                     'Beginner' => 'Awareness',
                     'Advanced' => 'Advanced',
                     default    => 'Professional',
                 };
-
-                $lessons = ElearningLesson::where('course_id', $course->id)
-                    ->orderBy('lesson_order')
-                    ->get();
-
-                $totalBlocks = 0;
-                foreach ($lessons as $lesson) {
-                    try {
-                        $count = AiLessonContentController::generateAndSaveBlocks($course, $lesson, $contentLevel);
-                        $totalBlocks += $count;
-                    } catch (\Throwable $e) {
-                        Log::warning('AiCourseGenerator Mode B: lesson content failed', [
-                            'lesson_id' => $lesson->id,
-                            'error'     => $e->getMessage(),
-                        ]);
-                    }
-                }
+                return redirect()->route('ai.course-generator.progress', [
+                    'course' => $course->id,
+                    'level'  => $contentLevel,
+                ]);
             }
 
-            session()->forget(self::SESSION_KEY);
-
-            $lessonCount  = $courseType === 'elearning' ? ElearningLesson::where('course_id', $course->id)->count() : 0;
-            $successMsg   = '✨ AI-generated course "' . $formData['course_name'] . '" saved as draft.';
-            if ($courseType === 'elearning' && $generationMode === 'complete') {
-                $successMsg .= " Full lesson content generated for {$lessonCount} lessons.";
-            }
-
-            $editUrl = $courseType === 'elearning'
+            // Mode A — structure only, go straight to editor
+            $successMsg = '✨ AI-generated course "' . $formData['course_name'] . '" saved as draft. Add content to each lesson.';
+            $editUrl    = $courseType === 'elearning'
                 ? route('elearning.courses.edit', $course->id)
                 : url('/admin/courses/edit/' . $course->id);
 
@@ -350,6 +334,236 @@ class AiCourseGeneratorController extends Controller
         } catch (\Throwable $e) {
             return redirect()->back()
                 ->with('error', 'Failed to save course: ' . $e->getMessage() . '. Please try again.');
+        }
+    }
+
+    // ── Mode B: Progress Page ────────────────────────────────────
+    // GET /admin/ai/course-generator/{course}/progress?level=Professional
+
+    public function generationProgress(Request $request, Course $course)
+    {
+        $this->guardSuperAdmin();
+
+        $level = $request->input('level', 'Professional');
+        if (!in_array($level, ['Awareness', 'Professional', 'Advanced'])) {
+            $level = 'Professional';
+        }
+
+        $lessons = ElearningLesson::where('course_id', $course->id)
+            ->orderBy('lesson_order')
+            ->get(['id', 'title', 'lesson_order']);
+
+        if ($lessons->isEmpty()) {
+            return redirect()->route('elearning.courses.edit', $course->id)
+                ->with('warning', 'No lessons found for this course.');
+        }
+
+        // Build module → lessons mapping from stored AI structure
+        $aiStructure = $course->ai_course_structure ?? [];
+        $modules     = [];
+        $lessonIdx   = 0;
+
+        if (!empty($aiStructure['modules'])) {
+            foreach ($aiStructure['modules'] as $modIndex => $moduleData) {
+                $count         = count($moduleData['lessons'] ?? []);
+                $moduleLessons = [];
+                for ($i = 0; $i < $count; $i++) {
+                    if ($lessons->has($lessonIdx)) {
+                        $moduleLessons[] = $lessons->values()->get($lessonIdx);
+                        $lessonIdx++;
+                    }
+                }
+                if (!empty($moduleLessons)) {
+                    $modules[] = [
+                        'index'   => $modIndex + 1,
+                        'title'   => $moduleData['title'] ?? 'Module ' . ($modIndex + 1),
+                        'lessons' => $moduleLessons,
+                    ];
+                }
+            }
+        }
+
+        if (empty($modules)) {
+            $modules = [['index' => 1, 'title' => 'Course Lessons', 'lessons' => $lessons->all()]];
+        }
+
+        return view('ai.course-generator.generation-progress', compact(
+            'course', 'lessons', 'level', 'modules'
+        ));
+    }
+
+    // ── Mode B: Generate One Lesson (AJAX) ───────────────────────
+    // POST /admin/ai/course-generator/{course}/generate-next
+
+    public function generateNext(Request $request, Course $course)
+    {
+        $this->guardSuperAdmin();
+
+        $lessonId = (int) $request->input('lesson_id');
+        $level    = $request->input('level', 'Professional');
+
+        if (!in_array($level, ['Awareness', 'Professional', 'Advanced'])) {
+            $level = 'Professional';
+        }
+
+        $lesson = ElearningLesson::where('course_id', $course->id)
+            ->where('id', $lessonId)
+            ->first();
+
+        if (!$lesson) {
+            return response()->json(['success' => false, 'error' => 'Lesson not found'], 404);
+        }
+
+        $count = AiLessonContentController::generateAndSaveBlocks($course, $lesson, $level);
+
+        return response()->json([
+            'success'        => $count > 0,
+            'lesson_id'      => $lesson->id,
+            'lesson_title'   => $lesson->title,
+            'blocks_created' => $count,
+        ]);
+    }
+
+    // ── Mode B: Generate Module Quiz (AJAX) ──────────────────────
+    // POST /admin/ai/course-generator/{course}/generate-module-quiz
+
+    public function generateModuleQuiz(Request $request, Course $course)
+    {
+        $this->guardSuperAdmin();
+
+        if (!config('ai.enabled', false)) {
+            return response()->json(['success' => false, 'error' => 'AI disabled'], 403);
+        }
+
+        $moduleTitle   = $request->input('module_title', 'Module');
+        $moduleIndex   = (int) $request->input('module_index', 1);
+        $lessonIds     = $request->input('lesson_ids', []);
+        $level         = $request->input('level', 'Professional');
+
+        if (!in_array($level, ['Awareness', 'Professional', 'Advanced'])) {
+            $level = 'Professional';
+        }
+
+        // Collect lesson summaries to ground the quiz in real content
+        $lessonSummaries = ElearningLesson::where('course_id', $course->id)
+            ->whereIn('id', $lessonIds)
+            ->orderBy('lesson_order')
+            ->get(['title', 'learning_objectives'])
+            ->map(fn($l) => "- {$l->title}" . ($l->learning_objectives ? ": {$l->learning_objectives}" : ''))
+            ->implode("\n");
+
+        $questionCount = match ($level) {
+            'Awareness' => 3,
+            'Advanced'  => 5,
+            default     => 4,
+        };
+
+        $userPrompt = <<<USR
+Generate {$questionCount} multiple-choice quiz questions for this eLearning module.
+
+Course: {$course->name}
+Module {$moduleIndex}: {$moduleTitle}
+Level: {$level}
+
+Lessons covered:
+{$lessonSummaries}
+
+Return a JSON object:
+{
+  "questions": [
+    {
+      "question_text": "Clear question testing understanding of the lesson content?",
+      "options": {
+        "a": "Option A text",
+        "b": "Option B text",
+        "c": "Option C text",
+        "d": "Option D text"
+      },
+      "correct_answer": "a",
+      "explanation": "Why A is correct, with reference to the lesson."
+    }
+  ]
+}
+
+Rules:
+- Questions must be answerable from the lesson content above
+- One clearly correct answer per question
+- Make distractors plausible but wrong
+- correct_answer must be "a", "b", "c", or "d"
+- Include one true/false question (use "a": "True", "b": "False", "c": "Sometimes", "d": "Never")
+USR;
+
+        try {
+            $ai     = app(OpenAIService::class);
+            $fullPrompt = "ROLE: You are an eLearning assessment designer. Output ONLY valid JSON — no markdown fences, no prose.\n\n" . $userPrompt;
+            $result = $ai->generateText($fullPrompt, 'module_quiz', auth()->id(), 2000);
+
+            if (!$result['success']) {
+                return response()->json(['success' => false, 'error' => $result['error'] ?? 'AI failed']);
+            }
+
+            $raw = trim($result['text'] ?? '');
+            $raw = preg_replace('/^```json\s*/i', '', $raw);
+            $raw = preg_replace('/```\s*$/',       '', trim($raw));
+
+            $decoded = json_decode($raw, true);
+            if (!is_array($decoded) || empty($decoded['questions'])) {
+                return response()->json(['success' => false, 'error' => 'AI returned invalid format']);
+            }
+
+            // Create a "Module Quiz" lesson
+            $quizLesson = ElearningLesson::create([
+                'course_id'       => $course->id,
+                'title'           => "Module {$moduleIndex} Knowledge Check: {$moduleTitle}",
+                'short_description' => "Test your understanding of {$moduleTitle}.",
+                'lesson_order'    => ElearningLesson::where('course_id', $course->id)->max('lesson_order') + 1,
+                'status'          => 'draft',
+                'lesson_type'     => 'assessment',
+                'completion_rule' => 'pass_quiz',
+            ]);
+
+            // Create ElearningQuiz attached to the quiz lesson
+            $quiz = ElearningQuiz::create([
+                'lesson_id'   => $quizLesson->id,
+                'title'       => "Module {$moduleIndex} Knowledge Check",
+                'description' => "Test your understanding of key concepts from {$moduleTitle}.",
+                'pass_mark'   => 70,
+                'max_attempt' => 2,
+                'status'      => 'active',
+            ]);
+
+            $created = 0;
+            foreach ($decoded['questions'] as $q) {
+                if (empty($q['question_text']) || empty($q['options'])) continue;
+                ElearningQuizQuestion::create([
+                    'quiz_id'       => $quiz->id,
+                    'question_text' => $q['question_text'],
+                    'question_type' => 'mcq',
+                    'option_a'      => $q['options']['a'] ?? '',
+                    'option_b'      => $q['options']['b'] ?? '',
+                    'option_c'      => $q['options']['c'] ?? '',
+                    'option_d'      => $q['options']['d'] ?? '',
+                    'correct_answer' => strtolower($q['correct_answer'] ?? 'a'),
+                    'marks'         => 1,
+                    'status'        => 'active',
+                ]);
+                $created++;
+            }
+
+            return response()->json([
+                'success'          => true,
+                'module_title'     => $moduleTitle,
+                'quiz_lesson_id'   => $quizLesson->id,
+                'questions_created' => $created,
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('AiCourseGenerator: module quiz failed', [
+                'course_id' => $course->id,
+                'module'    => $moduleTitle,
+                'error'     => $e->getMessage(),
+            ]);
+            return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }
     }
 

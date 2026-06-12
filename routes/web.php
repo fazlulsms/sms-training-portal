@@ -398,10 +398,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/ai/prompt-templates/{promptTemplate}/test',              [AiPromptTemplateController::class, 'test'])     ->name('ai.prompt-templates.test');
 
     // ── AI Course Generator (super_admin only) ─────────────────
-    Route::post('/ai/course-generator/generate', [AiCourseGeneratorController::class, 'generate'])->name('ai.course-generator.generate');
-    Route::get( '/ai/course-generator/preview',  [AiCourseGeneratorController::class, 'preview']) ->name('ai.course-generator.preview');
-    Route::post('/ai/course-generator/save',     [AiCourseGeneratorController::class, 'save'])    ->name('ai.course-generator.save');
-    Route::post('/ai/course-generator/cancel',   [AiCourseGeneratorController::class, 'cancel'])  ->name('ai.course-generator.cancel');
+    Route::post('/ai/course-generator/generate',                   [AiCourseGeneratorController::class, 'generate'])         ->name('ai.course-generator.generate');
+    Route::get( '/ai/course-generator/preview',                    [AiCourseGeneratorController::class, 'preview'])          ->name('ai.course-generator.preview');
+    Route::post('/ai/course-generator/save',                       [AiCourseGeneratorController::class, 'save'])             ->name('ai.course-generator.save');
+    Route::post('/ai/course-generator/cancel',                     [AiCourseGeneratorController::class, 'cancel'])           ->name('ai.course-generator.cancel');
+    Route::get( '/ai/course-generator/{course}/progress',          [AiCourseGeneratorController::class, 'generationProgress'])->name('ai.course-generator.progress');
+    Route::post('/ai/course-generator/{course}/generate-next',     [AiCourseGeneratorController::class, 'generateNext'])     ->name('ai.course-generator.generate-next');
+    Route::post('/ai/course-generator/{course}/generate-module-quiz', [AiCourseGeneratorController::class, 'generateModuleQuiz'])->name('ai.course-generator.generate-module-quiz');
 
     // ── AI Trainer Profile Generator (super_admin only) ────────
     Route::get( '/ai/trainer-profile',           [AiTrainerProfileController::class, 'index'])    ->name('ai.trainer-profile.index');
