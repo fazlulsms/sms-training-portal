@@ -311,13 +311,20 @@ textarea.fi { resize: vertical; }
                     <span class="rp-count">{{ $blocks->count() }}</span>
                 @endif
             </h2>
-            <div style="display:flex; gap:8px; align-items:center;">
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                 <a href="{{ route('elearning.lessons.preview', [$course, $lesson]) }}"
                    class="btn btn-sm" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a;"
                    target="_blank" title="Preview lesson as a learner">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                     Preview
                 </a>
+                @if(config('ai.enabled', false) && in_array(auth()->user()?->role, ['super_admin', 'admin']))
+                <a href="{{ route('elearning.lessons.edit', [$course, $lesson]) }}?ai_generate=1"
+                   class="btn btn-sm" style="background:#f0fdf4; color:#15803d; border:1px solid #86efac;"
+                   title="Generate lesson content using AI">
+                    ✨ Generate with AI
+                </a>
+                @endif
                 <a href="{{ route('elearning.lessons.edit', [$course, $lesson]) }}?add_type=picker"
                    class="btn btn-primary btn-sm">+ Add Content Block</a>
             </div>
@@ -352,6 +359,54 @@ textarea.fi { resize: vertical; }
                         </a>
                     @endforeach
                 </div>
+            </div>
+        </div>
+        @endif
+
+        {{-- ── AI Generate Form ── --}}
+        @if(request('ai_generate') === '1' && config('ai.enabled', false))
+        <div class="bform-card" style="border-color:#16a34a; margin-bottom:16px;">
+            <div class="bform-head" style="background:linear-gradient(135deg,#14532d 0%,#16a34a 100%);">
+                <h4>✨ Generate Lesson Content with AI</h4>
+                <a href="{{ route('elearning.lessons.edit', [$course, $lesson]) }}">✕ Cancel</a>
+            </div>
+            <div class="bform-body">
+                <p style="font-size:13px; color:var(--text-muted); margin:0 0 14px;">
+                    AI will generate a complete set of content blocks for this lesson using the course and lesson details.
+                    Review and edit everything on the next screen before saving.
+                </p>
+                <form action="{{ route('elearning.ai-lesson-content.generate', [$course, $lesson]) }}" method="POST">
+                    @csrf
+                    <div class="fg2" style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                        <div>
+                            <label class="fl">Course Level *</label>
+                            <select name="learning_level" class="fi">
+                                <option value="Awareness">Awareness &nbsp;(500–800 words)</option>
+                                <option value="Professional" selected>Professional &nbsp;(800–1,500 words)</option>
+                                <option value="Advanced">Advanced &nbsp;(1,000–2,000 words)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="fl">Lesson Title (auto-used)</label>
+                            <input type="text" class="fi" value="{{ $lesson->title }}" disabled
+                                   style="background:#f8fafc; color:var(--text-muted);">
+                        </div>
+                    </div>
+                    <label class="fl" style="margin-top:14px;">
+                        Additional Instructions
+                        <span style="font-weight:400; color:var(--text-light);">(optional)</span>
+                    </label>
+                    <textarea name="extra_notes" class="fi" rows="2"
+                              placeholder="e.g. Include Bangladesh regulatory context, focus on ISO clause 6.1, add real audit examples…"></textarea>
+                    <div class="bform-footer">
+                        <button type="submit" class="btn btn-primary btn-sm"
+                                onclick="this.disabled=true; this.textContent='Generating…'; this.form.submit();">
+                            ✨ Generate Content
+                        </button>
+                        <a href="{{ route('elearning.lessons.edit', [$course, $lesson]) }}"
+                           class="btn btn-ghost btn-sm">Cancel</a>
+                    </div>
+                </form>
             </div>
         </div>
         @endif

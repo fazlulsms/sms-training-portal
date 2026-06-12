@@ -44,6 +44,7 @@ use App\Http\Controllers\AiController;
 use App\Http\Controllers\AiPromptTemplateController;
 use App\Http\Controllers\AiCourseGeneratorController;
 use App\Http\Controllers\AiTrainerProfileController;
+use App\Http\Controllers\AiLessonContentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -434,6 +435,12 @@ Route::middleware(['auth', 'admin'])->prefix('elearning')->name('elearning.')->g
     Route::delete('courses/{course}/lessons/{lesson}/blocks/{block}',           [LessonBlockController::class, 'destroy']) ->name('blocks.destroy');
     Route::post('courses/{course}/lessons/{lesson}/blocks/{block}/move-up',     [LessonBlockController::class, 'moveUp'])  ->name('blocks.move-up');
     Route::post('courses/{course}/lessons/{lesson}/blocks/{block}/move-down',   [LessonBlockController::class, 'moveDown'])->name('blocks.move-down');
+
+    // AI Lesson Content Generator
+    Route::post('courses/{course}/lessons/{lesson}/ai-generate', [AiLessonContentController::class, 'generate'])->name('ai-lesson-content.generate');
+    Route::get( 'courses/{course}/lessons/{lesson}/ai-preview',  [AiLessonContentController::class, 'preview']) ->name('ai-lesson-content.preview');
+    Route::post('courses/{course}/lessons/{lesson}/ai-save',     [AiLessonContentController::class, 'save'])    ->name('ai-lesson-content.save');
+    Route::post('courses/{course}/lessons/{lesson}/ai-cancel',   [AiLessonContentController::class, 'cancel'])  ->name('ai-lesson-content.cancel');
 
     Route::get('enrollments', [ElearningEnrollmentController::class, 'index'])->name('enrollments.index');
     Route::get('enrollments/create', [ElearningEnrollmentController::class, 'create'])->name('enrollments.create');
