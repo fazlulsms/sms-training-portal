@@ -123,8 +123,14 @@
     <div class="cal-grid">
         @foreach($schedules as $s)
         @php
-            $fee = $s->discount_fee ?? ($s->training_mode === 'Online' ? $s->online_fee : ($s->physical_fee ?? $s->online_fee));
-            $seatsLeft = $s->seats_left;
+            $seatsLeft   = $s->seats_left;
+            $calCurrency = $s->currency ?? 'BDT';
+            $calPhysical = (float) ($s->physical_fee ?? 0);
+            $calOnline   = (float) ($s->online_fee   ?? 0);
+            $calMode     = $s->training_mode ?? 'Physical';
+            $calShowBoth = ($calMode === 'Hybrid' || ($calPhysical && $calOnline && $calPhysical !== $calOnline))
+                           && $calPhysical && $calOnline;
+            $calSingle   = $calMode === 'Online' ? $calOnline : ($calPhysical ?: $calOnline);
         @endphp
         <div class="sc-row">
             <div class="sc-date-col">
@@ -168,8 +174,14 @@
                 </div>
             </div>
             <div class="sc-action-col">
-                @if($fee)
-                <div class="sc-fee">{{ $s->currency ?? 'BDT' }} {{ number_format($fee) }}<br><small>per person</small></div>
+                @if($calShowBoth)
+                <div class="sc-fee" style="font-size:12px;line-height:1.6;">
+                    <span style="color:#3b82f6;">Online</span> {{ $calCurrency }} {{ number_format($calOnline) }}<br>
+                    <span style="color:#059669;">Physical</span> {{ $calCurrency }} {{ number_format($calPhysical) }}<br>
+                    <small>per person</small>
+                </div>
+                @elseif($calSingle)
+                <div class="sc-fee">{{ $calCurrency }} {{ number_format($calSingle) }}<br><small>per person</small></div>
                 @endif
                 @if($s->is_open)
                 <a href="{{ route('public.enroll', $s->id) }}" class="pub-enroll-btn">Enroll Now</a>
