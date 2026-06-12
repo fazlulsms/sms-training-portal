@@ -20,10 +20,14 @@
 .module-card { background:#f8fafc; border:1px solid #f0f2f5; border-radius:9px; padding:14px; margin-bottom:10px; }
 .lesson-pill { display:inline-flex; align-items:center; gap:5px; background:#fff; border:1px solid #e9ecf0;
                padding:5px 11px; border-radius:20px; font-size:12.5px; color:#374151; margin:3px; }
+.faq-card { background:#f8fafc; border:1px solid #f0f2f5; border-radius:8px; padding:12px 14px; margin-bottom:8px; }
+.faq-card .fq { font-weight:700; color:#1e3a8a; font-size:13px; margin-bottom:5px; }
+.faq-card .fa { color:#4b5563; font-size:13px; line-height:1.6; }
+.frow2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 </style>
 
 {{-- ── Page Header ─────────────────────────────────────────── --}}
-<div style="background:linear-gradient(135deg,#0f1e45,#1e3a8a); border-radius:12px; padding:18px 24px; margin-bottom:22px; display:flex; justify-content:space-between; align-items:center;">
+<div style="background:linear-gradient(135deg,#0f1e45,#1e3a8a); border-radius:12px; padding:18px 24px; margin-bottom:22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
     <div>
         <div style="font-size:18px; font-weight:800; color:#fff;">✨ AI Course Preview</div>
         <div style="font-size:13px; color:#93c5fd; margin-top:3px;">
@@ -67,7 +71,9 @@
 
 <div style="display:grid; grid-template-columns:2fr 1fr; gap:20px; align-items:start;">
 
-{{-- ── Left Column ─────────────────────────────────────────── --}}
+{{-- ══════════════════════════════════════════════════════════
+     LEFT COLUMN
+═══════════════════════════════════════════════════════════ --}}
 <div>
 
 {{-- Course Description --}}
@@ -76,7 +82,7 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Course Description
     </h3>
-    <span class="preview-label">Edit as needed</span>
+    <span class="preview-label">Full description — shown on course detail page</span>
     <textarea name="course_description" class="preview-ta" rows="5">{{ $aiOutput['course_description'] ?? '' }}</textarea>
 </div>
 
@@ -97,13 +103,24 @@
         Target Audience & Prerequisites
     </h3>
     <div style="margin-bottom:14px;">
-        <span class="preview-label">Target Audience</span>
+        <span class="preview-label">Target Audience (short description)</span>
         <input type="text" name="target_audience" class="preview-inp" value="{{ $aiOutput['target_audience'] ?? '' }}">
     </div>
     <div>
         <span class="preview-label">Prerequisites (one per line)</span>
         <textarea name="prerequisites" class="preview-ta" rows="3">{{ is_array($aiOutput['prerequisites'] ?? '') ? implode("\n", $aiOutput['prerequisites']) : ($aiOutput['prerequisites'] ?? '') }}</textarea>
     </div>
+</div>
+
+{{-- Target Market (Who Should Attend) --}}
+<div class="preview-section">
+    <h3>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+        Target Market
+        <span style="font-size:11.5px; font-weight:400; color:#9ca3af;">(saved as "Who Should Attend")</span>
+    </h3>
+    <span class="preview-label">Specific roles / job titles — one per line</span>
+    <textarea name="target_market" class="preview-ta" rows="5">{{ is_array($aiOutput['target_market'] ?? '') ? implode("\n", $aiOutput['target_market']) : ($aiOutput['target_market'] ?? '') }}</textarea>
 </div>
 
 {{-- Modules & Lessons (read-only display) --}}
@@ -157,16 +174,53 @@
 <div class="preview-section">
     <h3>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
-        Assessment & Certificate
+        Assessment & Certificate Criteria
     </h3>
     <div style="margin-bottom:14px;">
         <span class="preview-label">Assessment Plan</span>
         <textarea name="assessment_plan" class="preview-ta" rows="4">{{ $aiOutput['assessment_plan'] ?? '' }}</textarea>
     </div>
     <div>
-        <span class="preview-label">Certificate Criteria</span>
+        <span class="preview-label">Certificate Criteria (passing requirements)</span>
         <textarea name="certificate_criteria" class="preview-ta" rows="3">{{ $aiOutput['certificate_criteria'] ?? '' }}</textarea>
     </div>
+</div>
+
+{{-- Certification Information (full public details) --}}
+<div class="preview-section">
+    <h3>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="m16 8 5 3-5 3"/><path d="M12 12v3"/><circle cx="8" cy="14" r="2"/></svg>
+        Certification Information
+        <span style="font-size:11.5px; font-weight:400; color:#9ca3af;">(public-facing, saved to certification_info)</span>
+    </h3>
+    <span class="preview-label">Certificate title, issuing body, validity, accreditation, CPD value</span>
+    <textarea name="certification_information" class="preview-ta" rows="5">{{ $aiOutput['certification_information'] ?? '' }}</textarea>
+</div>
+
+{{-- FAQ --}}
+<div class="preview-section">
+    <h3>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        FAQ
+        <span style="font-size:11.5px; font-weight:400; color:#9ca3af;">({{ count($aiOutput['faq'] ?? []) }} questions)</span>
+    </h3>
+
+    @php $faqItems = $aiOutput['faq'] ?? []; @endphp
+
+    {{-- Visual preview of FAQ items --}}
+    @if(!empty($faqItems))
+    <div style="margin-bottom:14px;">
+        @foreach($faqItems as $i => $faq)
+        <div class="faq-card">
+            <div class="fq">Q{{ $i + 1 }}: {{ $faq['question'] ?? '' }}</div>
+            <div class="fa">{{ $faq['answer'] ?? '' }}</div>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
+    <span class="preview-label">Edit FAQ (JSON array — submit as-is or modify)</span>
+    <textarea name="faq_json" class="preview-ta" rows="6" style="font-family:monospace; font-size:12px;">{{ json_encode($faqItems, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</textarea>
 </div>
 
 {{-- Public Summary & SEO --}}
@@ -176,8 +230,15 @@
         Public Summary & SEO
     </h3>
     <div style="margin-bottom:14px;">
-        <span class="preview-label">Public Website Summary</span>
-        <textarea name="public_summary" class="preview-ta" rows="3">{{ $aiOutput['public_summary'] ?? '' }}</textarea>
+        <span class="preview-label">
+            Public Website Summary
+            <span style="color:#9ca3af; font-weight:400;">(150–250 words)</span>
+        </span>
+        <textarea name="public_summary" class="preview-ta" rows="5"
+                  oninput="updateWordCount(this,'summaryWordCount')">{{ $aiOutput['public_summary'] ?? '' }}</textarea>
+        <span style="font-size:11.5px; color:#9ca3af;" id="summaryWordCount">
+            {{ count(preg_split('/\s+/', trim($aiOutput['public_summary'] ?? ''), -1, PREG_SPLIT_NO_EMPTY)) }}
+        </span> words
     </div>
     <div style="margin-bottom:14px;">
         <span class="preview-label">SEO Title <span style="color:#9ca3af; font-weight:400;">(max 60 chars)</span></span>
@@ -185,25 +246,79 @@
                oninput="document.getElementById('seoTitleCount').textContent=this.value.length">
         <span style="font-size:11.5px; color:#9ca3af;" id="seoTitleCount">{{ strlen($aiOutput['seo_title'] ?? '') }}</span> / 60
     </div>
-    <div>
+    <div style="margin-bottom:14px;">
         <span class="preview-label">SEO Meta Description <span style="color:#9ca3af; font-weight:400;">(max 160 chars)</span></span>
         <textarea name="seo_meta_description" class="preview-ta" rows="2" maxlength="170"
                   oninput="document.getElementById('seoDescCount').textContent=this.value.length">{{ $aiOutput['seo_meta_description'] ?? '' }}</textarea>
         <span style="font-size:11.5px; color:#9ca3af;" id="seoDescCount">{{ strlen($aiOutput['seo_meta_description'] ?? '') }}</span> / 160
     </div>
+    <div>
+        <span class="preview-label">SEO Keywords <span style="color:#9ca3af; font-weight:400;">(comma-separated)</span></span>
+        <input type="text" name="seo_keywords" class="preview-inp" value="{{ $aiOutput['seo_keywords'] ?? '' }}" placeholder="ISO 14001, environmental audit, internal auditor training">
+    </div>
 </div>
 
 </div>{{-- end left column --}}
 
-{{-- ── Right Column: Actions ──────────────────────────────── --}}
+{{-- ══════════════════════════════════════════════════════════
+     RIGHT COLUMN
+═══════════════════════════════════════════════════════════ --}}
 <div>
     <div style="position:sticky; top:20px; display:flex; flex-direction:column; gap:12px;">
+
+        {{-- Course Details card (new fields) --}}
+        <div style="background:#fff; border:1px solid #e9ecf0; border-radius:12px; padding:16px 18px;">
+            <div style="font-size:13px; font-weight:800; color:#374151; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Course Details
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <span class="preview-label">Course Code</span>
+                <input type="text" name="course_code" class="preview-inp"
+                       value="{{ $aiOutput['course_code'] ?? '' }}"
+                       placeholder="e.g. SMS-ISO14001-IA"
+                       style="font-family:monospace; font-size:13px; letter-spacing:.5px;">
+                <small style="color:#9ca3af; font-size:11px; display:block; margin-top:3px;">Format: SMS-TOPIC-LEVEL</small>
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <span class="preview-label">Category</span>
+                <input type="text" name="category_text" class="preview-inp"
+                       value="{{ $aiOutput['category_text'] ?? '' }}"
+                       placeholder="e.g. Environmental Management">
+                <small style="color:#9ca3af; font-size:11px; display:block; margin-top:3px;">Auto-matches structured category if found in DB</small>
+            </div>
+
+            <div>
+                <span class="preview-label">CPD Hours</span>
+                <input type="number" name="cpd_hours" class="preview-inp"
+                       value="{{ $aiOutput['cpd_hours'] ?? '' }}"
+                       min="1" max="500"
+                       placeholder="e.g. 16">
+            </div>
+        </div>
+
+        {{-- Suggested Delivery (informational only) --}}
+        @if(!empty($aiOutput['suggested_delivery_method']))
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:12px 14px;">
+            <div style="font-size:11.5px; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px;">
+                AI Suggested Delivery
+            </div>
+            <div style="font-size:13px; color:#15803d; font-weight:600;">{{ $aiOutput['suggested_delivery_method'] }}</div>
+            <div style="font-size:11px; color:#6b7280; margin-top:4px;">Informational only — not saved to DB</div>
+        </div>
+        @endif
 
         {{-- AI Badge --}}
         <div style="background:linear-gradient(135deg,#0f1e45,#1e3a8a); border-radius:12px; padding:16px 18px; color:#fff; text-align:center;">
             <div style="font-size:22px; margin-bottom:4px;">✨</div>
             <div style="font-size:14px; font-weight:800;">AI Generated Draft</div>
-            <div style="font-size:12px; color:#93c5fd; margin-top:2px;">{{ count($aiOutput['modules'] ?? []) }} modules · {{ collect($aiOutput['modules'] ?? [])->sum(fn($m) => count($m['lessons'] ?? [])) }} lessons</div>
+            <div style="font-size:12px; color:#93c5fd; margin-top:2px;">
+                {{ count($aiOutput['modules'] ?? []) }} modules
+                · {{ collect($aiOutput['modules'] ?? [])->sum(fn($m) => count($m['lessons'] ?? [])) }} lessons
+                @if(!empty($aiOutput['faq'])) · {{ count($aiOutput['faq']) }} FAQs @endif
+            </div>
         </div>
 
         {{-- Token usage card --}}
@@ -222,16 +337,14 @@
         <div style="background:#fff; border:1px solid #e9ecf0; border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:10px;">
             <div style="font-size:13px; font-weight:700; color:#374151; margin-bottom:4px;">What would you like to do?</div>
 
-            {{-- Approve & Save --}}
             <button type="submit" name="action" value="approve"
                     style="display:flex; align-items:center; justify-content:center; gap:8px; padding:12px;
                            background:#16a34a; color:#fff; border:none; border-radius:9px; font-size:14px; font-weight:800; cursor:pointer; width:100%;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 Approve & Save Draft
             </button>
-            <p style="font-size:11.5px; color:#6b7280; margin:-4px 0 4px; text-align:center;">Saves course + creates lessons as drafts</p>
+            <p style="font-size:11.5px; color:#6b7280; margin:-4px 0 4px; text-align:center;">Saves course (90–95% complete) as draft</p>
 
-            {{-- Regenerate --}}
             <a href="{{ $courseType === 'elearning' ? route('elearning.courses.create') : url('/admin/courses/create') }}?regenerate=1"
                style="display:flex; align-items:center; justify-content:center; gap:8px; padding:11px;
                       background:#fff7ed; color:#ea580c; border:1px solid #fed7aa; border-radius:9px;
@@ -240,7 +353,6 @@
                 Regenerate
             </a>
 
-            {{-- Cancel --}}
             <form method="POST" action="{{ route('ai.course-generator.cancel') }}">
                 @csrf
                 <input type="hidden" name="course_type" value="{{ $courseType }}">
@@ -254,12 +366,15 @@
 
         {{-- Editing tip --}}
         <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:9px; padding:13px 14px;">
-            <div style="font-size:12px; font-weight:700; color:#92400e; margin-bottom:4px;">Editing Tips</div>
-            <ul style="margin:0; padding-left:16px; font-size:12px; color:#78350f; line-height:1.7;">
-                <li>All text fields above are editable</li>
-                <li>Modules & lessons are saved as-is</li>
-                <li>Edit individual lessons after saving</li>
-                <li>Course is saved as <strong>Draft</strong> — publish manually when ready</li>
+            <div style="font-size:12px; font-weight:700; color:#92400e; margin-bottom:6px;">Editing Tips</div>
+            <ul style="margin:0; padding-left:16px; font-size:12px; color:#78350f; line-height:1.8;">
+                <li>All text fields are editable before saving</li>
+                <li>Course Code follows SMS-TOPIC-LEVEL format</li>
+                <li>CPD Hours are derived from the course duration</li>
+                <li>Modules &amp; lessons are saved as-is (edit after)</li>
+                <li>FAQ is saved as structured JSON</li>
+                <li>Course is saved as <strong>Draft</strong> — publish when ready</li>
+                <li>Suggested delivery is informational only</li>
             </ul>
         </div>
     </div>
@@ -267,5 +382,12 @@
 
 </div>{{-- end grid --}}
 </form>
+
+<script>
+function updateWordCount(el, counterId) {
+    const words = el.value.trim().split(/\s+/).filter(w => w.length > 0);
+    document.getElementById(counterId).textContent = words.length;
+}
+</script>
 
 @endsection
