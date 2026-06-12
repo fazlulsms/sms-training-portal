@@ -123,7 +123,7 @@ class TrainingScheduleController extends Controller
 
         TrainingSchedule::create($data);
 
-        return redirect('/training-schedules')->with('success', 'Training Schedule Added Successfully');
+        return redirect('/admin/training-schedules')->with('success', 'Training Schedule Added Successfully');
     }
 
     public function edit($id)
@@ -173,13 +173,13 @@ class TrainingScheduleController extends Controller
 
         $schedule->update($data);
 
-        return redirect('/training-schedules')->with('success', 'Training Schedule Updated Successfully');
+        return redirect('/admin/training-schedules')->with('success', 'Training Schedule Updated Successfully');
     }
 
     public function delete($id)
     {
         TrainingSchedule::findOrFail($id)->delete();
 
-        return redirect('/training-schedules')->with('success', 'Training Schedule Deleted Successfully');
+        return redirect('/admin/training-schedules')->with('success', 'Training Schedule Deleted Successfully');
     }
 }
