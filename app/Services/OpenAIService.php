@@ -201,7 +201,7 @@ class OpenAIService
         } catch (\Throwable $e) {
             Log::error('OpenAI template unexpected error', ['message' => $e->getMessage()]);
             $this->log($userId, $template->template_code, 'failed', error: $e->getMessage());
-            return $this->result(false, error: 'An unexpected error occurred. Please try again.');
+            return $this->result(false, error: $e->getMessage());
         }
     }
 

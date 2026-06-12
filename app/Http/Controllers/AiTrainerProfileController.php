@@ -86,7 +86,7 @@ class AiTrainerProfileController extends Controller
             }
         }
 
-        $allText = trim($allText);
+        $allText = $this->toUtf8(trim($allText));
         if (empty($allText)) {
             return back()->with('error', 'Could not extract readable text from the uploaded file(s). Please check the file format or try a TXT export.');
         }
@@ -249,7 +249,7 @@ class AiTrainerProfileController extends Controller
     {
         $parser = new PdfParser();
         $pdf    = $parser->parseFile($path);
-        return $pdf->getText();
+        return $this->toUtf8($pdf->getText());
     }
 
     private function extractDocx(string $path): string
@@ -266,23 +266,53 @@ class AiTrainerProfileController extends Controller
             return '';
         }
 
-        $doc  = simplexml_load_string($xml);
+        $doc = simplexml_load_string($xml);
         if ($doc === false) {
-            return strip_tags($xml);
+            return $this->toUtf8(strip_tags($xml));
         }
 
         $doc->registerXPathNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main');
         $texts = $doc->xpath('//w:t');
-        return implode(' ', array_map(fn($t) => (string) $t, $texts));
+        return $this->toUtf8(implode(' ', array_map(fn($t) => (string) $t, $texts)));
     }
 
     private function extractDoc(string $path): string
     {
         $content = file_get_contents($path);
-        // Strip binary null bytes and control chars, keep printable ASCII + spaces
-        $content = preg_replace('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\xff]/', ' ', $content);
+        // Keep only printable ASCII and whitespace; strip binary content
+        $content = preg_replace('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/', ' ', $content);
+        $content = preg_replace('/[\x80-\xff]+/', ' ', $content);
         $content = preg_replace('/\s{3,}/', "\n", $content);
         return trim($content);
+    }
+
+    /**
+     * Ensure text is clean, valid UTF-8 so json_encode never fails.
+     * Detects common encodings (ISO-8859-1, Windows-1252) and converts,
+     * then strips any remaining invalid byte sequences.
+     */
+    private function toUtf8(string $text): string
+    {
+        if ($text === '') {
+            return '';
+        }
+
+        // If not valid UTF-8, try to detect encoding and convert
+        if (! mb_check_encoding($text, 'UTF-8')) {
+            $detected = mb_detect_encoding($text, ['UTF-8', 'ISO-8859-1', 'Windows-1252', 'ASCII'], true);
+            if ($detected && $detected !== 'UTF-8') {
+                $text = mb_convert_encoding($text, 'UTF-8', $detected);
+            }
+        }
+
+        // Final pass: strip any remaining invalid UTF-8 byte sequences
+        $text = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+
+        // Collapse excessive whitespace from binary noise
+        $text = preg_replace('/[^\S\n]{4,}/', ' ', $text);
+        $text = preg_replace('/\n{4,}/', "\n\n", $text);
+
+        return trim($text);
     }
 
     private function arrayToText(mixed $value): string
