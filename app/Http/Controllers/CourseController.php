@@ -67,7 +67,11 @@ class CourseController extends Controller
 
     public function create()
     {
-        $categories = CourseCategory::orderBy('name')->get();
+        try {
+            $categories = CourseCategory::orderBy('name')->get();
+        } catch (\Exception $e) {
+            $categories = collect();
+        }
         return view('courses.create', compact('categories'));
     }
 
@@ -107,9 +111,12 @@ class CourseController extends Controller
 
     public function edit($id)
     {
-        $course     = Course::findOrFail($id);
-        $categories = CourseCategory::orderBy('name')->get();
-
+        $course = Course::findOrFail($id);
+        try {
+            $categories = CourseCategory::orderBy('name')->get();
+        } catch (\Exception $e) {
+            $categories = collect();
+        }
         return view('courses.edit', compact('course', 'categories'));
     }
 

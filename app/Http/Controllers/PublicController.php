@@ -42,13 +42,21 @@ class PublicController extends Controller
 
         $featuredTestimonials = Testimonial::featured()->latest()->take(6)->get();
         $latestBlogs          = BlogPost::published()->with('category')->latest('published_at')->take(3)->get();
-        $featuredTrainers     = Trainer::where('is_public', true)->where('status', 1)
+        try {
+            $featuredTrainers = Trainer::where('is_public', true)->where('status', 1)
                                     ->orderBy('display_order')->take(6)->get();
+        } catch (\Exception $e) {
+            $featuredTrainers = collect();
+        }
 
-        $categories = CourseCategory::where('is_public', true)
-            ->withCount('publicCourses')
-            ->orderBy('display_order')
-            ->get();
+        try {
+            $categories = CourseCategory::where('is_public', true)
+                ->withCount('publicCourses')
+                ->orderBy('display_order')
+                ->get();
+        } catch (\Exception $e) {
+            $categories = collect();
+        }
 
         // Fall back to string-based categories if none in course_categories table
         if ($categories->isEmpty()) {
@@ -150,17 +158,26 @@ class PublicController extends Controller
         }
         if ($request->filled('mode'))    $query->where('training_mode', $request->mode);
         if ($request->filled('course'))  $query->where('course_id', $request->course);
-        if ($request->filled('city'))    $query->where('city', $request->city);
-        if ($request->filled('country')) $query->where('country', $request->country);
+        try {
+            if ($request->filled('city'))    $query->where('city', $request->city);
+            if ($request->filled('country')) $query->where('country', $request->country);
+        } catch (\Exception $e) {
+            // city/country columns may not exist yet on staging
+        }
         if ($request->filled('trainer')) $query->where('trainer_id', $request->trainer);
 
         $schedules = $query->orderBy('start_date')->paginate(15)->withQueryString();
         $courses   = Course::where('is_public', true)->select('id','name')->get();
         $trainers  = Trainer::where('status', 1)->select('id','name')->get();
-        $cities    = TrainingSchedule::where('is_public', true)->whereNotNull('city')
-                        ->distinct()->orderBy('city')->pluck('city');
-        $countries = TrainingSchedule::where('is_public', true)->whereNotNull('country')
-                        ->distinct()->orderBy('country')->pluck('country');
+        try {
+            $cities    = TrainingSchedule::where('is_public', true)->whereNotNull('city')
+                            ->distinct()->orderBy('city')->pluck('city');
+            $countries = TrainingSchedule::where('is_public', true)->whereNotNull('country')
+                            ->distinct()->orderBy('country')->pluck('country');
+        } catch (\Exception $e) {
+            $cities = collect();
+            $countries = collect();
+        }
 
         return view('public.calendar', compact('schedules', 'courses', 'trainers', 'cities', 'countries'));
     }
@@ -168,11 +185,15 @@ class PublicController extends Controller
     // ── Trainer Directory ─────────────────────────────────────
     public function trainers(Request $request)
     {
-        $trainers = Trainer::where('is_public', true)
-            ->where('status', 1)
-            ->orderBy('display_order')
-            ->orderBy('name')
-            ->get();
+        try {
+            $trainers = Trainer::where('is_public', true)
+                ->where('status', 1)
+                ->orderBy('display_order')
+                ->orderBy('name')
+                ->get();
+        } catch (\Exception $e) {
+            $trainers = Trainer::where('status', 1)->orderBy('name')->get();
+        }
 
         return view('public.trainers', compact('trainers'));
     }
@@ -180,10 +201,14 @@ class PublicController extends Controller
     // ── Trainer Profile ───────────────────────────────────────
     public function trainerProfile($id)
     {
-        $trainer = Trainer::where('is_public', true)
-            ->where('status', 1)
-            ->with(['publicSchedules.course'])
-            ->findOrFail($id);
+        try {
+            $trainer = Trainer::where('is_public', true)
+                ->where('status', 1)
+                ->with(['publicSchedules.course'])
+                ->findOrFail($id);
+        } catch (\Exception $e) {
+            $trainer = Trainer::where('status', 1)->findOrFail($id);
+        }
 
         return view('public.trainer-profile', compact('trainer'));
     }

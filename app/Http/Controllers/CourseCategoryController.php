@@ -9,7 +9,12 @@ class CourseCategoryController extends Controller
 {
     public function index()
     {
-        $categories = CourseCategory::withCount('courses')->orderBy('display_order')->orderBy('name')->get();
+        try {
+            $categories = CourseCategory::withCount('courses')->orderBy('display_order')->orderBy('name')->get();
+        } catch (\Exception $e) {
+            return redirect('/admin/courses')
+                ->with('error', 'Course categories table is not yet created. Please run: php artisan migrate');
+        }
         return view('course-categories.index', compact('categories'));
     }
 

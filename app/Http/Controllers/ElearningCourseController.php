@@ -22,7 +22,11 @@ class ElearningCourseController extends Controller
 
     public function create()
     {
-        $categories = CourseCategory::orderBy('name')->get();
+        try {
+            $categories = CourseCategory::orderBy('name')->get();
+        } catch (\Exception $e) {
+            $categories = collect();
+        }
         return view('elearning.courses.create', compact('categories'));
     }
 
@@ -71,7 +75,11 @@ class ElearningCourseController extends Controller
 
     public function edit(Course $course)
     {
-        $categories = CourseCategory::orderBy('name')->get();
+        try {
+            $categories = CourseCategory::orderBy('name')->get();
+        } catch (\Exception $e) {
+            $categories = collect();
+        }
         return view('elearning.courses.edit', compact('course', 'categories'));
     }
 
