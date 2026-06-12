@@ -161,9 +161,17 @@ class AiCourseGeneratorController extends Controller
             return redirect()->back()->with('error', 'Session expired. Please generate again.');
         }
 
-        $formData = $draft['form_data'];
-        $aiOutput = $draft['ai_output'];
+        $formData   = $draft['form_data'];
+        $aiOutput   = $draft['ai_output'];
         $courseType = $formData['course_type'];
+
+        // Guard: required fields must be present before we hit the DB
+        if (empty($formData['course_name'])) {
+            return redirect()->back()->with('error', 'Course name is missing from the draft. Please regenerate.');
+        }
+        if (empty($formData['language'])) {
+            return redirect()->back()->with('error', 'Language is missing from the draft. Please regenerate.');
+        }
 
         // Allow user edits from the preview form
         $editedDescription  = $request->input('course_description',   $aiOutput['course_description'] ?? '');
@@ -197,8 +205,8 @@ class AiCourseGeneratorController extends Controller
                     'name'                => $formData['course_name'],
                     'status'              => 0,
                     'course_type'         => $courseType === 'elearning' ? 'elearning' : 'manual',
-                    'delivery_type'       => $courseType === 'elearning' ? 'eLearning' : null,
-                    'language'            => $formData['language'],
+                    'delivery_type'       => $courseType === 'elearning' ? 'eLearning' : 'Instructor-Led',
+                    'language'            => $formData['language'] ?? 'English',
                     'duration'            => $formData['duration'],
                     'full_description'    => $editedDescription,
                     'short_description'   => Str::limit(strip_tags($editedDescription), 200),
