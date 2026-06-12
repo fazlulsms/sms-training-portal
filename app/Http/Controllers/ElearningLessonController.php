@@ -125,9 +125,9 @@ class ElearningLessonController extends Controller
             ->orderBy('lesson_order')
             ->get();
 
-        $currentIndex = $lessons->search(fn ($l) => $l->id === $lesson->id);
-        $previousLesson = $currentIndex > 0 ? $lessons[$currentIndex - 1] : null;
-        $nextLesson     = $currentIndex < $lessons->count() - 1 ? $lessons[$currentIndex + 1] : null;
+        $currentIndex   = $lessons->search(fn ($l) => $l->id === $lesson->id);
+        $previousLesson = ($currentIndex !== false && $currentIndex > 0) ? $lessons[$currentIndex - 1] : null;
+        $nextLesson     = ($currentIndex !== false && $currentIndex < $lessons->count() - 1) ? $lessons[$currentIndex + 1] : null;
 
         return view('participant.lesson-show', [
             'enrollment'     => null,
