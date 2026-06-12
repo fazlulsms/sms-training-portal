@@ -47,7 +47,7 @@
                     <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
                         Course Name <span style="color:#ef4444;">*</span>
                     </label>
-                    <input type="text" id="ai_course_name" placeholder="e.g. ISO 14001:2015 Internal Auditor Training"
+                    <input type="text" id="ai_course_name" placeholder="e.g. ISO 14001:2015 Internal Auditor Training" maxlength="250"
                            style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:14px; box-sizing:border-box;"
                            onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
                 </div>
@@ -81,7 +81,7 @@
                     <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
                         Target Audience <span style="color:#ef4444;">*</span>
                     </label>
-                    <input type="text" id="ai_target_audience" placeholder="e.g. Internal Auditors, EMS Coordinators, Compliance Managers"
+                    <input type="text" id="ai_target_audience" placeholder="e.g. Internal Auditors, EMS Coordinators, Compliance Managers" maxlength="490"
                            style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:14px; box-sizing:border-box;"
                            onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
                 </div>
@@ -123,7 +123,7 @@
                     <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
                         Standard / Framework <span style="font-size:11.5px; font-weight:400; color:#9ca3af;">(optional)</span>
                     </label>
-                    <input type="text" id="ai_standard" placeholder="e.g. ISO 14001:2015, SLCP, Higg FEM, GRI Standards"
+                    <input type="text" id="ai_standard" placeholder="e.g. ISO 14001:2015, SLCP, Higg FEM, GRI Standards" maxlength="190"
                            style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:14px; box-sizing:border-box;"
                            onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
                 </div>
@@ -133,7 +133,7 @@
                     <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
                         Additional Instructions <span style="font-size:11.5px; font-weight:400; color:#9ca3af;">(optional)</span>
                     </label>
-                    <textarea id="ai_instructions" rows="3"
+                    <textarea id="ai_instructions" rows="3" maxlength="900"
                               placeholder="e.g. Focus on practical audit techniques. Include real garment factory scenarios."
                               style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:13.5px; resize:vertical; box-sizing:border-box; line-height:1.5;"
                               onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'"></textarea>
@@ -277,24 +277,31 @@ async function submitAiGenerate() {
             }),
         });
 
-        if (res.status === 419) {
+        // Always try to read JSON body first so we can show real error detail
+        let data = null;
+        try { data = await res.json(); } catch {}
+
+        if (!res.ok) {
             showAiForm();
-            showAiError('Page session expired. Please refresh the page and try again.');
-            return;
-        }
-        if (!res.ok && res.status !== 200) {
-            showAiForm();
-            showAiError('Server error (' + res.status + '). Please refresh the page and try again.');
+            if (res.status === 419) {
+                showAiError('Your session expired. Please refresh the page and try again.');
+            } else if (res.status === 422 && data) {
+                // Laravel validation error — surface the actual field messages
+                const msgs = data.errors
+                    ? Object.values(data.errors).flat().join(' ')
+                    : (data.message || 'Validation failed. Please check your input and try again.');
+                showAiError('⚠ ' + msgs);
+            } else {
+                showAiError(data?.error || data?.message || 'Server error (' + res.status + '). Please refresh the page and try again.');
+            }
             return;
         }
 
-        const data = await res.json();
-
-        if (data.success) {
+        if (data && data.success) {
             window.location.href = data.redirect_url;
         } else {
             showAiForm();
-            showAiError(data.error || data.message || 'Generation failed. Please refresh and try again.');
+            showAiError(data?.error || data?.message || 'Generation failed. Please refresh and try again.');
         }
     } catch (e) {
         showAiForm();
