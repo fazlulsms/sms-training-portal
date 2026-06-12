@@ -26,7 +26,7 @@ class AiLessonContentController extends Controller
             'extra_notes'    => 'nullable|string|max:600',
         ]);
 
-        $template = AiPromptTemplate::where('template_code', 'lesson_content_generator_json_v2')
+        $template = AiPromptTemplate::where('template_code', 'lesson_content_generator_json_v3')
             ->where('is_active', true)
             ->first();
 
@@ -201,7 +201,7 @@ class AiLessonContentController extends Controller
     public static function generateAndSaveBlocks(Course $course, ElearningLesson $lesson, string $level): int
     {
         try {
-            $template = AiPromptTemplate::where('template_code', 'lesson_content_generator_json_v2')
+            $template = AiPromptTemplate::where('template_code', 'lesson_content_generator_json_v3')
                 ->where('is_active', true)
                 ->first();
 

@@ -22,10 +22,13 @@
     $lastPanel     = $blockCount + ($hasActivities ? 1 : 0);
 
     $blockTypeIcons = [
-        'rich_text'       => '📝', 'video'    => '🎬', 'audio'    => '🎧',
-        'image'           => '🖼️', 'gallery'  => '🎨', 'pdf'      => '📄',
-        'download'        => '📥', 'slides'   => '🖥️', 'accordion'=> '📂',
-        'knowledge_check' => '❓', 'scenario' => '🎭', 'matching' => '🔗',
+        'rich_text'          => '📝', 'video'    => '🎬', 'audio'    => '🎧',
+        'image'              => '🖼️', 'gallery'  => '🎨', 'pdf'      => '📄',
+        'download'           => '📥', 'slides'   => '🖥️', 'accordion'=> '📂',
+        'knowledge_check'    => '❓', 'scenario' => '🎭', 'matching' => '🔗',
+        'fun_fact'           => '💡', 'reflection'       => '🤔',
+        'click_reveal'       => '👁', 'myth_fact'        => '⚡',
+        'workplace_example'  => '🏭', 'case_study'       => '📋',
     ];
 
     $ytBlocks = [];
@@ -291,6 +294,94 @@
     .lf-sb-track { display:none; }
     .lf-sb-info  { border-right:none; }
     .lf-footer   { padding:10px 12px; }
+}
+
+/* ══ ENHANCED CONTENT RENDERING ═══════════════════════ */
+
+/* ── Callout Boxes ─────────────────────────────────────── */
+.callout {
+    display:flex; gap:13px; align-items:flex-start;
+    padding:14px 18px; border-radius:10px; margin:16px 0;
+    line-height:1.65; font-size:15px;
+}
+.callout-icon { font-size:19px; flex-shrink:0; line-height:1.45; margin-top:1px; }
+.callout-content { flex:1; }
+.callout-content strong, .callout-content b { font-weight:800; }
+.callout-tip     { background:#fffbeb; border-left:4px solid #f59e0b; color:#78350f; }
+.callout-warning { background:#fef2f2; border-left:4px solid #ef4444; color:#7f1d1d; }
+.callout-success { background:#f0fdf4; border-left:4px solid #16a34a; color:#14532d; }
+.callout-remember{ background:#fff7ed; border-left:4px solid #f97316; color:#7c2d12; }
+.callout-example { background:#f5f3ff; border-left:4px solid #7c3aed; color:#4c1d95; }
+.callout-info    { background:#eff6ff; border-left:4px solid #2563eb; color:#1e3a8a; }
+.callout-note    { background:#f8fafc; border-left:4px solid #64748b; color:#374151; }
+
+/* ── Lesson Tables ─────────────────────────────────────── */
+.table-wrap { overflow-x:auto; margin:20px 0; border-radius:12px; box-shadow:0 2px 8px rgba(15,23,42,.07); border:1px solid #e5e7eb; }
+.lesson-table { width:100%; border-collapse:collapse; min-width:380px; }
+.lesson-table thead th {
+    background:linear-gradient(135deg,#1e3a8a,#2563eb); color:#fff;
+    padding:12px 16px; font-size:13.5px; font-weight:700;
+    text-align:left; white-space:nowrap; letter-spacing:.2px;
+}
+.lesson-table thead th:first-child { border-radius:12px 0 0 0; }
+.lesson-table thead th:last-child  { border-radius:0 12px 0 0; }
+.lesson-table tbody td { padding:11px 16px; font-size:14.5px; color:#374151; border-bottom:1px solid #f0f2f5; vertical-align:top; line-height:1.6; }
+.lesson-table tbody tr:nth-child(even) td { background:#f8fafc; }
+.lesson-table tbody tr:last-child td { border-bottom:none; }
+.lesson-table tbody tr:hover td { background:#f0f9ff; transition:background .12s; }
+
+/* ── Process / Step Timeline ───────────────────────────── */
+.process-flow { display:flex; flex-direction:column; margin:20px 0; }
+.process-step { display:flex; gap:0; }
+.ps-left  { display:flex; flex-direction:column; align-items:center; width:46px; flex-shrink:0; }
+.ps-num   { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#1e3a8a,#3b82f6); color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; flex-shrink:0; box-shadow:0 3px 8px rgba(30,58,138,.3); }
+.ps-line  { flex:1; width:2px; background:linear-gradient(to bottom,#93c5fd,#dbeafe); margin:4px 0; min-height:14px; }
+.process-step:last-child .ps-line { display:none; }
+.ps-body  { flex:1; padding:0 0 22px 14px; }
+.ps-title { font-size:15px; font-weight:800; color:#1e3a8a; margin-bottom:5px; line-height:1.3; }
+.ps-desc  { font-size:14.5px; color:#4b5563; line-height:1.65; }
+
+/* ── Definition Cards ──────────────────────────────────── */
+.def-card { border:1px solid #c7d2fe; border-radius:10px; overflow:hidden; margin:14px 0; }
+.def-term { background:linear-gradient(135deg,#1e3a8a,#2563eb); color:#fff; padding:10px 16px; font-size:13.5px; font-weight:800; letter-spacing:.2px; }
+.def-body { background:#f5f8ff; padding:14px 16px; font-size:14.5px; color:#374151; line-height:1.65; }
+
+/* ── Section Divider ───────────────────────────────────── */
+.section-divider { display:flex; align-items:center; gap:14px; margin:22px 0; }
+.section-divider-line { flex:1; height:1px; background:linear-gradient(90deg,#e5e7eb,transparent); }
+.section-divider-label { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#9ca3af; white-space:nowrap; }
+
+/* ── Enhanced Rich Text Typography ────────────────────── */
+.lb-body.rt-body { font-size:15.5px; line-height:1.85; }
+.lb-body.rt-body h2 { font-size:18px; font-weight:800; color:#111827; margin:1.6em 0 .6em; padding-bottom:.4em; border-bottom:2px solid #e9ecf0; }
+.lb-body.rt-body h3 { font-size:15.5px; font-weight:800; color:#1e3a8a; margin:1.3em 0 .5em; display:flex; align-items:center; gap:6px; }
+.lb-body.rt-body h3::before { content:''; display:inline-block; width:4px; height:16px; background:#1e3a8a; border-radius:2px; flex-shrink:0; }
+.lb-body.rt-body p  { margin:0 0 1.15em; }
+.lb-body.rt-body ul { padding-left:0; margin:0 0 1.15em; list-style:none; }
+.lb-body.rt-body ul li { padding-left:1.4em; position:relative; margin-bottom:.55em; line-height:1.7; }
+.lb-body.rt-body ul li::before { content:'▸'; position:absolute; left:0; color:#2563eb; font-weight:900; font-size:12px; top:.18em; }
+.lb-body.rt-body ol { padding-left:1.6em; margin:0 0 1.15em; }
+.lb-body.rt-body ol li { margin-bottom:.55em; line-height:1.7; padding-left:.3em; }
+.lb-body.rt-body ol li::marker { color:#1e3a8a; font-weight:800; }
+.lb-body.rt-body strong, .lb-body.rt-body b { color:#111827; font-weight:800; }
+.lb-body.rt-body em { color:#4b5563; }
+.lb-body.rt-body hr { border:none; border-top:2px solid #f0f2f5; margin:22px 0; }
+.lb-body.rt-body code { background:#f1f5f9; color:#be185d; padding:2px 7px; border-radius:5px; font-size:13.5px; font-family:monospace; }
+.lb-body.rt-body blockquote { border-left:4px solid #3b82f6; background:#f0f9ff; padding:14px 18px; border-radius:0 10px 10px 0; margin:18px 0; color:#1e3a8a; font-style:italic; font-size:15px; }
+
+/* ── Improved block cards ──────────────────────────────── */
+.lb { border-radius:16px; overflow:hidden; box-shadow:0 3px 12px rgba(15,23,42,.08); border:1px solid #e9ecf0; background:#fff; }
+.lb + .lb { margin-top:18px; }
+.lb-head { padding:14px 22px; border-bottom:1px solid #f0f2f5; display:flex; align-items:center; gap:10px; background:#fafbfc; }
+
+/* ── Mobile optimisations ──────────────────────────────── */
+@media(max-width:640px) {
+    .myth-grid { grid-template-columns:1fr !important; }
+    .callout { padding:12px 14px; font-size:14.5px; }
+    .lb-body.rt-body { font-size:15px; line-height:1.8; }
+    .lesson-table tbody td, .lesson-table thead th { padding:9px 12px; font-size:13px; }
+    .process-flow .ps-body { padding-bottom:16px; }
+    .lf-inner { padding:14px; }
 }
 </style>
 
@@ -901,19 +992,23 @@
 
                     {{-- ── Fun Fact ───────────────────────────── --}}
                     @case('fun_fact')
-                    @php $ffD = $block->getDecodedContent(); @endphp
-                    <div class="lb">
-                        @if($block->title)
-                        <div class="lb-head">
-                            <div class="lb-head-icon" style="background:#fef3c7; color:#92400e;">{{ $ffD['icon'] ?? '💡' }}</div>
-                            <span class="lb-head-label">Fun Fact</span>
-                            <span class="lb-head-title">{{ $block->title }}</span>
-                        </div>
-                        @endif
-                        <div class="lb-body" style="background:linear-gradient(135deg,#fffbeb,#fef9c3); border-left:4px solid #f59e0b; border-radius:0 0 10px 10px; padding:18px 20px;">
-                            <div style="font-size:32px; margin-bottom:10px;">{{ $ffD['icon'] ?? '💡' }}</div>
-                            @if(!empty($ffD['title']))<div style="font-size:15px; font-weight:800; color:#92400e; margin-bottom:8px;">{{ $ffD['title'] }}</div>@endif
-                            <p style="font-size:14px; color:#78350f; margin:0; line-height:1.65;">{{ $ffD['content'] ?? '' }}</p>
+                    @php $ffD = $block->getDecodedContent(); $ffIcon = $ffD['icon'] ?? '💡'; @endphp
+                    <div class="lb" style="border:none; overflow:visible; background:transparent; box-shadow:none;">
+                        <div style="background:linear-gradient(135deg,#fffbeb 0%,#fef9c3 60%,#fef08a 100%); border:2px solid #fde047; border-radius:16px; overflow:hidden; box-shadow:0 4px 16px rgba(234,179,8,.18);">
+                            <div style="background:linear-gradient(90deg,#f59e0b,#d97706); padding:10px 20px; display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:18px;">{{ $ffIcon }}</span>
+                                <span style="font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#fff;">Did You Know?</span>
+                                @if($block->title && $block->title !== 'Did You Know?')
+                                <span style="font-size:13px; color:rgba(255,255,255,.85); margin-left:4px;">— {{ $block->title }}</span>
+                                @endif
+                            </div>
+                            <div style="padding:20px 24px; display:flex; gap:18px; align-items:flex-start;">
+                                <div style="font-size:40px; flex-shrink:0; line-height:1;">{{ $ffIcon }}</div>
+                                <div>
+                                    @if(!empty($ffD['title']))<div style="font-size:15.5px; font-weight:800; color:#78350f; margin-bottom:8px; line-height:1.3;">{{ $ffD['title'] }}</div>@endif
+                                    <p style="font-size:15px; color:#92400e; margin:0; line-height:1.7;">{{ $ffD['content'] ?? '' }}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     @break
@@ -921,23 +1016,32 @@
                     {{-- ── Reflection ─────────────────────────── --}}
                     @case('reflection')
                     @php $refD = $block->getDecodedContent(); @endphp
-                    <div class="lb">
-                        @if($block->title)
-                        <div class="lb-head">
-                            <div class="lb-head-icon" style="background:#ede9fe; color:#7c3aed;">🤔</div>
-                            <span class="lb-head-label">Reflection</span>
-                            <span class="lb-head-title">{{ $block->title }}</span>
-                        </div>
-                        @endif
-                        <div class="lb-body" style="background:linear-gradient(135deg,#faf5ff,#f3e8ff); border-left:4px solid #8b5cf6; border-radius:0 0 10px 10px; padding:18px 20px;">
-                            @if(!empty($refD['prompt']))<p style="font-size:14px; font-weight:600; color:#5b21b6; margin:0 0 14px; line-height:1.55;">🤔 {{ $refD['prompt'] }}</p>@endif
-                            @if(!empty($refD['questions']))
-                            <ul style="margin:0; padding-left:18px; color:#6d28d9; line-height:1.8;">
-                                @foreach($refD['questions'] as $rq)<li style="font-size:13.5px; margin-bottom:4px;">{{ $rq }}</li>@endforeach
-                            </ul>
-                            @endif
-                            <div style="margin-top:14px; padding:10px 14px; background:rgba(139,92,246,.08); border-radius:8px; font-size:12px; color:#7c3aed; font-style:italic;">
-                                💭 Take a moment to think about this before continuing.
+                    <div class="lb" style="border:none; overflow:visible; background:transparent; box-shadow:none;">
+                        <div style="background:linear-gradient(135deg,#faf5ff,#ede9fe); border:2px solid #c4b5fd; border-radius:16px; overflow:hidden; box-shadow:0 4px 16px rgba(109,40,217,.12);">
+                            <div style="background:linear-gradient(90deg,#7c3aed,#6d28d9); padding:10px 20px; display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:18px;">🤔</span>
+                                <span style="font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#fff;">Reflection</span>
+                                @if($block->title)
+                                <span style="font-size:13px; color:rgba(255,255,255,.85); margin-left:4px;">— {{ $block->title }}</span>
+                                @endif
+                            </div>
+                            <div style="padding:20px 24px;">
+                                @if(!empty($refD['prompt']))
+                                <p style="font-size:15.5px; font-weight:700; color:#4c1d95; margin:0 0 16px; line-height:1.6; border-left:4px solid #7c3aed; padding-left:14px; background:rgba(124,58,237,.06); padding:12px 14px; border-radius:0 8px 8px 0;">{{ $refD['prompt'] }}</p>
+                                @endif
+                                @if(!empty($refD['questions']))
+                                <div style="display:flex; flex-direction:column; gap:8px;">
+                                    @foreach($refD['questions'] as $qi => $rq)
+                                    <div style="display:flex; gap:10px; align-items:flex-start; background:#fff; border:1px solid #ddd6fe; border-radius:10px; padding:12px 16px;">
+                                        <div style="flex-shrink:0; width:24px; height:24px; background:#7c3aed; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; margin-top:1px;">{{ $qi + 1 }}</div>
+                                        <p style="font-size:14.5px; color:#4c1d95; margin:0; line-height:1.65;">{{ $rq }}</p>
+                                    </div>
+                                    @endforeach
+                                </div>
+                                @endif
+                                <div style="margin-top:14px; padding:10px 14px; background:rgba(109,40,217,.07); border-radius:8px; font-size:12.5px; color:#6d28d9; font-style:italic; display:flex; align-items:center; gap:8px;">
+                                    <span>💭</span><span>Pause here and think about this before continuing to the next section.</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -947,23 +1051,34 @@
                     @case('click_reveal')
                     @php $crD = $block->getDecodedContent(); $crId = 'cr-' . $bi; @endphp
                     <div class="lb">
-                        @if($block->title)
-                        <div class="lb-head">
-                            <div class="lb-head-icon" style="background:#e0f2fe; color:#0369a1;">💬</div>
-                            <span class="lb-head-label">Click to Reveal</span>
-                            <span class="lb-head-title">{{ $block->title }}</span>
+                        <div style="background:linear-gradient(90deg,#0369a1,#0284c7); padding:10px 22px; display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:16px;">👁</span>
+                            <span style="font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#fff;">Think First, Then Reveal</span>
+                            @if($block->title)
+                            <span style="font-size:13px; color:rgba(255,255,255,.8); margin-left:4px;">— {{ $block->title }}</span>
+                            @endif
                         </div>
-                        @endif
-                        <div class="lb-body" style="padding:18px 20px;">
-                            <p style="font-size:14px; font-weight:600; color:var(--text); margin:0 0 14px; line-height:1.55;">{{ $crD['question'] ?? '' }}</p>
+                        <div style="padding:22px 26px;">
+                            <div style="background:#f0f9ff; border:1.5px solid #bae6fd; border-radius:12px; padding:16px 20px; margin-bottom:18px;">
+                                <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#0369a1; margin-bottom:8px;">❓ Question</div>
+                                <p style="font-size:16px; font-weight:600; color:#0c4a6e; margin:0; line-height:1.6;">{{ $crD['question'] ?? '' }}</p>
+                            </div>
                             <button onclick="toggleReveal('{{ $crId }}')"
                                     id="{{ $crId }}-btn"
-                                    style="background:#0ea5e9; color:#fff; border:none; border-radius:8px; padding:10px 20px; font-size:13px; font-weight:700; cursor:pointer; transition:background .15s;">
-                                👁 Reveal Answer
+                                    style="background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; border:none; border-radius:10px; padding:12px 24px; font-size:14px; font-weight:700; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:8px; box-shadow:0 3px 10px rgba(14,165,233,.35);">
+                                <span>👁</span><span>Reveal Answer</span>
                             </button>
-                            <div id="{{ $crId }}" style="display:none; margin-top:14px; padding:14px 18px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px;">
-                                <p style="font-size:14px; font-weight:700; color:#0369a1; margin:0 0 8px;">✅ {{ $crD['answer'] ?? '' }}</p>
-                                @if(!empty($crD['explanation']))<p style="font-size:13px; color:#64748b; margin:0; font-style:italic;">{{ $crD['explanation'] }}</p>@endif
+                            <div id="{{ $crId }}" style="display:none; margin-top:16px; border-radius:12px; overflow:hidden; border:1.5px solid #86efac; box-shadow:0 3px 12px rgba(22,163,74,.12);">
+                                <div style="background:#16a34a; padding:9px 18px; display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:14px;">✅</span>
+                                    <span style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#fff;">Answer</span>
+                                </div>
+                                <div style="background:#f0fdf4; padding:16px 20px;">
+                                    <p style="font-size:15.5px; font-weight:700; color:#14532d; margin:0 0 {{ !empty($crD['explanation']) ? '10px' : '0' }}; line-height:1.6;">{{ $crD['answer'] ?? '' }}</p>
+                                    @if(!empty($crD['explanation']))
+                                    <p style="font-size:14px; color:#166534; margin:0; font-style:italic; line-height:1.6; padding-top:10px; border-top:1px solid #bbf7d0;">{{ $crD['explanation'] }}</p>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -973,22 +1088,28 @@
                     @case('myth_fact')
                     @php $mfD = $block->getDecodedContent(); @endphp
                     <div class="lb">
-                        @if($block->title)
-                        <div class="lb-head">
-                            <div class="lb-head-icon" style="background:#fee2e2; color:#b91c1c;">⚡</div>
-                            <span class="lb-head-label">Myth vs Fact</span>
-                            <span class="lb-head-title">{{ $block->title }}</span>
+                        <div style="background:linear-gradient(90deg,#b91c1c,#dc2626); padding:10px 22px; display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:16px;">⚡</span>
+                            <span style="font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#fff;">Myth vs Fact</span>
+                            @if($block->title)
+                            <span style="font-size:13px; color:rgba(255,255,255,.8); margin-left:4px;">— {{ $block->title }}</span>
+                            @endif
                         </div>
-                        @endif
-                        <div class="lb-body" style="padding:16px 20px;">
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-                                <div style="background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; padding:16px;">
-                                    <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#b91c1c; margin-bottom:8px; letter-spacing:.5px;">❌ Myth</div>
-                                    <p style="font-size:13.5px; color:#7f1d1d; margin:0; line-height:1.6; font-style:italic;">{{ $mfD['myth'] ?? '' }}</p>
+                        <div style="padding:20px 22px;">
+                            <div class="myth-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                                <div style="background:#fff5f5; border:2px solid #fca5a5; border-radius:14px; padding:18px; position:relative; overflow:hidden;">
+                                    <div style="position:absolute; top:-8px; right:-8px; font-size:48px; opacity:.07; line-height:1;">❌</div>
+                                    <div style="display:inline-flex; align-items:center; gap:6px; background:#fef2f2; border:1px solid #fca5a5; border-radius:20px; padding:4px 12px; font-size:11px; font-weight:800; color:#b91c1c; text-transform:uppercase; letter-spacing:.5px; margin-bottom:12px;">
+                                        <span>❌</span> Myth
+                                    </div>
+                                    <p style="font-size:14.5px; color:#7f1d1d; margin:0; line-height:1.65; font-style:italic;">"{{ $mfD['myth'] ?? '' }}"</p>
                                 </div>
-                                <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; padding:16px;">
-                                    <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#15803d; margin-bottom:8px; letter-spacing:.5px;">✅ Fact</div>
-                                    <p style="font-size:13.5px; color:#14532d; margin:0; line-height:1.6; font-weight:600;">{{ $mfD['fact'] ?? '' }}</p>
+                                <div style="background:#f0fdf4; border:2px solid #86efac; border-radius:14px; padding:18px; position:relative; overflow:hidden;">
+                                    <div style="position:absolute; top:-8px; right:-8px; font-size:48px; opacity:.07; line-height:1;">✅</div>
+                                    <div style="display:inline-flex; align-items:center; gap:6px; background:#dcfce7; border:1px solid #86efac; border-radius:20px; padding:4px 12px; font-size:11px; font-weight:800; color:#15803d; text-transform:uppercase; letter-spacing:.5px; margin-bottom:12px;">
+                                        <span>✅</span> Fact
+                                    </div>
+                                    <p style="font-size:14.5px; color:#14532d; margin:0; line-height:1.65; font-weight:600;">{{ $mfD['fact'] ?? '' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -999,21 +1120,21 @@
                     @case('workplace_example')
                     @php $weD = $block->getDecodedContent(); @endphp
                     <div class="lb">
-                        @if($block->title)
-                        <div class="lb-head">
-                            <div class="lb-head-icon" style="background:#d1fae5; color:#065f46;">🏭</div>
-                            <span class="lb-head-label">Workplace Example</span>
-                            <span class="lb-head-title">{{ $block->title }}</span>
+                        <div style="background:linear-gradient(90deg,#065f46,#047857); padding:10px 22px; display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:16px;">🏭</span>
+                            <span style="font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#fff;">Workplace Examples</span>
+                            @if($block->title)
+                            <span style="font-size:13px; color:rgba(255,255,255,.8); margin-left:4px;">— {{ $block->title }}</span>
+                            @endif
                         </div>
-                        @endif
-                        <div class="lb-body" style="padding:16px 20px;">
+                        <div style="padding:18px 22px;">
                             <div style="display:flex; flex-direction:column; gap:10px;">
                                 @foreach($weD['examples'] ?? [] as $ex)
-                                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start;">
-                                    <div style="flex-shrink:0; background:#10b981; color:#fff; border-radius:7px; padding:4px 10px; font-size:11px; font-weight:800; white-space:nowrap; margin-top:2px;">
+                                <div style="display:flex; gap:14px; align-items:flex-start; background:#f0fdf4; border:1px solid #a7f3d0; border-radius:12px; padding:14px 18px;">
+                                    <div style="flex-shrink:0; background:linear-gradient(135deg,#10b981,#059669); color:#fff; border-radius:8px; padding:5px 12px; font-size:11.5px; font-weight:800; white-space:nowrap; margin-top:2px; box-shadow:0 2px 6px rgba(16,185,129,.3);">
                                         {{ $ex['context'] ?? '' }}
                                     </div>
-                                    <p style="font-size:13.5px; color:#065f46; margin:0; line-height:1.6;">{{ $ex['description'] ?? '' }}</p>
+                                    <p style="font-size:14.5px; color:#065f46; margin:0; line-height:1.65;">{{ $ex['description'] ?? '' }}</p>
                                 </div>
                                 @endforeach
                             </div>
@@ -1025,31 +1146,38 @@
                     @case('case_study')
                     @php $csD = $block->getDecodedContent(); @endphp
                     <div class="lb">
-                        @if($block->title)
-                        <div class="lb-head">
-                            <div class="lb-head-icon" style="background:#e0e7ff; color:#4338ca;">📋</div>
-                            <span class="lb-head-label">Case Study</span>
-                            <span class="lb-head-title">{{ $block->title }}</span>
+                        <div style="background:linear-gradient(90deg,#3730a3,#4338ca); padding:10px 22px; display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:16px;">📋</span>
+                            <span style="font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#fff;">Case Study</span>
+                            @if($block->title)
+                            <span style="font-size:13px; color:rgba(255,255,255,.8); margin-left:4px;">— {{ $block->title }}</span>
+                            @endif
                         </div>
-                        @endif
-                        <div class="lb-body" style="padding:18px 20px;">
-                            <div style="background:#f5f3ff; border-left:4px solid #6366f1; border-radius:8px; padding:14px 18px; margin-bottom:16px; font-size:13.5px; color:#3730a3; line-height:1.65;">
+                        <div style="padding:20px 24px;">
+                            <div style="background:#f5f3ff; border-left:4px solid #6366f1; border-radius:0 12px 12px 0; padding:16px 20px; margin-bottom:18px; font-size:15px; color:#3730a3; line-height:1.7;">
                                 {{ $csD['case_description'] ?? '' }}
                             </div>
                             @if(!empty($csD['questions']))
-                            <div style="margin-bottom:16px;">
-                                <div style="font-size:12px; font-weight:800; text-transform:uppercase; color:#4338ca; margin-bottom:8px; letter-spacing:.5px;">Discussion Questions</div>
-                                <ol style="margin:0; padding-left:18px; color:var(--text); line-height:1.8;">
-                                    @foreach($csD['questions'] as $csq)<li style="font-size:13.5px; margin-bottom:4px;">{{ $csq }}</li>@endforeach
-                                </ol>
+                            <div style="margin-bottom:18px;">
+                                <div style="font-size:12px; font-weight:800; text-transform:uppercase; color:#4338ca; margin-bottom:10px; letter-spacing:.5px; display:flex; align-items:center; gap:6px;">
+                                    <span style="width:3px; height:14px; background:#6366f1; border-radius:2px; display:inline-block;"></span> Discussion Questions
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:8px;">
+                                    @foreach($csD['questions'] as $qi => $csq)
+                                    <div style="display:flex; gap:10px; align-items:flex-start; background:#eef2ff; border:1px solid #c7d2fe; border-radius:10px; padding:12px 16px;">
+                                        <div style="flex-shrink:0; width:24px; height:24px; background:#4338ca; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; margin-top:1px;">{{ $qi + 1 }}</div>
+                                        <p style="font-size:14.5px; color:#3730a3; margin:0; line-height:1.6;">{{ $csq }}</p>
+                                    </div>
+                                    @endforeach
+                                </div>
                             </div>
                             @endif
                             @if(!empty($csD['expected_response']))
-                            <details style="border:1px solid #c7d2fe; border-radius:8px; overflow:hidden;">
-                                <summary style="background:#e0e7ff; padding:10px 16px; cursor:pointer; font-size:13px; font-weight:700; color:#3730a3; list-style:none; display:flex; justify-content:space-between; align-items:center;">
-                                    💡 View Expected Response <span>▼</span>
+                            <details style="border:1.5px solid #c7d2fe; border-radius:12px; overflow:hidden;">
+                                <summary style="background:linear-gradient(135deg,#e0e7ff,#eef2ff); padding:12px 18px; cursor:pointer; font-size:13.5px; font-weight:700; color:#3730a3; list-style:none; display:flex; justify-content:space-between; align-items:center; user-select:none;">
+                                    <span>💡 View Model Response</span> <span style="font-size:11px;">Click to expand ▼</span>
                                 </summary>
-                                <div style="padding:14px 18px; font-size:13.5px; color:var(--text); line-height:1.65;">
+                                <div style="padding:16px 20px; background:#f5f3ff; font-size:14.5px; color:#374151; line-height:1.7; border-top:1px solid #c7d2fe;">
                                     {{ $csD['expected_response'] }}
                                 </div>
                             </details>
@@ -1625,6 +1753,106 @@ function markStepDone(n) {
 }
 
 renderUI();
+
+/* ══ RICH TEXT ENHANCEMENT ENGINE ══════════════════════ */
+(function enhanceRichText() {
+    const calloutDefs = [
+        { emoji: '💡', cls: 'callout-tip' },
+        { emoji: '⚠️', cls: 'callout-warning' },
+        { emoji: '⚠',  cls: 'callout-warning' },
+        { emoji: '🚨', cls: 'callout-warning' },
+        { emoji: '📌', cls: 'callout-remember' },
+        { emoji: '✅', cls: 'callout-success' },
+        { emoji: '✔️', cls: 'callout-success' },
+        { emoji: '🔍', cls: 'callout-example' },
+        { emoji: '🎯', cls: 'callout-info' },
+        { emoji: '📋', cls: 'callout-note' },
+        { emoji: '💼', cls: 'callout-note' },
+        { emoji: '🔒', cls: 'callout-info' },
+        { emoji: '📖', cls: 'callout-info' },
+        { emoji: '🏭', cls: 'callout-note' },
+    ];
+
+    document.querySelectorAll('.rt-body').forEach(body => {
+
+        // 1 ── Callout detection: <p> starting with a known emoji
+        body.querySelectorAll('p').forEach(p => {
+            const text = p.textContent.trim();
+            for (const def of calloutDefs) {
+                if (text.startsWith(def.emoji)) {
+                    let html = p.innerHTML.trim();
+                    // Strip leading emoji (may be 1–2 chars for multi-char emoji)
+                    html = html.replace(def.emoji, '').replace(/^[\s:–-]+/, '').trim();
+                    const div = document.createElement('div');
+                    div.className = 'callout ' + def.cls;
+                    div.innerHTML = '<span class="callout-icon">' + def.emoji + '</span>'
+                                  + '<div class="callout-content">' + html + '</div>';
+                    p.parentNode.replaceChild(div, p);
+                    break;
+                }
+            }
+        });
+
+        // 2 ── Table enhancement
+        body.querySelectorAll('table:not(.lesson-table)').forEach(table => {
+            table.classList.add('lesson-table');
+            const wrap = document.createElement('div');
+            wrap.className = 'table-wrap';
+            table.parentNode.insertBefore(wrap, table);
+            wrap.appendChild(table);
+        });
+
+        // 3 ── Process flow: detect <ol> preceded by a heading that contains
+        //      "step", "process", "flow", "procedure", "how to", "stages"
+        body.querySelectorAll('ol').forEach(ol => {
+            const prev = ol.previousElementSibling;
+            const heading = prev ? prev.textContent.toLowerCase() : '';
+            const isProcess = /step|process|flow|procedure|how to|stage|phase|approach/.test(heading);
+            if (!isProcess) return;
+
+            const flow = document.createElement('div');
+            flow.className = 'process-flow';
+            Array.from(ol.querySelectorAll('li')).forEach((li, idx) => {
+                // Split into title + description at first ":" or "–" or "—"
+                const raw = li.innerHTML;
+                const sep = raw.search(/[:–—]/);
+                let title, desc;
+                if (sep > 0 && sep < 60) {
+                    title = li.innerHTML.substring(0, sep).replace(/<[^>]+>/g, '').trim();
+                    desc  = li.innerHTML.substring(sep + 1).trim();
+                } else {
+                    title = '';
+                    desc  = raw;
+                }
+                const step = document.createElement('div');
+                step.className = 'process-step';
+                step.innerHTML = `<div class="ps-left"><div class="ps-num">${idx + 1}</div><div class="ps-line"></div></div>`
+                               + `<div class="ps-body">${title ? '<div class="ps-title">' + title + '</div>' : ''}<div class="ps-desc">${desc}</div></div>`;
+                flow.appendChild(step);
+            });
+            ol.parentNode.replaceChild(flow, ol);
+        });
+
+        // 4 ── Definition detection: <strong>Term:</strong> at start of <p>
+        body.querySelectorAll('p').forEach(p => {
+            const first = p.querySelector('strong, b');
+            if (!first) return;
+            const text = p.textContent.trim();
+            const termText = first.textContent.trim();
+            if (!termText.endsWith(':') && !termText.endsWith('—') && !termText.endsWith('–')) return;
+            if (termText.length > 60) return; // too long to be a term
+            // Only convert if it looks like "Term: definition text"
+            const rest = text.substring(termText.length).trim();
+            if (!rest || rest.length < 10) return;
+            const card = document.createElement('div');
+            card.className = 'def-card';
+            card.innerHTML = '<div class="def-term">' + termText.replace(/:$/, '') + '</div>'
+                           + '<div class="def-body">' + rest + '</div>';
+            p.parentNode.replaceChild(card, p);
+        });
+
+    });
+})();
 </script>
 
 @endsection
