@@ -164,8 +164,8 @@
                         animation:aiSpin 1s linear infinite; margin:0 auto 16px;"></div>
             <div style="font-size:16px; font-weight:700; color:#1e3a8a; margin-bottom:6px;">Generating your course…</div>
             <div style="font-size:13.5px; color:#6b7280; line-height:1.6;">
-                SMS Training AI is creating a complete professional course structure.<br>
-                This usually takes 15–30 seconds.
+                SMS Training AI is generating a 90–95% complete course structure.<br>
+                This usually takes 20–45 seconds. Please wait…
             </div>
         </div>
 
@@ -232,17 +232,28 @@ async function submitAiGenerate() {
             }),
         });
 
+        if (res.status === 419) {
+            showAiForm();
+            showAiError('Page session expired. Please refresh the page and try again.');
+            return;
+        }
+        if (!res.ok && res.status !== 200) {
+            showAiForm();
+            showAiError('Server error (' + res.status + '). Please refresh the page and try again.');
+            return;
+        }
+
         const data = await res.json();
 
         if (data.success) {
             window.location.href = data.redirect_url;
         } else {
             showAiForm();
-            showAiError(data.error || 'Generation failed. Please try again.');
+            showAiError(data.error || data.message || 'Generation failed. Please refresh and try again.');
         }
     } catch (e) {
         showAiForm();
-        showAiError('Network error: ' + e.message);
+        showAiError('Network error: ' + e.message + '. Please refresh the page.');
     }
 }
 
