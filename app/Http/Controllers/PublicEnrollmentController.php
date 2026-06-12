@@ -8,6 +8,7 @@ use App\Models\Enrollment;
 use App\Models\TrainingSchedule;
 use App\Models\User;
 use App\Services\AutoInvoiceService;
+use App\Services\TrainingNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -101,26 +102,47 @@ class PublicEnrollmentController extends Controller
             'remarks'              => 'Enrolled via public website',
         ]);
 
-        // Auto-generate invoice + send registration confirmed email (silently)
+        // ── Auto-invoice ─────────────────────────────────────────────
+        $invoice = null;
         try {
             $invoice = AutoInvoiceService::forIltEnrollment($enrollment, $schedule);
+        } catch (\Throwable $e) {
+            Log::error('AutoInvoice failed (ILT public)', [
+                'enrollment_id' => $enrollment->id,
+                'error'         => $e->getMessage(),
+            ]);
+        }
 
+        // ── Participant confirmation email (with invoice PDF if available) ─
+        try {
             $scheduleInfo = collect([
                 $schedule->batch_code,
                 $schedule->start_date?->format('d M Y'),
                 $schedule->venue,
             ])->filter()->implode(' · ');
 
-            Mail::to($validated['email'])
-                ->send(new RegistrationConfirmed(
-                    invoice:      $invoice,
-                    courseName:   $schedule->course?->name ?? 'Training Program',
-                    scheduleInfo: $scheduleInfo ?: null,
-                    tempPassword: $plainPassword,
-                    type:         'ILT',
-                ));
+            if ($invoice) {
+                Mail::to($validated['email'])
+                    ->send(new RegistrationConfirmed(
+                        invoice:      $invoice,
+                        courseName:   $schedule->course?->name ?? 'Training Program',
+                        scheduleInfo: $scheduleInfo ?: null,
+                        tempPassword: $plainPassword,
+                        type:         'ILT',
+                    ));
+            }
         } catch (\Throwable $e) {
-            Log::error('AutoInvoice/RegistrationConfirmed failed (ILT public)', [
+            Log::error('RegistrationConfirmed email failed (ILT public)', [
+                'enrollment_id' => $enrollment->id,
+                'error'         => $e->getMessage(),
+            ]);
+        }
+
+        // ── Admin notification ───────────────────────────────────────
+        try {
+            TrainingNotificationService::adminNewRegistration($enrollment, 'Enrollment');
+        } catch (\Throwable $e) {
+            Log::error('Admin new-registration notification failed (ILT public)', [
                 'enrollment_id' => $enrollment->id,
                 'error'         => $e->getMessage(),
             ]);

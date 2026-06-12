@@ -218,10 +218,6 @@ body { margin:0; font-family:'Inter',sans-serif; background:#f8fafc; color:#1118
                         @endforeach
                     </select>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">NID / Passport No.</label>
-                    <input type="text" name="nid_passport" class="form-input" value="{{ old('nid_passport') }}">
-                </div>
             </div>
         </div>
 
