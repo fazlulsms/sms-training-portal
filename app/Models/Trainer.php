@@ -11,11 +11,17 @@ class Trainer extends Model
         'email', 'phone', 'qualification',
         'photo', 'short_bio', 'expertise_areas', 'certifications',
         'experience', 'is_public', 'display_order', 'status',
+        'professional_highlights', 'industries_served', 'countries_covered',
+        'languages_spoken', 'training_specializations', 'audit_specializations',
+        'seo_title', 'seo_description', 'seo_keywords',
+        'ai_generated', 'ai_profile_data',
     ];
 
     protected $casts = [
-        'is_public' => 'boolean',
-        'status'    => 'boolean',
+        'is_public'      => 'boolean',
+        'status'         => 'boolean',
+        'ai_generated'   => 'boolean',
+        'ai_profile_data'=> 'array',
     ];
 
     public function user()

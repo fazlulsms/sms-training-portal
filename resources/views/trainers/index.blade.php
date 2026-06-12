@@ -4,6 +4,18 @@
 
 <x-page-header title="Trainers" desc="Manage trainer profiles and assignments.">
     <x-slot:actions>
+        @if(auth()->user()?->isSuperAdmin() && config('ai.enabled', false))
+        <a href="{{ route('ai.trainer-profile.index') }}"
+           style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px;
+                  background:linear-gradient(135deg,#1e3a8a,#2563eb); color:#fff;
+                  border-radius:8px; text-decoration:none; font-size:13.5px; font-weight:700;
+                  box-shadow:0 3px 10px rgba(30,58,138,.3);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+            </svg>
+            ✨ Generate Profile with AI
+        </a>
+        @endif
         <a href="/admin/trainers/create" class="btn btn-primary btn-sm">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Add Trainer

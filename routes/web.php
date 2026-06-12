@@ -43,6 +43,7 @@ use App\Http\Controllers\CorporateInquiryController;
 use App\Http\Controllers\AiController;
 use App\Http\Controllers\AiPromptTemplateController;
 use App\Http\Controllers\AiCourseGeneratorController;
+use App\Http\Controllers\AiTrainerProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -400,6 +401,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get( '/ai/course-generator/preview',  [AiCourseGeneratorController::class, 'preview']) ->name('ai.course-generator.preview');
     Route::post('/ai/course-generator/save',     [AiCourseGeneratorController::class, 'save'])    ->name('ai.course-generator.save');
     Route::post('/ai/course-generator/cancel',   [AiCourseGeneratorController::class, 'cancel'])  ->name('ai.course-generator.cancel');
+
+    // ── AI Trainer Profile Generator (super_admin only) ────────
+    Route::get( '/ai/trainer-profile',           [AiTrainerProfileController::class, 'index'])    ->name('ai.trainer-profile.index');
+    Route::post('/ai/trainer-profile/generate',  [AiTrainerProfileController::class, 'generate']) ->name('ai.trainer-profile.generate');
+    Route::get( '/ai/trainer-profile/preview',   [AiTrainerProfileController::class, 'preview'])  ->name('ai.trainer-profile.preview');
+    Route::post('/ai/trainer-profile/save',      [AiTrainerProfileController::class, 'save'])     ->name('ai.trainer-profile.save');
+    Route::post('/ai/trainer-profile/cancel',    [AiTrainerProfileController::class, 'cancel'])   ->name('ai.trainer-profile.cancel');
 
 }); // end admin middleware group
 
