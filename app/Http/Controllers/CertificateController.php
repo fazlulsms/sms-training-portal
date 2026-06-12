@@ -377,8 +377,9 @@ class CertificateController extends Controller
     private function templateView(string $template): string
     {
         return match ($template) {
-            'auditor'  => 'certificates.auditor',
-            default    => 'certificates.attendance',
+            'auditor'    => 'certificates.auditor',
+            'completion' => 'certificates.completion',
+            default      => 'certificates.attendance',
         };
     }
 
