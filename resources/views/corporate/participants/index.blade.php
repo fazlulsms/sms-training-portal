@@ -60,22 +60,25 @@
     </div>
 </div>
 
-{{-- Bulk delete form --}}
-<form method="POST" action="{{ route('corporate.sessions.participants.bulk-destroy', $session) }}" id="bulkForm" onsubmit="return confirm('Delete selected participants?')">
-@csrf
+{{-- Standalone bulk-delete form (NOT wrapping the table — avoids nested-form breakage) --}}
+<form method="POST" action="{{ route('corporate.sessions.participants.bulk-destroy', $session) }}" id="bulkForm">
+    @csrf
+    <div id="bulkIds"></div>{{-- JS injects <input name="ids[]"> here before submit --}}
+</form>
 
 <div class="card">
-    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
         <h3 class="card-title">Participant List</h3>
-        <button type="submit" class="btn btn-sm btn-danger" onclick="return document.querySelectorAll('input[name=\'ids[]\']:checked').length > 0 || (alert('Select at least one participant.'), false)">
-            🗑 Delete Selected
-        </button>
+        <div style="display:flex;gap:8px;">
+            <button type="button" onclick="bulkDelete(false)" class="btn btn-sm btn-danger">🗑 Delete Selected</button>
+            <button type="button" onclick="bulkDelete(true)"  class="btn btn-sm btn-danger" style="background:#7f1d1d;">🗑 Delete All</button>
+        </div>
     </div>
     <div class="card-body" style="padding:0;overflow-x:auto;">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th style="width:36px;"><input type="checkbox" id="checkAll" onchange="document.querySelectorAll('input[name=\'ids[]\']').forEach(c => c.checked = this.checked)"></th>
+                    <th style="width:36px;"><input type="checkbox" id="checkAll" onchange="document.querySelectorAll('.row-check').forEach(c => c.checked = this.checked)"></th>
                     <th>Name</th>
                     <th>Employee ID</th>
                     <th>Position / Dept</th>
@@ -93,7 +96,7 @@
                     $attColor = match($att?->status) { 'Present'=>'#16a34a','Absent'=>'#dc2626','Partial'=>'#d97706', default=>'#9ca3af' };
                 @endphp
                 <tr>
-                    <td><input type="checkbox" name="ids[]" value="{{ $p->id }}"></td>
+                    <td><input type="checkbox" class="row-check" value="{{ $p->id }}"></td>
                     <td style="font-weight:700;">{{ $p->participant_name }}</td>
                     <td style="color:#6b7280;font-size:13px;">{{ $p->employee_id ?? '—' }}</td>
                     <td style="font-size:13px;color:#6b7280;">{{ $p->position }}{{ $p->department ? ' / '.$p->department : '' }}</td>
@@ -114,7 +117,7 @@
                     <td>
                         <div style="display:flex;gap:6px;">
                             <a href="{{ route('corporate.sessions.participants.edit', [$session, $p]) }}" class="btn btn-sm btn-secondary">Edit</a>
-                            <form method="POST" action="{{ route('corporate.sessions.participants.destroy', [$session, $p]) }}" onsubmit="return confirm('Remove?')">
+                            <form method="POST" action="{{ route('corporate.sessions.participants.destroy', [$session, $p]) }}" onsubmit="return confirm('Remove this participant?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger">✕</button>
                             </form>
@@ -131,5 +134,33 @@
     <div style="padding:16px 20px;border-top:1px solid #f0f2f5;">{{ $participants->links() }}</div>
     @endif
 </div>
-</form>
+
+<script>
+function bulkDelete(all) {
+    const checkboxes = document.querySelectorAll('.row-check');
+    const ids = all
+        ? Array.from(checkboxes).map(c => c.value)
+        : Array.from(checkboxes).filter(c => c.checked).map(c => c.value);
+
+    if (ids.length === 0) {
+        alert(all ? 'No participants to delete.' : 'Select at least one participant.');
+        return;
+    }
+
+    const label = all ? 'ALL ' + ids.length + ' participant(s)' : ids.length + ' selected participant(s)';
+    if (!confirm('Delete ' + label + '? This cannot be undone.')) return;
+
+    const container = document.getElementById('bulkIds');
+    container.innerHTML = '';
+    ids.forEach(id => {
+        const inp = document.createElement('input');
+        inp.type  = 'hidden';
+        inp.name  = 'ids[]';
+        inp.value = id;
+        container.appendChild(inp);
+    });
+
+    document.getElementById('bulkForm').submit();
+}
+</script>
 @endsection
