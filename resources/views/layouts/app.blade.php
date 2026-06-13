@@ -639,6 +639,12 @@
     <div class="topbar-title">@yield('page-title', 'SMS Training Panel')</div>
     @auth
     <div class="topbar-right">
+        <a href="{{ route('public.home') }}" target="_blank"
+           style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;font-size:12px;font-weight:600;text-decoration:none;"
+           title="Open public site">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            View Site
+        </a>
         <div class="topbar-user">
             <div class="topbar-avatar">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</div>
             {{ Auth::user()->name ?? 'User' }}
