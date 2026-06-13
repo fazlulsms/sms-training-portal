@@ -59,13 +59,16 @@ class GenerateModeBCourseJob implements ShouldQueue
                 'trace'     => substr($e->getTraceAsString(), 0, 500),
             ]);
 
-            $course->update([
-                'gen_status'   => 'failed',
-                'gen_progress' => array_merge((array) ($course->gen_progress ?? []), [
-                    'error'     => $e->getMessage(),
-                    'failed_at' => now()->toIso8601String(),
-                ]),
+            $failedProgress = array_merge((array) ($course->gen_progress ?? []), [
+                'error'     => $e->getMessage(),
+                'failed_at' => now()->toIso8601String(),
             ]);
+            \Illuminate\Support\Facades\DB::table('courses')
+                ->where('id', $course->id)
+                ->update([
+                    'gen_status'   => 'failed',
+                    'gen_progress' => json_encode($failedProgress),
+                ]);
 
             throw $e;
         }
@@ -84,10 +87,11 @@ class GenerateModeBCourseJob implements ShouldQueue
             ->orderBy('lesson_order')
             ->get();
 
-        $totalLessons = $allLessons->count();
-        $lessonsDone  = 0;
-        $blocksDone   = 0;
-        $quizzesDone  = 0;
+        $totalLessons     = $allLessons->count();
+        $lessonsDone      = 0;
+        $blocksDone       = 0;
+        $quizzesDone      = 0;
+        $lessonsAttempted = 0; // lessons where AI was actually called (not skipped)
 
         // ── Phase 1 & 2: Lesson content + module quizzes ─────────────
         // Use ->values() to get a 0-based indexed collection (fixes ->has(idx) bug)
@@ -124,8 +128,23 @@ class GenerateModeBCourseJob implements ShouldQueue
 
                     $count = $this->generateOneLessonContent($course, $lesson, $lessonType, $lessonsDone, $totalLessons);
 
+                    $lessonsAttempted++;
                     $blocksDone    += $count;
                     $modLessonIds[] = $lesson->id;
+
+                    if ($count > 0) {
+                        \Illuminate\Support\Facades\DB::table('elearning_lessons')
+                            ->where('id', $lesson->id)
+                            ->update(['status' => 'published']);
+                    }
+
+                    // Early quota detection: if first 3 real attempts all return 0, abort
+                    if ($lessonsAttempted === 3 && $blocksDone === 0) {
+                        throw new \RuntimeException(
+                            'AI quota exhausted — first 3 lesson generations all returned 0 blocks. ' .
+                            'Check your OpenAI usage at platform.openai.com/usage and try again when quota resets.'
+                        );
+                    }
                 }
 
                 // Module quiz
@@ -144,8 +163,12 @@ class GenerateModeBCourseJob implements ShouldQueue
                 $lesson = $lessonsArr->get($lessonPtr++);
                 $lessonsDone++;
                 if (!$lesson->allBlocks()->exists()) {
-                    $count       = $this->generateOneLessonContent($course, $lesson, 'concept', $lessonsDone, $totalLessons);
-                    $blocksDone += $count;
+                    $count            = $this->generateOneLessonContent($course, $lesson, 'concept', $lessonsDone, $totalLessons);
+                    $lessonsAttempted++;
+                    $blocksDone      += $count;
+                    if ($count > 0) {
+                        \Illuminate\Support\Facades\DB::table('elearning_lessons')->where('id', $lesson->id)->update(['status' => 'published']);
+                    }
                 }
             }
 
@@ -159,9 +182,29 @@ class GenerateModeBCourseJob implements ShouldQueue
                     "Generating Lesson {$lessonsDone} of {$totalLessons}: {$lesson->title}",
                     $this->prog($lessonsDone, $totalLessons, $blocksDone, $quizzesDone, $totalModules, 'lessons'));
 
-                $count       = $this->generateOneLessonContent($course, $lesson, 'concept', $lessonsDone, $totalLessons);
-                $blocksDone += $count;
+                $count            = $this->generateOneLessonContent($course, $lesson, 'concept', $lessonsDone, $totalLessons);
+                $lessonsAttempted++;
+                $blocksDone      += $count;
+
+                if ($count > 0) {
+                    \Illuminate\Support\Facades\DB::table('elearning_lessons')->where('id', $lesson->id)->update(['status' => 'published']);
+                }
+
+                if ($lessonsAttempted === 3 && $blocksDone === 0) {
+                    throw new \RuntimeException(
+                        'AI quota exhausted — first 3 lesson generations all returned 0 blocks. ' .
+                        'Check your OpenAI usage at platform.openai.com/usage and try again when quota resets.'
+                    );
+                }
             }
+        }
+
+        // ── Guard: fail fast if AI quota exhausted (every attempted lesson returned 0 blocks) ──
+        if ($lessonsAttempted > 0 && $blocksDone === 0) {
+            throw new \RuntimeException(
+                'AI quota exhausted — all lesson generations returned 0 blocks. ' .
+                'Check your OpenAI usage at platform.openai.com/usage and try again when quota resets.'
+            );
         }
 
         // ── Phase 3: Final Assessment ─────────────────────────────────
