@@ -30,6 +30,10 @@ class GenerateModeBCourseJob implements ShouldQueue
     // ─────────────────────────────────────────────────────────────────
     public function handle(): void
     {
+        // Override PHP execution limit — the queue worker --timeout handles the real limit
+        ini_set('max_execution_time', 0);
+        set_time_limit(0);
+
         $course = Course::findOrFail($this->courseId);
 
         $this->snap($course, 'running', 'Starting course generation…', [
