@@ -286,6 +286,13 @@ PROMPT;
     // ─────────────────────────────────────────────────────────────────
     private function generateModuleQuiz(Course $course, int $modIndex, string $moduleTitle, array $lessonIds): void
     {
+        // Skip if quiz already generated for this module (resumability guard)
+        $alreadyExists = ElearningLesson::where('course_id', $course->id)
+            ->where('lesson_type', 'assessment')
+            ->where('title', 'like', "Module {$modIndex} Knowledge Check%")
+            ->exists();
+        if ($alreadyExists) return;
+
         try {
             $summaries = ElearningLesson::where('course_id', $course->id)
                 ->whereIn('id', $lessonIds)
@@ -360,6 +367,16 @@ PROMPT;
     // ─────────────────────────────────────────────────────────────────
     private function generateFinalAssessment(Course $course): int
     {
+        // Skip if final assessment already exists (resumability guard)
+        $exists = ElearningLesson::where('course_id', $course->id)
+            ->where('lesson_type', 'assessment')
+            ->where('title', 'like', 'Final Course Assessment%')
+            ->exists();
+        if ($exists) {
+            $quiz = ElearningQuiz::whereHas('lesson', fn($q) => $q->where('course_id', $course->id)->where('title', 'like', 'Final Course Assessment%'))->first();
+            return $quiz ? ElearningQuizQuestion::where('quiz_id', $quiz->id)->count() : 0;
+        }
+
         try {
             $qCount = match ($this->level) { 'Awareness' => 15, 'Advanced' => 25, default => 20 };
 
