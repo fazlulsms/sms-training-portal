@@ -22,10 +22,14 @@ class GenerateModeBCourseJob implements ShouldQueue
     public int $timeout = 10800; // 3 hours — enough for any course size
     public int $tries   = 1;     // No auto-retry; we handle failures internally
 
-    public function __construct(
-        public readonly int    $courseId,
-        public readonly string $level,
-    ) {}
+    public int    $courseId;
+    public string $level;
+
+    public function __construct(int $courseId, string $level)
+    {
+        $this->courseId = $courseId;
+        $this->level    = $level;
+    }
 
     // ─────────────────────────────────────────────────────────────────
     public function handle(): void
