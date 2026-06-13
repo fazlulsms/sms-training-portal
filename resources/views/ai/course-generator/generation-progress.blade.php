@@ -222,6 +222,11 @@
                 var step    = progress.current_step || status;
                 var phase   = progress.phase || '';
 
+                // If lessons are being generated but gen_status is still 'pending', treat as running
+                if ((status === 'pending' || status === 'none') && done > 0) {
+                    status = 'running';
+                }
+
                 setText('stat-lessons', done);
                 setText('stat-blocks',  blocks);
                 setText('stat-quizzes', quizzes);

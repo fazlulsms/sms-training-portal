@@ -458,12 +458,21 @@ PROMPT;
 
     private function snap(Course $course, string $status, string $stepLabel, array $extra = []): void
     {
-        $course->updateQuietly([
-            'gen_status'   => $status,
-            'gen_progress' => array_merge($extra, [
-                'current_step' => $stepLabel,
-                'updated_at'   => now()->toIso8601String(),
-            ]),
+        $progress = array_merge($extra, [
+            'current_step' => $stepLabel,
+            'updated_at'   => now()->toIso8601String(),
         ]);
+
+        // Use raw DB update to bypass any model caching / event issues
+        \Illuminate\Support\Facades\DB::table('courses')
+            ->where('id', $course->id)
+            ->update([
+                'gen_status'   => $status,
+                'gen_progress' => json_encode($progress),
+            ]);
+
+        // Keep in-memory model in sync
+        $course->gen_status   = $status;
+        $course->gen_progress = $progress;
     }
 }
