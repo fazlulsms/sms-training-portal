@@ -102,13 +102,19 @@
                     @else 📰 @endif
                 </div>
                 <div class="blog-card-body">
-                    @if($post->category)
-                    <a href="{{ route('public.blog') }}?category={{ $post->category->slug }}"
-                       class="blog-card-cat"
-                       style="background:{{ $catColor }}22;color:{{ $catColor }};">
-                        {{ $post->category->name }}
-                    </a>
-                    @endif
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+                        @if($post->category)
+                        <a href="{{ route('public.blog') }}?category={{ $post->category->slug }}"
+                           class="blog-card-cat"
+                           style="background:{{ $catColor }}22;color:{{ $catColor }};margin-bottom:0;">
+                            {{ $post->category->name }}
+                        </a>
+                        @endif
+                        @if($post->article_type && $post->article_type !== 'blog_post')
+                        @php $typeColors = ['training_news'=>['#1e3a8a','#dbeafe'],'success_story'=>['#7c3aed','#f3e8ff'],'course_announcement'=>['#d97706','#fef3c7']]; $tc = $typeColors[$post->article_type] ?? ['#6b7280','#f3f4f6']; @endphp
+                        <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:{{ $tc[1] }};color:{{ $tc[0] }};">{{ $post->article_type_label }}</span>
+                        @endif
+                    </div>
                     <a href="{{ route('public.blog.detail', $post->slug) }}" class="blog-card-title">{{ $post->title }}</a>
                     @if($post->excerpt)
                     <p class="blog-card-excerpt">{{ Str::limit($post->excerpt, 110) }}</p>

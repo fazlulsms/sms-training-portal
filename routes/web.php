@@ -48,6 +48,8 @@ use App\Http\Controllers\AiPromptTemplateController;
 use App\Http\Controllers\AiCourseGeneratorController;
 use App\Http\Controllers\AiTrainerProfileController;
 use App\Http\Controllers\AiLessonContentController;
+use App\Http\Controllers\AiTrainingNewsController;
+use App\Http\Controllers\TrainingMediaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -436,6 +438,32 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get( '/ai/trainer-profile/preview',   [AiTrainerProfileController::class, 'preview'])  ->name('ai.trainer-profile.preview');
     Route::post('/ai/trainer-profile/save',      [AiTrainerProfileController::class, 'save'])     ->name('ai.trainer-profile.save');
     Route::post('/ai/trainer-profile/cancel',    [AiTrainerProfileController::class, 'cancel'])   ->name('ai.trainer-profile.cancel');
+
+    // ── Training News (AI Content Automation) ──────────────────────────────
+    Route::get( '/training-news',                          [AiTrainingNewsController::class, 'index'])          ->name('training-news.index');
+    Route::get( '/training-news/analytics',                [AiTrainingNewsController::class, 'analytics'])      ->name('training-news.analytics');
+    Route::get( '/training-news/create/{schedule}',        [AiTrainingNewsController::class, 'create'])         ->name('training-news.create');
+    Route::post('/training-news/generate-article/{schedule}', [AiTrainingNewsController::class, 'generateArticle'])->name('training-news.generate-article');
+    Route::post('/training-news/generate-seo',             [AiTrainingNewsController::class, 'generateSeo'])    ->name('training-news.generate-seo');
+    Route::post('/training-news/generate-social',          [AiTrainingNewsController::class, 'generateSocial']) ->name('training-news.generate-social');
+    Route::post('/training-news/store/{schedule}',         [AiTrainingNewsController::class, 'store'])          ->name('training-news.store');
+    Route::get( '/training-news/{article}/edit',           [AiTrainingNewsController::class, 'edit'])           ->name('training-news.edit');
+    Route::put( '/training-news/{article}',                [AiTrainingNewsController::class, 'update'])         ->name('training-news.update');
+    Route::post('/training-news/{article}/submit-review',  [AiTrainingNewsController::class, 'submitForReview'])->name('training-news.submit-review');
+    Route::post('/training-news/{article}/approve',        [AiTrainingNewsController::class, 'approve'])        ->name('training-news.approve');
+    Route::post('/training-news/{article}/publish',        [AiTrainingNewsController::class, 'publish'])        ->name('training-news.publish');
+    Route::post('/training-news/{article}/unpublish',      [AiTrainingNewsController::class, 'unpublish'])      ->name('training-news.unpublish');
+    Route::post('/training-news/{article}/archive',        [AiTrainingNewsController::class, 'archive'])        ->name('training-news.archive');
+    Route::delete('/training-news/{article}',              [AiTrainingNewsController::class, 'destroy'])        ->name('training-news.destroy');
+
+    // ── Training Media ──────────────────────────────────────────────────────
+    Route::get(  '/training-media/{schedule}',                   [TrainingMediaController::class, 'index'])          ->name('training-media.index');
+    Route::post( '/training-media/{schedule}/upload',            [TrainingMediaController::class, 'store'])          ->name('training-media.store');
+    Route::post( '/training-media/{schedule}/reorder',           [TrainingMediaController::class, 'reorder'])        ->name('training-media.reorder');
+    Route::post( '/training-media/{schedule}/generate-captions', [TrainingMediaController::class, 'generateCaptions'])->name('training-media.generate-captions');
+    Route::put(  '/training-media/item/{media}',                 [TrainingMediaController::class, 'update'])         ->name('training-media.update');
+    Route::post( '/training-media/item/{media}/featured',        [TrainingMediaController::class, 'setFeatured'])    ->name('training-media.featured');
+    Route::delete('/training-media/item/{media}',                [TrainingMediaController::class, 'destroy'])        ->name('training-media.destroy');
 
 }); // end admin middleware group
 

@@ -66,4 +66,19 @@ class TrainingSchedule extends Model
     {
         return $this->questionAssignment !== null;
     }
+
+    public function media()
+    {
+        return $this->hasMany(\App\Models\TrainingMedia::class)->orderBy('sort_order');
+    }
+
+    public function newsArticles()
+    {
+        return $this->hasMany(\App\Models\BlogPost::class, 'training_schedule_id');
+    }
+
+    public function coverMedia()
+    {
+        return $this->hasOne(\App\Models\TrainingMedia::class)->where('media_type', 'cover')->where('is_featured', true);
+    }
 }

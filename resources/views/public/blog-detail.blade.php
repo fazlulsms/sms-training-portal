@@ -56,10 +56,20 @@
             @if($post->category) / <a href="{{ route('public.blog') }}?category={{ $post->category->slug }}">{{ $post->category->name }}</a> @endif
         </div>
 
-        @if($post->category)
-        @php $catColor = $post->category->color ?? '#1e3a8a'; @endphp
-        <span class="bd-category" style="background:{{ $catColor }}22;color:{{ $catColor }};">{{ $post->category->name }}</span>
-        @endif
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+            @if($post->category)
+            @php $catColor = $post->category->color ?? '#1e3a8a'; @endphp
+            <a href="{{ route('public.blog') }}?category={{ $post->category->slug }}"
+               class="bd-category" style="background:{{ $catColor }}22;color:{{ $catColor }};text-decoration:none;">
+                {{ $post->category->name }}
+            </a>
+            @endif
+            @if($post->article_type && $post->article_type !== 'blog_post')
+            @php $typeColors = ['training_news'=>['#1e3a8a','#dbeafe'],'success_story'=>['#7c3aed','#f3e8ff'],'course_announcement'=>['#d97706','#fef3c7']]; $tc = $typeColors[$post->article_type] ?? ['#6b7280','#f3f4f6']; @endphp
+            <span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:{{ $tc[1] }};color:{{ $tc[0] }};">{{ $post->article_type_label }}</span>
+            @endif
+            @if($post->ai_generated)<span style="display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#f5f3ff;color:#7c3aed;">🤖 AI Generated</span>@endif
+        </div>
 
         <h1 class="bd-title">{{ $post->title }}</h1>
 
@@ -79,6 +89,35 @@
         <div class="bd-content">
             {!! $post->content !!}
         </div>
+
+        {{-- Training schedule context --}}
+        @if($post->trainingSchedule)
+        @php $sched = $post->trainingSchedule; @endphp
+        <div style="background:#f8fafc;border:1px solid #e9ecef;border-radius:14px;padding:18px 22px;margin:28px 0;display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
+            <div style="flex:1;min-width:200px;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#9ca3af;margin-bottom:5px;">From Training Program</div>
+                <div style="font-size:17px;font-weight:900;color:#111827;">{{ $sched->course->name ?? $sched->training_title }}</div>
+                <div style="font-size:13px;color:#6b7280;margin-top:4px;display:flex;flex-wrap:wrap;gap:12px;">
+                    <span>📅 {{ \Carbon\Carbon::parse($sched->start_date)->format('d M') }} – {{ \Carbon\Carbon::parse($sched->end_date)->format('d M Y') }}</span>
+                    @if($sched->city)<span>📍 {{ $sched->city }}</span>@endif
+                    @if($sched->trainer)<span>🎓 {{ $sched->trainer->name }}</span>@endif
+                </div>
+            </div>
+            @if($sched->course?->slug)
+            <a href="{{ route('public.course.detail', $sched->course->slug) }}" class="pub-enroll-btn" style="white-space:nowrap;">View Course →</a>
+            @endif
+        </div>
+        @endif
+
+        {{-- Tags --}}
+        @if($post->tags && count((array)$post->tags))
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 28px;">
+            @foreach((array)$post->tags as $tag)
+            <a href="{{ route('public.blog') }}?q={{ urlencode($tag) }}"
+               style="display:inline-block;padding:4px 12px;background:#f0f4ff;color:#1e3a8a;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;">#{{ $tag }}</a>
+            @endforeach
+        </div>
+        @endif
 
         {{-- Related course CTA --}}
         @if($post->course && $post->course->is_public)
@@ -131,16 +170,21 @@
         {{-- Share --}}
         <div class="bd-sidebar-card">
             <h4 class="bd-sidebar-title">Share This Article</h4>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->url()) }}"
-                   target="_blank" rel="noopener"
-                   style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#1877f2;color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;">
-                    📘 Facebook
-                </a>
+            <div style="display:flex;flex-direction:column;gap:8px;">
                 <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode(request()->url()) }}"
                    target="_blank" rel="noopener"
-                   style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#0077b5;color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;">
-                    💼 LinkedIn
+                   style="display:flex;align-items:center;gap:8px;padding:9px 14px;background:#0077b5;color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;">
+                    💼 Share on LinkedIn
+                </a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->url()) }}"
+                   target="_blank" rel="noopener"
+                   style="display:flex;align-items:center;gap:8px;padding:9px 14px;background:#1877f2;color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;">
+                    📘 Share on Facebook
+                </a>
+                <a href="https://twitter.com/intent/tweet?url={{ urlencode(request()->url()) }}&text={{ urlencode($post->title) }}"
+                   target="_blank" rel="noopener"
+                   style="display:flex;align-items:center;gap:8px;padding:9px 14px;background:#000;color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;">
+                    𝕏 Post on X
                 </a>
             </div>
         </div>

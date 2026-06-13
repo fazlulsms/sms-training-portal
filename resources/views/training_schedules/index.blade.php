@@ -77,6 +77,13 @@
                     <td class="c">
                         <div class="dt-actions" style="justify-content:center;">
                             <a href="{{ route('attendance.sheet', $schedule->id) }}" class="btn btn-primary btn-xs">Attendance</a>
+                            @if($st === 'Completed')
+                            <a href="{{ route('training-news.create', $schedule->id) }}"
+                               class="btn btn-xs" style="background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;"
+                               title="Generate AI news article for this training">
+                                📰 News
+                            </a>
+                            @endif
                             <a href="/admin/training-schedules/edit/{{ $schedule->id }}" class="btn btn-edit btn-xs">Edit</a>
                             <a href="/admin/training-schedules/delete/{{ $schedule->id }}"
                                onclick="return confirm('Delete this schedule?')"

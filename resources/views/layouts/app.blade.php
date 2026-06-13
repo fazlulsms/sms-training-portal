@@ -548,7 +548,8 @@
         {{-- D. Administration ──────────────────────────── --}}
         @php
             $adminActive = request()->is('users*') || request()->is('settings*')
-                        || request()->is('profile*') || request()->is('admin/ai*');
+                        || request()->is('profile*') || request()->is('admin/ai*')
+                        || request()->is('admin/training-news*') || request()->is('admin/training-media*');
         @endphp
         <div class="sb-group sg-admin"
              x-data="{ open: {{ $adminActive ? 'true' : 'false' }} }">
@@ -585,6 +586,13 @@
                    class="sb-sub {{ request()->is('profile*') ? 'active' : '' }}">
                     <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
                     My Profile
+                </a>
+
+                <div style="margin:10px 12px 4px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#64748b;">Content & Media</div>
+                <a href="{{ route('training-news.index') }}"
+                   class="sb-sub {{ request()->is('admin/training-news*') || request()->is('admin/training-media*') ? 'active' : '' }}">
+                    <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10l6 6v8a2 2 0 0 1-2 2z"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>
+                    Training News
                 </a>
 
                 @if(auth()->user()?->isSuperAdmin())
