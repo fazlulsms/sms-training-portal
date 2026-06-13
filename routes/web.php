@@ -409,6 +409,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/ai/course-generator/{course}/generate-next',     [AiCourseGeneratorController::class, 'generateNext'])     ->name('ai.course-generator.generate-next');
     Route::post('/ai/course-generator/{course}/generate-module-quiz',      [AiCourseGeneratorController::class, 'generateModuleQuiz'])      ->name('ai.course-generator.generate-module-quiz');
     Route::post('/ai/course-generator/{course}/generate-final-assessment', [AiCourseGeneratorController::class, 'generateFinalAssessment']) ->name('ai.course-generator.generate-final-assessment');
+    Route::get( '/ai/course-generator/{course}/generation-status',        [AiCourseGeneratorController::class, 'generationStatus'])          ->name('ai.course-generator.generation-status');
 
     // ── Training Feedback & Evaluation ────────────────────────
     Route::prefix('feedback')->name('feedback.')->group(function () {

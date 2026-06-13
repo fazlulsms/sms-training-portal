@@ -18,6 +18,7 @@ class Course extends Model
         'is_public', 'is_featured', 'display_order', 'featured_order',
         'course_video_url', 'faq', 'seo_title', 'seo_description', 'seo_keywords',
         'ai_generated', 'ai_course_structure',
+        'gen_status', 'gen_progress', 'gen_started_at', 'gen_completed_at',
     ];
 
     protected $casts = [
@@ -25,6 +26,9 @@ class Course extends Model
         'is_featured'         => 'boolean',
         'ai_generated'        => 'boolean',
         'ai_course_structure' => 'array',
+        'gen_progress'        => 'array',
+        'gen_started_at'      => 'datetime',
+        'gen_completed_at'    => 'datetime',
     ];
 
     protected static function booted(): void
