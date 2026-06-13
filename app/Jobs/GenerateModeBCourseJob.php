@@ -214,21 +214,24 @@ class GenerateModeBCourseJob implements ShouldQueue
         $finalQs = $this->generateFinalAssessment($course);
 
         // ── Done ─────────────────────────────────────────────────────
-        $course->update([
-            'gen_status'       => 'completed',
-            'gen_completed_at' => now(),
-            'gen_progress'     => [
-                'phase'            => 'completed',
-                'current_step'     => 'Course generation complete! ' . $totalLessons . ' lessons · ' . $blocksDone . ' blocks · ' . $quizzesDone . ' quizzes · ' . $finalQs . ' exam questions',
-                'lessons_done'     => $lessonsDone,
-                'total_lessons'    => $totalLessons,
-                'blocks_generated' => $blocksDone,
-                'quizzes_done'     => $quizzesDone,
-                'total_modules'    => $totalModules,
-                'final_questions'  => $finalQs,
-                'completed_at'     => now()->toIso8601String(),
-            ],
+        $doneProgress = json_encode([
+            'phase'            => 'completed',
+            'current_step'     => 'Course generation complete! ' . $totalLessons . ' lessons · ' . $blocksDone . ' blocks · ' . $quizzesDone . ' quizzes · ' . $finalQs . ' exam questions',
+            'lessons_done'     => $lessonsDone,
+            'total_lessons'    => $totalLessons,
+            'blocks_generated' => $blocksDone,
+            'quizzes_done'     => $quizzesDone,
+            'total_modules'    => $totalModules,
+            'final_questions'  => $finalQs,
+            'completed_at'     => now()->toIso8601String(),
         ]);
+        \Illuminate\Support\Facades\DB::table('courses')
+            ->where('id', $course->id)
+            ->update([
+                'gen_status'       => 'completed',
+                'gen_completed_at' => now(),
+                'gen_progress'     => $doneProgress,
+            ]);
     }
 
     // ─────────────────────────────────────────────────────────────────
