@@ -198,8 +198,14 @@ class AiLessonContentController extends Controller
      * Generate AI content and save blocks for a lesson — used by course generator Mode B.
      * Returns number of blocks created, or 0 on failure.
      */
-    public static function generateAndSaveBlocks(Course $course, ElearningLesson $lesson, string $level): int
-    {
+    public static function generateAndSaveBlocks(
+        Course $course,
+        ElearningLesson $lesson,
+        string $level,
+        string $lessonType = 'concept',
+        int $lessonNumber = 1,
+        int $totalLessons = 1
+    ): int {
         try {
             $template = AiPromptTemplate::where('template_code', 'lesson_content_generator_json_v3')
                 ->where('is_active', true)
@@ -228,6 +234,8 @@ class AiLessonContentController extends Controller
                 "Target Audience: " . ($course->who_should_attend ?: 'Professionals and practitioners'),
                 "Lesson Duration: " . ($lesson->duration_minutes ? $lesson->duration_minutes . ' minutes' : 'Not specified'),
                 "Target Word Count: {$targetWords} words",
+                "Lesson Type Hint: {$lessonType}",
+                "Position in Course: Lesson {$lessonNumber} of {$totalLessons}",
             ])->filter()->implode("\n");
 
             $ai = app(OpenAIService::class)->generateFromTemplate($template, $input, null);

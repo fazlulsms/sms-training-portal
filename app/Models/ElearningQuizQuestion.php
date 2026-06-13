@@ -15,6 +15,9 @@ class ElearningQuizQuestion extends Model
         'option_c',
         'option_d',
         'correct_answer',
+        'explanation',
+        'difficulty',
+        'module_index',
         'marks',
         'status',
     ];

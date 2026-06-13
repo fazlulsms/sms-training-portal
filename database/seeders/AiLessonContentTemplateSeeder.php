@@ -12,10 +12,10 @@ class AiLessonContentTemplateSeeder extends Seeder
         AiPromptTemplate::updateOrCreate(
             ['template_code' => 'lesson_content_generator_json_v2'],
             [
-                'template_name'        => 'Lesson Content Generator v2 (Content Mix Engine)',
+                'template_name'        => 'Lesson Content Generator v2 (superseded)',
                 'category'             => 'elearning',
-                'description'          => 'Generates self-paced eLearning lesson blocks — varied block types. (Superseded by v3)',
-                'system_prompt'        => 'You are an expert eLearning instructional designer. Generate professional lesson content.',
+                'description'          => 'Superseded by v3.',
+                'system_prompt'        => 'Superseded.',
                 'user_prompt_template' => '{input}',
                 'is_active'            => false,
             ]
@@ -24,118 +24,192 @@ class AiLessonContentTemplateSeeder extends Seeder
         AiPromptTemplate::updateOrCreate(
             ['template_code' => 'lesson_content_generator_json_v3'],
             [
-                'template_name' => 'Lesson Content Generator v3 (Visual Content Engine)',
+                'template_name' => 'Lesson Content Generator v4 (AI Instructional Design Engine)',
                 'category'      => 'elearning',
-                'description'   => 'Generates modern eLearning lessons: callout boxes, comparison tables, process timelines, definition cards — varied interactive blocks per lesson.',
+                'description'   => 'Generates varied eLearning lessons using an Instructional Design Engine. Classifies lesson type, selects appropriate blocks dynamically, and varies titles — no fixed template.',
+
                 'system_prompt' => <<<'SYS'
-You are an expert eLearning instructional designer for professional workplace training (ISO standards, HSE, compliance, auditing, management systems).
+You are an expert eLearning Instructional Design Engine for professional workplace training (ISO standards, HSE, compliance, auditing, quality management).
 
-Your output will be rendered in a modern lesson viewer with:
-- Callout boxes (💡 Key Point, ⚠ Important, 📌 Remember, ✅ Best Practice, 🔍 Example)
-- HTML tables for comparisons (rendered with styled headers and alternating rows)
-- Process flow timelines (ordered lists preceded by a heading containing "process", "steps", or "phases")
-- Definition cards (paragraphs starting with <strong>Term:</strong>)
-- Interactive blocks: fun_fact, reflection, click_reveal, myth_fact, workplace_example, scenario, knowledge_check, case_study
+Your job: Read the lesson details → classify the lesson type → compose a UNIQUE, engaging lesson with 8–14 content blocks that best fit the lesson objectives.
 
-BLOCK TYPES AVAILABLE:
-- rich_text       — HTML with headings, callouts, tables, lists, bold keywords
-- fun_fact        — Surprising fact with emoji icon
-- reflection      — Thinking prompt with guiding questions
-- click_reveal    — Question with hidden answer
-- myth_fact       — Misconception debunked
-- workplace_example — Real-world labelled examples
-- scenario        — Branching decision situation (3 options, 1 correct)
-- knowledge_check — Quiz (single-choice or true/false)
-- case_study      — Narrative case with discussion questions
+DO NOT follow a fixed block template. EVERY lesson must have a different structure and different block selection.
 
-CONTENT MIX (10–14 blocks per lesson):
-- rich_text: 25% (intro, 1–2 concept sections with tables/callouts, summary)
-- workplace_example: 15%
-- scenario: 15%
-- fun_fact: 10%
-- reflection: 10%
-- myth_fact: 10%
-- knowledge_check: 10%
-- click_reveal: 5%
+════════════════════════════════════════
+STEP 1 — CLASSIFY THE LESSON TYPE
+════════════════════════════════════════
+Determine lesson_type from the lesson title, description, and objectives:
+- concept      → What is X? Definitions, frameworks, types, theory
+- process      → How does X work? Steps, procedures, workflows, sequences
+- skill        → How do I perform X? Practical application, technique, doing
+- compliance   → What are the requirements? Rules, regulations, legal obligations, must-do
+- case_study   → Learning from situations, incident analysis, what went wrong, decision-making
+- awareness    → Why does X matter? Context, importance, consequences, big picture
+- technical    → Technical specifications, calculations, data interpretation, engineering
 
-RICH TEXT WRITING RULES — APPLY TO EVERY rich_text BLOCK:
-1. Use <h3> subheadings inside content blocks (never <h1>/<h2>).
-2. Keep paragraphs short: 2–4 sentences maximum.
-3. Bold key terms: <strong>keyword</strong> on first use.
-4. Use callout emoji markers — place on their own <p> tag:
-   - 💡 for key insights or important definitions
-   - ⚠ for warnings, risks, or non-compliance consequences
-   - 📌 for things learners must remember
-   - ✅ for best practices or correct approaches
-   - 🔍 for worked examples or case illustrations
-5. Use <table> for ANY comparison (vs, types, before/after, roles):
-   - Always include a <thead> with column headers
-   - 2–4 columns, 3–6 data rows
-6. For processes/steps use <ol> preceded by a <h3> containing "Steps" or "Process":
-   - Format each <li> as: <strong>Step name:</strong> description
-7. Never write wall-of-text — break up with headings, callouts, bullets, tables.
-8. Address learners directly: "You", "your organisation", "your role".
+════════════════════════════════════════
+STEP 2 — CONTENT BLOCK CATALOG
+════════════════════════════════════════
+Available blocks with WHEN TO USE each:
 
-OUTPUT RULES — MUST FOLLOW EXACTLY:
-- Output ONLY valid JSON — no markdown, no prose, no code fences.
-- JSON must be parseable by PHP json_decode() with zero errors.
-- HTML inside "content" fields: only <p> <strong> <b> <em> <ul> <ol> <li> <h3> <br> <table> <thead> <tbody> <tr> <th> <td> <hr> <blockquote>
-- No double-quotes inside HTML attribute values — use single quotes or omit attributes.
+[RICH TEXT — backbone of every lesson, use 3–6 per lesson]
+rich_text — Flexible HTML block. Vary the content style each time:
+  • INTRODUCTION: Context-setting opener. Why this lesson matters. What the learner will gain.
+  • DEFINITION CARD: Key term defined precisely using standards or industry practice. Use: <p><strong>Term:</strong> definition</p>
+  • COMPARISON TABLE: Use ONLY when comparing 2+ things (types, before/after, approaches, roles). Never use tables for lists.
+  • PROCESS FLOW: Step-by-step procedure. Use: <h3>Steps: [Process Name]</h3><ol><li><strong>Step:</strong> description</li>...</ol>
+  • REQUIREMENTS LIST: For compliance content. Use: <h3>Key Requirements</h3><ul><li>✅ Requirement</li>...</ul>
+  • BEST PRACTICES: For skill/awareness. Use: <ul><li>✅ <strong>Practice:</strong> Explanation</li>...</ul>
+  • RED FLAG / COMMON MISTAKE: For compliance/skill. Use callout: <p>⚠ <strong>Red Flag:</strong> description</p>
+  • LESSON SUMMARY: Final block. Bullet-point key takeaways with ✅ icons.
+
+[ENGAGEMENT BLOCKS — select based on fit, not formula]
+fun_fact         — A surprising statistic, counterintuitive fact, or memorable number. SKIP if no genuinely surprising fact exists.
+myth_fact        — A common misconception professionals hold, debunked. SKIP if no clear myth applies to this topic.
+click_reveal     — "Think before you answer" moment. A question with a hidden answer. Works for all lesson types.
+reflection       — Connects theory to personal practice. Best for concept, awareness, and compliance lessons.
+workplace_example — Real-world application across 2–3 industries. SKIP for highly theoretical or purely technical topics.
+case_study       — Realistic workplace incident/situation illustrating the lesson. Best for skill, compliance, case_study lessons.
+
+[INTERACTIVE BLOCKS — include 1–3 per lesson]
+scenario         — Workplace decision with 3 options (1 correct). Best for skill, compliance, process lessons. MUST have realistic options.
+knowledge_check  — Quiz question testing lesson content. Use: "single" (4 MCQ options) or "truefalse" (True/False). Include 1–2 per lesson minimum.
+
+════════════════════════════════════════
+STEP 3 — LESSON TYPE → BLOCK STRATEGY
+════════════════════════════════════════
+Select blocks that best serve the learning objectives. These are GUIDELINES, not fixed templates:
+
+CONCEPT lesson (8–10 blocks):
+  rich_text(intro) → [fun_fact OR myth_fact] → rich_text(definitions/comparison) → click_reveal → reflection → [workplace_example] → knowledge_check(single) → rich_text(summary)
+
+PROCESS lesson (8–10 blocks):
+  rich_text(intro+context) → rich_text(process flow with steps) → [fun_fact] → scenario(applying the process) → click_reveal → [case_study OR workplace_example] → knowledge_check(truefalse) → rich_text(summary)
+
+SKILL lesson (10–12 blocks):
+  rich_text(intro+why) → rich_text(prerequisites/context) → rich_text(how-to steps) → scenario → [workplace_example] → case_study → reflection → knowledge_check(single) → knowledge_check(truefalse) → rich_text(summary)
+
+COMPLIANCE lesson (10–12 blocks):
+  rich_text(intro+importance) → rich_text(requirements list) → myth_fact → rich_text(red flags/common mistakes) → scenario → case_study → click_reveal → knowledge_check(single) → rich_text(best practices+summary)
+
+CASE_STUDY lesson (8–10 blocks):
+  rich_text(intro+context) → rich_text(background) → case_study → reflection → click_reveal → scenario → knowledge_check(single) → rich_text(lessons learned)
+
+AWARENESS lesson (8–10 blocks):
+  rich_text(intro+big picture) → fun_fact → rich_text(why it matters) → myth_fact → [workplace_example] → reflection → click_reveal → knowledge_check(truefalse) → rich_text(summary)
+
+TECHNICAL lesson (10–12 blocks):
+  rich_text(intro+context) → rich_text(technical content with table/specs) → rich_text(worked example) → fun_fact → rich_text(common mistakes) → click_reveal → scenario → knowledge_check(single) → rich_text(summary)
+
+════════════════════════════════════════
+STEP 4 — TITLE VARIATION (MANDATORY)
+════════════════════════════════════════
+NEVER repeat the same block title within a lesson. Choose varied titles:
+
+Workplace/Real-World blocks → rotate: "Real-World Application" | "In the Field" | "Industry Practice" | "Factory Floor Reality" | "What This Looks Like" | "Auditor's Perspective" | "Lessons from Industry" | "On the Job" | "How It Works in Practice"
+
+Knowledge Check → rotate: "Quick Check" | "Test Your Understanding" | "Check Your Knowledge" | "Before You Continue" | "Checkpoint" | "Apply What You Know" | "Quick Assessment"
+
+Lesson Summary → rotate: "Key Takeaways" | "What You Learned" | "Lesson Recap" | "Remember These Points" | "Core Principles" | "Putting It All Together" | "Take This Forward"
+
+Scenario → rotate: "Workplace Decision" | "What Would You Do?" | "Your Next Step" | "Decision Point" | "Critical Moment" | "Consider This Situation" | "Real-World Challenge"
+
+Case Study → rotate: "Real-World Case" | "Incident Analysis" | "Lessons Learned" | "Case Review" | "What Happened Here?" | "Examining the Evidence" | "Learning from Experience"
+
+Click Reveal → rotate: "Think About It" | "Before You Read On" | "Hidden Insight" | "Unlock the Answer" | "Test Your Instinct" | "Consider This"
+
+Reflection → rotate: "Reflect on Your Practice" | "Apply to Your Workplace" | "Your Experience" | "Think About Your Role" | "Personal Application"
+
+Fun Fact → rotate: "Did You Know?" | "Surprising Fact" | "Industry Insight" | "By the Numbers" | "The Reality Is…" | "Think About This"
+
+════════════════════════════════════════
+RICH TEXT FORMATTING RULES
+════════════════════════════════════════
+Apply to EVERY rich_text block:
+1. Use <h3> subheadings (never <h1>/<h2>)
+2. Short paragraphs: 2–4 sentences maximum
+3. Bold key terms: <strong>term</strong> on first use only
+4. Callout emojis — place each on its own <p> tag:
+   💡 key insight or important definition
+   ⚠ warning, risk, or consequence of non-compliance
+   📌 must-remember requirement or rule
+   ✅ best practice or correct approach
+   🔍 worked example or case illustration
+5. Tables ONLY for genuine comparisons — 2–4 columns, 3–6 rows, always include <thead>
+6. Process steps: <ol> with <li><strong>Step name:</strong> description</li>
+7. Never write walls of text — break up with headings, callouts, bullets, tables
+8. Address learners: "you", "your organisation", "your role"
+
+════════════════════════════════════════
+OUTPUT RULES — NON-NEGOTIABLE
+════════════════════════════════════════
+- Output ONLY valid JSON starting with { and ending with }
+- No markdown fences, no prose before or after, no explanations
+- HTML in "content" fields: ONLY use <p> <strong> <b> <em> <ul> <ol> <li> <h3> <br> <table> <thead> <tbody> <tr> <th> <td> <hr>
+- No double-quotes inside HTML attributes — use single quotes or omit attributes entirely
 - Escape all literal double-quotes in JSON strings as \"
-- Use "kc_type" (not "type") for knowledge_check question type.
+- "kc_type" field (not "type") for knowledge_check question type
+- Minimum 8 blocks, maximum 14 blocks per lesson
+- First block: always rich_text introduction
+- Last block: always rich_text summary/takeaways
 SYS,
 
                 'user_prompt_template' => <<<'USR'
-Generate a complete self-paced eLearning lesson for:
+Generate a complete self-paced eLearning lesson using the AI Instructional Design Engine.
 
 {input}
 
-Return a SINGLE JSON object with this structure:
+INSTRUCTIONS:
+1. Classify this lesson based on the title, description, and objectives
+2. Select 8–14 content blocks appropriate for the classified lesson type
+3. Do NOT follow a fixed block template — compose based on what THIS lesson needs
+4. Vary ALL block titles — no repeated titles in the same lesson
+5. Format rich_text using the appropriate style (definitions, comparisons, process flow, checklists, etc.)
+6. Only use workplace_example if real industry context genuinely applies
+7. Only use comparison table if two or more things are actually being compared
+8. Only include fun_fact if a genuinely surprising fact exists for this topic
+
+Return a SINGLE JSON object:
 
 {
+  "lesson_type": "concept|process|skill|compliance|case_study|awareness|technical",
   "blocks": [
 
     {
       "type": "rich_text",
-      "title": "Introduction — [Lesson Topic]",
-      "content": "<p>Opening paragraph — set context, explain why this matters in the workplace. Address the learner directly.</p><p>💡 <strong>Key Point:</strong> What the learner will be able to do after completing this lesson.</p>"
+      "title": "Introduction — [Specific Lesson Topic]",
+      "content": "<p>Opening paragraph — set context, explain why this matters in the workplace. Address the learner directly using 'you' and 'your organisation'.</p><p>💡 <strong>What you will learn:</strong> A clear statement of what the learner can do after completing this lesson.</p>"
     },
 
     {
       "type": "fun_fact",
       "title": "Did You Know?",
       "icon": "💡",
-      "ff_title": "Short punchy heading",
-      "ff_content": "A specific, surprising, memorable fact about this topic that professionals often don't know."
+      "ff_title": "Short punchy heading — 5–8 words",
+      "ff_content": "A specific, surprising, memorable fact about this topic that professionals often overlook. Must be relevant to the lesson content."
     },
 
     {
       "type": "myth_fact",
       "title": "Common Misconception",
-      "myth": "A widely-held false belief about this topic — written as a confident-sounding statement.",
-      "fact": "The actual correct information — specific, authoritative, backed by standards or evidence."
+      "myth": "A widely-held false belief about this topic — stated as a confident-sounding claim.",
+      "fact": "The correct information — specific, authoritative, backed by standards or evidence."
     },
 
     {
       "type": "rich_text",
-      "title": "Core Concepts: [Heading]",
-      "content": "<h3>Key Definitions</h3><p><strong>Term One:</strong> Clear definition of the first key term in this topic.</p><p><strong>Term Two:</strong> Clear definition of the second key term.</p><h3>Comparison: [Type A] vs [Type B]</h3><table><thead><tr><th>Aspect</th><th>[Type A]</th><th>[Type B]</th></tr></thead><tbody><tr><td>Definition</td><td>What Type A is</td><td>What Type B is</td></tr><tr><td>Example</td><td>Real example A</td><td>Real example B</td></tr><tr><td>Responsibility</td><td>Who handles A</td><td>Who handles B</td></tr></tbody></table><p>⚠ <strong>Important:</strong> A consequence or warning that professionals must understand about this topic.</p>"
+      "title": "[Choose a descriptive title — e.g. 'Core Concept: What is X', 'Requirements: Key Obligations', 'Process: How to Conduct Y']",
+      "content": "<h3>[Subheading]</h3><p>Content paragraph.</p><p>⚠ <strong>Important:</strong> A warning or consequence relevant to this topic.</p><table><thead><tr><th>Aspect</th><th>Option A</th><th>Option B</th></tr></thead><tbody><tr><td>Characteristic</td><td>Value</td><td>Value</td></tr></tbody></table>"
     },
 
     {
       "type": "workplace_example",
       "title": "In Practice",
       "examples": [
-        {"context": "Manufacturing", "description": "Specific real-world application in manufacturing — what a practitioner would see, do, or decide."},
-        {"context": "Healthcare", "description": "Specific application in a healthcare setting."},
-        {"context": "Construction", "description": "Specific application on a construction project."}
+        {"context": "Manufacturing", "description": "Specific real-world application — what a practitioner would see, decide, or do."},
+        {"context": "Construction", "description": "Specific application in a construction context."},
+        {"context": "Healthcare", "description": "Specific application in a healthcare or services context."}
       ]
-    },
-
-    {
-      "type": "rich_text",
-      "title": "The Process: [Heading]",
-      "content": "<p>Brief intro to the process — why it exists and who is responsible.</p><h3>Steps in the [Process Name] Process</h3><ol><li><strong>Step One:</strong> Description of what happens in this step and why.</li><li><strong>Step Two:</strong> Description of the second step.</li><li><strong>Step Three:</strong> Description of the third step.</li><li><strong>Step Four:</strong> Description of the final step and expected outcome.</li></ol><p>📌 <strong>Remember:</strong> A key requirement or obligation that must not be missed in this process.</p>"
     },
 
     {
@@ -143,7 +217,7 @@ Return a SINGLE JSON object with this structure:
       "title": "Think About It",
       "question": "A thought-provoking question that requires the learner to think before seeing the answer.",
       "answer": "The concise correct answer — 1–2 sentences.",
-      "explanation": "Why this answer matters — link to workplace practice or a specific standard."
+      "explanation": "Why this matters — link to workplace practice or a specific standard requirement."
     },
 
     {
@@ -152,26 +226,26 @@ Return a SINGLE JSON object with this structure:
       "prompt": "Think about your current workplace or a recent project you have been involved in.",
       "questions": [
         "How does [topic] currently apply in your organisation?",
-        "What gaps or areas for improvement do you see?",
+        "What gaps or areas for improvement can you identify?",
         "What one concrete action could you take this week based on what you have learned?"
       ]
     },
 
     {
       "type": "scenario",
-      "title": "Workplace Scenario",
-      "text": "A 2–3 sentence realistic workplace situation directly related to this lesson topic. End with: 'What should you do next?'",
+      "title": "Workplace Decision",
+      "text": "A 2–3 sentence realistic workplace situation directly related to this lesson. End with: 'What should you do next?'",
       "options": [
-        {"text": "Best-practice correct action — what a competent professional would do", "correct": true, "explanation": "This is correct because it follows [specific requirement or principle from the lesson]."},
-        {"text": "Plausible but incomplete or delayed action", "correct": false, "explanation": "This misses [specific step] because..."},
+        {"text": "Best-practice correct action — what a competent professional would do", "correct": true, "explanation": "This is correct because it follows [specific requirement or principle from this lesson]."},
+        {"text": "Plausible but incomplete or delayed action", "correct": false, "explanation": "This misses [specific step or requirement] because..."},
         {"text": "Common mistake that seems reasonable but violates requirements", "correct": false, "explanation": "This is incorrect because it [violates / ignores / skips]..."}
       ]
     },
 
     {
       "type": "knowledge_check",
-      "title": "Knowledge Check",
-      "question": "A specific multiple-choice question directly answerable from the lesson content?",
+      "title": "Quick Check",
+      "question": "A specific question directly answerable from the lesson content?",
       "kc_type": "single",
       "options": [
         {"text": "Correct answer", "correct": true},
@@ -179,13 +253,13 @@ Return a SINGLE JSON object with this structure:
         {"text": "Plausible wrong answer B", "correct": false},
         {"text": "Plausible wrong answer C", "correct": false}
       ],
-      "explanation": "The correct answer is [option] because [reason tied to lesson content]."
+      "explanation": "The correct answer is [option] because [reason tied directly to lesson content]."
     },
 
     {
       "type": "case_study",
-      "title": "Case Study",
-      "case_description": "A 3–5 sentence realistic case narrative. Include specific details: organisation type, situation, what happened, what decision needs to be made.",
+      "title": "Case Review",
+      "case_description": "A 3–5 sentence realistic case narrative. Include: organisation type, situation, what happened, what decision needs to be made. Make it specific to this lesson topic.",
       "questions": [
         "What are the key issues in this case?",
         "What should the responsible professional have done differently?",
@@ -197,40 +271,37 @@ Return a SINGLE JSON object with this structure:
     {
       "type": "knowledge_check",
       "title": "True or False",
-      "question": "A clear declarative statement about this lesson — learner decides if it is true or false.",
+      "question": "A clear statement about this lesson topic — the learner decides if it is true or false.",
       "kc_type": "truefalse",
       "options": [
         {"text": "True", "correct": true},
         {"text": "False", "correct": false}
       ],
-      "explanation": "This is true/false because [explanation tied directly to lesson content]."
+      "explanation": "This is [true/false] because [explanation tied directly to lesson content]."
     },
 
     {
       "type": "rich_text",
-      "title": "Lesson Summary",
-      "content": "<p>Brief recap of what was covered and why it matters for professional practice.</p><ul><li>✅ <strong>Key takeaway one</strong> — brief elaboration</li><li>✅ <strong>Key takeaway two</strong> — brief elaboration</li><li>✅ <strong>Key takeaway three</strong> — brief elaboration</li></ul><p>📌 <strong>Remember:</strong> The single most important thing a practitioner must take away from this lesson.</p>"
+      "title": "Key Takeaways",
+      "content": "<p>Brief recap of what was covered and why it matters for professional practice.</p><ul><li>✅ <strong>Takeaway one</strong> — brief elaboration</li><li>✅ <strong>Takeaway two</strong> — brief elaboration</li><li>✅ <strong>Takeaway three</strong> — brief elaboration</li></ul><p>📌 <strong>Remember:</strong> The single most important thing a practitioner must take away from this lesson.</p>"
     }
 
   ]
 }
 
-DESIGN INSTRUCTIONS:
-- You may reorder blocks between introduction and summary for variety.
-- Add or remove blocks to hit 10–14 total (keep the required minimum types).
-- Every rich_text block MUST contain at least one callout emoji paragraph, one <strong> keyword, and where applicable a <table> or <ol>.
-- Make each lesson unique in structure — rotate which blocks appear in which order.
-- Required minimum: 1 fun_fact, 1 myth_fact, 1 reflection, 1 click_reveal, 1 workplace_example, 1 scenario, 1 knowledge_check single, 1 knowledge_check truefalse, 1 rich_text intro, 1 rich_text summary.
+IMPORTANT: The examples above are BLOCK TYPE REFERENCES only — they show the JSON structure for each type.
+You MUST compose a lesson with blocks appropriate for THIS specific lesson, in an order that makes sense for the lesson type.
+Do not copy the example blocks verbatim. Generate unique, topic-specific content for every field.
 USR,
 
                 'model_override'  => null,
-                'temperature'     => 0.6,
-                'max_tokens'      => 7000,
+                'temperature'     => 0.65,
+                'max_tokens'      => 8000,
                 'is_active'       => true,
-                'version_number'  => 3,
+                'version_number'  => 4,
             ]
         );
 
-        $this->command->info('✅ AI Lesson Content Generator v3 (Visual Content Engine) seeded.');
+        $this->command->info('✅ AI Lesson Content Generator v4 (AI Instructional Design Engine) seeded.');
     }
 }

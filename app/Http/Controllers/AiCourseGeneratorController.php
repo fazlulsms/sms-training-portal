@@ -289,14 +289,16 @@ class AiCourseGeneratorController extends Controller
                     $lessonOrder = 1;
                     foreach ($aiOutput['modules'] ?? [] as $module) {
                         foreach ($module['lessons'] ?? [] as $lessonData) {
+                            $rawObjs = $lessonData['learning_objectives'] ?? null;
                             ElearningLesson::create([
                                 'course_id'           => $course->id,
                                 'title'               => $lessonData['title'] ?? 'Untitled Lesson',
                                 'short_description'   => $lessonData['description'] ?? null,
-                                'learning_objectives' => isset($lessonData['learning_objectives'])
-                                    ? (is_array($lessonData['learning_objectives'])
-                                        ? implode("\n", $lessonData['learning_objectives'])
-                                        : $lessonData['learning_objectives'])
+                                'learning_objectives' => $rawObjs
+                                    ? (is_array($rawObjs) ? implode("\n", $rawObjs) : $rawObjs)
+                                    : null,
+                                'duration_minutes'    => isset($lessonData['duration_minutes'])
+                                    ? (int) $lessonData['duration_minutes']
                                     : null,
                                 'lesson_order'        => $lessonOrder++,
                                 'status'              => 'draft',
@@ -359,20 +361,34 @@ class AiCourseGeneratorController extends Controller
         }
 
         // Build module → lessons mapping from stored AI structure
-        $aiStructure = $course->ai_course_structure ?? [];
-        $modules     = [];
-        $lessonIdx   = 0;
+        $aiStructure    = $course->ai_course_structure ?? [];
+        $modules        = [];
+        $lessonIdx      = 0;
+        $totalLessonMin = 0;
 
         if (!empty($aiStructure['modules'])) {
             foreach ($aiStructure['modules'] as $modIndex => $moduleData) {
-                $count         = count($moduleData['lessons'] ?? []);
+                $aiLessons     = $moduleData['lessons'] ?? [];
+                $count         = count($aiLessons);
                 $moduleLessons = [];
+
                 for ($i = 0; $i < $count; $i++) {
                     if ($lessons->has($lessonIdx)) {
-                        $moduleLessons[] = $lessons->values()->get($lessonIdx);
+                        $record           = $lessons->values()->get($lessonIdx);
+                        $aiLesson         = $aiLessons[$i] ?? [];
+                        $durationMin      = (int) ($aiLesson['duration_minutes'] ?? $record->duration_minutes ?? 0);
+                        $totalLessonMin  += $durationMin;
+
+                        $moduleLessons[] = [
+                            'id'              => $record->id,
+                            'title'           => $record->title,
+                            'lesson_type'     => $aiLesson['lesson_type'] ?? 'concept',
+                            'duration_minutes' => $durationMin,
+                        ];
                         $lessonIdx++;
                     }
                 }
+
                 if (!empty($moduleLessons)) {
                     $modules[] = [
                         'index'   => $modIndex + 1,
@@ -384,11 +400,32 @@ class AiCourseGeneratorController extends Controller
         }
 
         if (empty($modules)) {
-            $modules = [['index' => 1, 'title' => 'Course Lessons', 'lessons' => $lessons->all()]];
+            $fallbackLessons = $lessons->values()->map(fn($l) => [
+                'id'              => $l->id,
+                'title'           => $l->title,
+                'lesson_type'     => 'concept',
+                'duration_minutes' => (int) ($l->duration_minutes ?? 0),
+            ])->all();
+            $modules = [['index' => 1, 'title' => 'Course Lessons', 'lessons' => $fallbackLessons]];
         }
 
+        // Duration warning: if AI-planned duration exceeds requested by >15%
+        $requestedMinutes = 0;
+        $durationStr      = $course->duration ?? '';
+        if (preg_match('/(\d+(?:\.\d+)?)\s*hour/i', $durationStr, $m)) {
+            $requestedMinutes = (int) round((float)$m[1] * 60);
+        } elseif (preg_match('/(\d+)\s*day/i', $durationStr, $m)) {
+            $requestedMinutes = (int)$m[1] * 8 * 60;
+        } elseif (preg_match('/(\d+)\s*min/i', $durationStr, $m)) {
+            $requestedMinutes = (int)$m[1];
+        }
+
+        $durationWarning = ($totalLessonMin > 0 && $requestedMinutes > 0
+            && $totalLessonMin > $requestedMinutes * 1.15);
+
         return view('ai.course-generator.generation-progress', compact(
-            'course', 'lessons', 'level', 'modules'
+            'course', 'lessons', 'level', 'modules',
+            'totalLessonMin', 'requestedMinutes', 'durationWarning'
         ));
     }
 
@@ -399,11 +436,19 @@ class AiCourseGeneratorController extends Controller
     {
         $this->guardSuperAdmin();
 
-        $lessonId = (int) $request->input('lesson_id');
-        $level    = $request->input('level', 'Professional');
+        $lessonId     = (int) $request->input('lesson_id');
+        $level        = $request->input('level', 'Professional');
+        $lessonType   = $request->input('lesson_type', 'concept');
+        $lessonNumber = max(1, (int) $request->input('lesson_number', 1));
+        $totalLessons = max(1, (int) $request->input('total_lessons', 1));
 
         if (!in_array($level, ['Awareness', 'Professional', 'Advanced'])) {
             $level = 'Professional';
+        }
+
+        $validTypes = ['concept', 'process', 'skill', 'compliance', 'case_study', 'awareness', 'technical'];
+        if (!in_array($lessonType, $validTypes)) {
+            $lessonType = 'concept';
         }
 
         $lesson = ElearningLesson::where('course_id', $course->id)
@@ -414,7 +459,9 @@ class AiCourseGeneratorController extends Controller
             return response()->json(['success' => false, 'error' => 'Lesson not found'], 404);
         }
 
-        $count = AiLessonContentController::generateAndSaveBlocks($course, $lesson, $level);
+        $count = AiLessonContentController::generateAndSaveBlocks(
+            $course, $lesson, $level, $lessonType, $lessonNumber, $totalLessons
+        );
 
         return response()->json([
             'success'        => $count > 0,
@@ -480,17 +527,18 @@ Return a JSON object:
         "d": "Option D text"
       },
       "correct_answer": "a",
-      "explanation": "Why A is correct, with reference to the lesson."
+      "explanation": "Why A is correct, with specific reference to the lesson content."
     }
   ]
 }
 
 Rules:
-- Questions must be answerable from the lesson content above
+- Questions must be directly answerable from the lesson content above
 - One clearly correct answer per question
 - Make distractors plausible but wrong
 - correct_answer must be "a", "b", "c", or "d"
-- Include one true/false question (use "a": "True", "b": "False", "c": "Sometimes", "d": "Never")
+- Include one true/false question (use "a": "True", "b": "False", "c": "Sometimes", "d": "Not applicable")
+- Every question must include an explanation field
 USR;
 
         try {
@@ -536,24 +584,27 @@ USR;
             foreach ($decoded['questions'] as $q) {
                 if (empty($q['question_text']) || empty($q['options'])) continue;
                 ElearningQuizQuestion::create([
-                    'quiz_id'       => $quiz->id,
-                    'question_text' => $q['question_text'],
-                    'question_type' => 'mcq',
-                    'option_a'      => $q['options']['a'] ?? '',
-                    'option_b'      => $q['options']['b'] ?? '',
-                    'option_c'      => $q['options']['c'] ?? '',
-                    'option_d'      => $q['options']['d'] ?? '',
+                    'quiz_id'        => $quiz->id,
+                    'question_text'  => $q['question_text'],
+                    'question_type'  => 'mcq',
+                    'option_a'       => $q['options']['a'] ?? '',
+                    'option_b'       => $q['options']['b'] ?? '',
+                    'option_c'       => $q['options']['c'] ?? '',
+                    'option_d'       => $q['options']['d'] ?? '',
                     'correct_answer' => strtolower($q['correct_answer'] ?? 'a'),
-                    'marks'         => 1,
-                    'status'        => 'active',
+                    'explanation'    => $q['explanation'] ?? null,
+                    'difficulty'     => 'medium',
+                    'module_index'   => $moduleIndex,
+                    'marks'          => 1,
+                    'status'         => 'active',
                 ]);
                 $created++;
             }
 
             return response()->json([
-                'success'          => true,
-                'module_title'     => $moduleTitle,
-                'quiz_lesson_id'   => $quizLesson->id,
+                'success'           => true,
+                'module_title'      => $moduleTitle,
+                'quiz_lesson_id'    => $quizLesson->id,
                 'questions_created' => $created,
             ]);
 
@@ -561,6 +612,181 @@ USR;
             Log::error('AiCourseGenerator: module quiz failed', [
                 'course_id' => $course->id,
                 'module'    => $moduleTitle,
+                'error'     => $e->getMessage(),
+            ]);
+            return response()->json(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
+    // ── Mode B: Generate Final Assessment (AJAX) ─────────────────
+    // POST /admin/ai/course-generator/{course}/generate-final-assessment
+
+    public function generateFinalAssessment(Request $request, Course $course)
+    {
+        $this->guardSuperAdmin();
+
+        if (!config('ai.enabled', false)) {
+            return response()->json(['success' => false, 'error' => 'AI disabled'], 403);
+        }
+
+        $level = $request->input('level', 'Professional');
+        if (!in_array($level, ['Awareness', 'Professional', 'Advanced'])) {
+            $level = 'Professional';
+        }
+
+        $questionCount = match ($level) {
+            'Awareness' => 15,
+            'Advanced'  => 25,
+            default     => 20,
+        };
+
+        // Collect module summaries from AI structure
+        $aiStructure = $course->ai_course_structure ?? [];
+        $moduleSummaries = [];
+        foreach ($aiStructure['modules'] ?? [] as $idx => $mod) {
+            $lessonTitles = collect($mod['lessons'] ?? [])->pluck('title')->implode('; ');
+            $moduleSummaries[] = 'Module ' . ($idx + 1) . ': ' . ($mod['title'] ?? '') . ' — Lessons: ' . $lessonTitles;
+        }
+        $modulesText = implode("\n", $moduleSummaries) ?: 'All course modules';
+
+        // Collect course learning objectives
+        $objectives = collect(preg_split('/[\n,]+/', $course->learning_objectives ?? ''))
+            ->map(fn($s) => trim($s))
+            ->filter()
+            ->implode('; ') ?: 'Not specified';
+
+        $mcqCount      = (int) round($questionCount * 0.60);
+        $tfCount       = (int) round($questionCount * 0.25);
+        $scenarioCount = $questionCount - $mcqCount - $tfCount;
+
+        $userPrompt = <<<USR
+Generate a comprehensive final course assessment with EXACTLY {$questionCount} questions.
+
+Course: {$course->name}
+Level: {$level}
+Course Learning Objectives: {$objectives}
+
+Modules Covered:
+{$modulesText}
+
+Question Distribution (EXACTLY):
+- {$mcqCount} Multiple Choice (MCQ) — 4 options (a, b, c, d), one correct
+- {$tfCount} True/False — options a=True, b=False
+- {$scenarioCount} Scenario-Based — realistic workplace scenario followed by 4 options
+
+For each question, include:
+- question_text: Clear, specific question from the course content
+- question_type: "mcq" | "truefalse" | "scenario"
+- difficulty: "easy" | "medium" | "hard" (distribute evenly across the assessment)
+- module_index: integer (1-based) indicating which module this question covers
+- options: {"a": "...", "b": "...", "c": "...", "d": "..."} (truefalse uses a=True, b=False only)
+- correct_answer: "a" | "b" | "c" | "d"
+- explanation: 1–2 sentences explaining why the answer is correct, with reference to specific course content
+
+RULES:
+- Questions must cover ALL modules proportionally
+- Every question must be answerable from the course content above
+- One clearly correct answer per question; make distractors plausible but wrong
+- Scenario questions: 2–3 sentence workplace situation followed by "What should you do?"
+- Do NOT repeat questions from module quizzes; focus on synthesis and application
+- Difficulty distribution: ~30% easy, ~50% medium, ~20% hard
+
+Return ONLY a valid JSON object (no markdown, no code fences):
+{
+  "questions": [
+    {
+      "question_text": "...",
+      "question_type": "mcq|truefalse|scenario",
+      "difficulty": "easy|medium|hard",
+      "module_index": 1,
+      "options": {"a": "...", "b": "...", "c": "...", "d": "..."},
+      "correct_answer": "a",
+      "explanation": "..."
+    }
+  ]
+}
+USR;
+
+        try {
+            $ai         = app(OpenAIService::class);
+            $sysPrompt  = "ROLE: You are an expert eLearning assessment designer. Output ONLY valid JSON — no markdown fences, no prose before or after the JSON.\n\n";
+            $result     = $ai->generateText($sysPrompt . $userPrompt, 'final_assessment', auth()->id(), 5000);
+
+            if (!$result['success']) {
+                return response()->json(['success' => false, 'error' => $result['error'] ?? 'AI failed']);
+            }
+
+            $raw = trim($result['text'] ?? '');
+            $raw = preg_replace('/^```json\s*/i', '', $raw);
+            $raw = preg_replace('/```\s*$/', '', trim($raw));
+
+            $decoded = json_decode($raw, true);
+            if (!is_array($decoded) || empty($decoded['questions'])) {
+                return response()->json(['success' => false, 'error' => 'AI returned invalid format for final assessment']);
+            }
+
+            // Create Final Assessment lesson
+            $finalLesson = ElearningLesson::create([
+                'course_id'              => $course->id,
+                'title'                  => 'Final Course Assessment: ' . $course->name,
+                'short_description'      => 'Comprehensive final assessment covering all modules. Pass mark: 70%. Maximum 2 attempts.',
+                'lesson_order'           => ElearningLesson::where('course_id', $course->id)->max('lesson_order') + 1,
+                'status'                 => 'draft',
+                'lesson_type'            => 'assessment',
+                'completion_rule'        => 'pass_quiz',
+                'required_passing_score' => 70,
+            ]);
+
+            // Create quiz
+            $quiz = ElearningQuiz::create([
+                'lesson_id'   => $finalLesson->id,
+                'title'       => 'Final Assessment — ' . $course->name,
+                'description' => "This comprehensive assessment tests your understanding of all course modules. You must score at least 70% to pass. You have {$questionCount} questions and 2 attempts.",
+                'pass_mark'   => 70,
+                'max_attempt' => 2,
+                'status'      => 'active',
+            ]);
+
+            $created = 0;
+            foreach ($decoded['questions'] as $q) {
+                if (empty($q['question_text']) || empty($q['options'])) continue;
+
+                $opts        = $q['options'];
+                $correctKey  = strtolower($q['correct_answer'] ?? 'a');
+                $qType       = $q['question_type'] ?? 'mcq';
+                $difficulty  = in_array($q['difficulty'] ?? 'medium', ['easy', 'medium', 'hard'])
+                    ? $q['difficulty']
+                    : 'medium';
+
+                ElearningQuizQuestion::create([
+                    'quiz_id'        => $quiz->id,
+                    'question_text'  => $q['question_text'],
+                    'question_type'  => $qType,
+                    'option_a'       => $opts['a'] ?? '',
+                    'option_b'       => $opts['b'] ?? '',
+                    'option_c'       => $qType === 'truefalse' ? null : ($opts['c'] ?? ''),
+                    'option_d'       => $qType === 'truefalse' ? null : ($opts['d'] ?? ''),
+                    'correct_answer' => $correctKey,
+                    'explanation'    => $q['explanation'] ?? null,
+                    'difficulty'     => $difficulty,
+                    'module_index'   => isset($q['module_index']) ? (int)$q['module_index'] : null,
+                    'marks'          => 1,
+                    'status'         => 'active',
+                ]);
+                $created++;
+            }
+
+            return response()->json([
+                'success'            => true,
+                'quiz_lesson_id'     => $finalLesson->id,
+                'questions_created'  => $created,
+                'pass_mark'          => 70,
+                'max_attempts'       => 2,
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('AiCourseGenerator: final assessment failed', [
+                'course_id' => $course->id,
                 'error'     => $e->getMessage(),
             ]);
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
