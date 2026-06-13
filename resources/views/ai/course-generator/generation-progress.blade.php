@@ -111,7 +111,7 @@
             </div>
 
             {{-- Completed Panel --}}
-            <div id="completed-panel" class="d-none">
+            <div id="completed-panel" class="d-none" style="display:none!important">
                 <div class="alert alert-success d-flex align-items-center gap-3">
                     <i class="fas fa-check-circle fa-2x text-success flex-shrink-0"></i>
                     <div>
@@ -130,7 +130,7 @@
             </div>
 
             {{-- Failed Panel --}}
-            <div id="failed-panel" class="d-none">
+            <div id="failed-panel" class="d-none" style="display:none!important">
                 <div class="alert alert-danger d-flex align-items-center gap-3">
                     <i class="fas fa-exclamation-triangle fa-2x text-danger flex-shrink-0"></i>
                     <div>
@@ -164,10 +164,24 @@
 
 <script>
 (function () {
-    const STATUS_URL = '{{ route('ai.course-generator.generation-status', $course->id) }}';
-    const POLL_MS    = 3000;
-    let   timer      = null;
-    let   stopped    = false;
+    var STATUS_URL = "{{ route('ai.course-generator.generation-status', $course->id) }}";
+    var POLL_MS    = 3000;
+    var timer      = null;
+    var stopped    = false;
+
+    // Ensure panels are hidden on init (belt-and-suspenders)
+    function hidePanel(id) {
+        var el = document.getElementById(id);
+        if (el) { el.classList.add('d-none'); el.style.display = 'none'; }
+    }
+    function showPanel(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('d-none');
+        el.style.display = '';
+    }
+    hidePanel('completed-panel');
+    hidePanel('failed-panel');
 
     function updatePhase(phase) {
         var phases = { lessons: 1, module_quiz: 2, final_assessment: 3, completed: 3 };
@@ -189,9 +203,13 @@
     function poll() {
         if (stopped) return;
 
-        fetch(STATUS_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then(function(r) { return r.json(); })
+        fetch(STATUS_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Cache-Control': 'no-cache' } })
+            .then(function(r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
             .then(function(data) {
+                if (stopped) return; // guard: don't process stale responses
                 var status   = data.gen_status   || 'none';
                 var progress = data.gen_progress || {};
 
@@ -227,7 +245,6 @@
 
                 } else if (status === 'completed') {
                     stopped = true;
-                    clearTimeout(timer);
 
                     setText('status-text', 'Generation Complete!');
                     var spinner = document.getElementById('status-spinner');
@@ -247,7 +264,8 @@
                     });
 
                     setText('completed-summary', step);
-                    document.getElementById('completed-panel').classList.remove('d-none');
+                    hidePanel('failed-panel');   // ensure failed is hidden
+                    showPanel('completed-panel');
                     var sub = document.getElementById('status-sub');
                     if (sub) sub.classList.add('d-none');
                     setText('lessons-counter', 'Lessons: ' + done + ' / ' + total);
@@ -255,7 +273,6 @@
 
                 } else if (status === 'failed') {
                     stopped = true;
-                    clearTimeout(timer);
 
                     setText('status-text', 'Generation Failed');
                     var spinner2 = document.getElementById('status-spinner');
@@ -267,7 +284,8 @@
                     }
 
                     setText('failed-error', progress.error || step || 'Unknown error. Check server logs.');
-                    document.getElementById('failed-panel').classList.remove('d-none');
+                    hidePanel('completed-panel');  // ensure completed is hidden
+                    showPanel('failed-panel');
                     var sub2 = document.getElementById('status-sub');
                     if (sub2) sub2.classList.add('d-none');
                 }
