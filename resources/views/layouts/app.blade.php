@@ -545,11 +545,45 @@
 
         <div class="sb-divider"></div>
 
+        {{-- C5. Content & Media ─────────────────────────── --}}
+        @php $contentActive = request()->is('admin/training-news*') || request()->is('admin/training-media*'); @endphp
+        <div class="sb-group" style="--sg-accent:#f472b6;"
+             x-data="{ open: {{ $contentActive ? 'true' : 'false' }} }">
+
+            <div class="sb-group-header" @click="open = !open">
+                <div class="sb-group-label" style="color:#f472b6;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10l6 6v8a2 2 0 0 1-2 2z"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+                    Content & Media
+                </div>
+                <svg class="sb-chevron" :class="{ open }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+
+            <div class="sb-group-items" x-show="open" x-transition>
+                <a href="{{ route('training-news.index') }}"
+                   class="sb-sub {{ request()->is('admin/training-news*') ? 'active' : '' }}"
+                   style="{{ request()->is('admin/training-news*') ? 'background:rgba(244,114,182,.12);color:#f9a8d4;' : '' }}">
+                    <span class="sb-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10l6 6v8a2 2 0 0 1-2 2z"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+                    </span>
+                    Training News
+                </a>
+                <a href="{{ route('training-news.analytics') }}"
+                   class="sb-sub {{ request()->is('admin/training-news/analytics*') ? 'active' : '' }}"
+                   style="{{ request()->is('admin/training-news/analytics*') ? 'background:rgba(244,114,182,.12);color:#f9a8d4;' : '' }}">
+                    <span class="sb-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    </span>
+                    Content Analytics
+                </a>
+            </div>
+        </div>
+
+        <div class="sb-divider"></div>
+
         {{-- D. Administration ──────────────────────────── --}}
         @php
             $adminActive = request()->is('users*') || request()->is('settings*')
-                        || request()->is('profile*') || request()->is('admin/ai*')
-                        || request()->is('admin/training-news*') || request()->is('admin/training-media*');
+                        || request()->is('profile*') || request()->is('admin/ai*');
         @endphp
         <div class="sb-group sg-admin"
              x-data="{ open: {{ $adminActive ? 'true' : 'false' }} }">
@@ -586,13 +620,6 @@
                    class="sb-sub {{ request()->is('profile*') ? 'active' : '' }}">
                     <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
                     My Profile
-                </a>
-
-                <div style="margin:10px 12px 4px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#64748b;">Content & Media</div>
-                <a href="{{ route('training-news.index') }}"
-                   class="sb-sub {{ request()->is('admin/training-news*') || request()->is('admin/training-media*') ? 'active' : '' }}">
-                    <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10l6 6v8a2 2 0 0 1-2 2z"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>
-                    Training News
                 </a>
 
                 @if(auth()->user()?->isSuperAdmin())
