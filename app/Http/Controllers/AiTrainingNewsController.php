@@ -149,7 +149,7 @@ class AiTrainingNewsController extends Controller
         $articleType = $request->input('article_type', BlogPost::TYPE_TRAINING_NEWS);
         $data        = $this->collectScheduleData($schedule);
 
-        $prompt = $this->buildArticlePrompt($data, $articleType, $request->input('instructions', ''));
+        $prompt = $this->buildArticlePrompt($data, $articleType, (string) ($request->input('instructions') ?? ''));
 
         $result = $this->ai->generateText($prompt, 'training_news_article', auth()->id(), 3000);
 
