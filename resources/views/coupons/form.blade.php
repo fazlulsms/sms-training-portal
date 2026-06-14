@@ -1,16 +1,45 @@
 @extends('layouts.app')
 @section('page-title', isset($coupon) ? 'Edit Coupon' : 'Create Coupon')
 @section('content')
+<style>
+.fg { margin-bottom:18px; }
+.fg label { display:block; font-weight:600; font-size:13.5px; color:#374151; margin-bottom:6px; }
+.fg input,.fg select,.fg textarea {
+    width:100%; padding:10px 13px; border:1.5px solid #d1d5db; border-radius:8px;
+    font-size:14px; font-family:inherit; outline:none; box-sizing:border-box;
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus { border-color:#1e3a8a; }
+.fg small { display:block; margin-top:4px; font-size:12px; color:#6b7280; }
+.fg .err { color:#dc2626; font-size:12px; margin-top:4px; }
+.frow  { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.frow3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; }
+.ccard { background:#fff; border:1.5px solid #e5e7eb; border-radius:14px; padding:24px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,.05); }
+.ccard-title { font-size:15px; font-weight:800; color:#1e3a8a; margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid #e5e7eb; }
+.type-card { border:2px solid #e5e7eb; border-radius:12px; padding:18px 12px; text-align:center; cursor:pointer; transition:all .15s; background:#fff; }
+.type-card:hover { border-color:#93c5fd; background:#f8faff; }
+.type-card.sel { border-color:#1e3a8a; background:#f0f4ff; }
+.type-card .ico { font-size:28px; margin-bottom:6px; }
+.type-card .lbl { font-size:13px; font-weight:800; color:#111827; }
+.type-card .sub { font-size:11.5px; color:#6b7280; margin-top:3px; }
+</style>
 
 <x-page-header
     title="{{ isset($coupon) ? 'Edit Coupon: ' . $coupon->code : 'Create Coupon' }}"
     desc="{{ isset($coupon) ? 'Update coupon details and restrictions.' : 'Set up a discount or complimentary access coupon.' }}">
     <x-slot:actions>
-        <a href="{{ route('admin.coupons.index') }}" class="btn btn-ghost btn-sm">← Back to Coupons</a>
+        <a href="{{ route('admin.coupons.index') }}" class="btn btn-ghost btn-sm">← All Coupons</a>
     </x-slot:actions>
 </x-page-header>
 
 <x-flash-message />
+
+@if($errors->any())
+<div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:10px;padding:14px 18px;margin-bottom:20px;max-width:760px;">
+    <ul style="margin:0;padding-left:18px;color:#b91c1c;font-size:13.5px;">
+        @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
+    </ul>
+</div>
+@endif
 
 <form method="POST"
       action="{{ isset($coupon) ? route('admin.coupons.update', $coupon) : route('admin.coupons.store') }}"
@@ -18,183 +47,171 @@
     @csrf
     @if(isset($coupon)) @method('PUT') @endif
 
-    {{-- Basic Info --}}
-    <div class="card" style="margin-bottom:20px;">
-        <div class="card-header">Coupon Details</div>
-        <div class="card-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                <div class="form-group">
-                    <label class="form-label">Coupon Code <span style="color:#dc2626">*</span></label>
-                    <input type="text" name="code" value="{{ old('code', $coupon->code ?? '') }}"
-                           class="form-control" required placeholder="e.g. SUMMER30"
-                           style="text-transform:uppercase;font-family:monospace;font-weight:800;font-size:15px;letter-spacing:.5px;">
-                    <small class="text-muted">Auto-uppercased. Unique identifier participants will type.</small>
-                    @error('code')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Coupon Name <span style="color:#dc2626">*</span></label>
-                    <input type="text" name="name" value="{{ old('name', $coupon->name ?? '') }}"
-                           class="form-control" required placeholder="e.g. Summer 30% Off">
-                    @error('name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                </div>
+    {{-- ── 1. Coupon Details ── --}}
+    <div class="ccard">
+        <div class="ccard-title">Coupon Details</div>
+        <div class="frow">
+            <div class="fg">
+                <label>Coupon Code <span style="color:#dc2626">*</span></label>
+                <input type="text" name="code" value="{{ old('code', $coupon->code ?? '') }}"
+                       required placeholder="e.g. SUMMER30"
+                       style="text-transform:uppercase;font-family:monospace;font-weight:800;font-size:15px;letter-spacing:.5px;">
+                <small>Auto-uppercased. Unique code participants will type.</small>
+                @error('code')<div class="err">{{ $message }}</div>@enderror
             </div>
-            <div class="form-group" style="margin-top:14px;">
-                <label class="form-label">Description (Internal)</label>
-                <textarea name="description" class="form-control" rows="2"
-                          placeholder="Internal note about this coupon's purpose…">{{ old('description', $coupon->description ?? '') }}</textarea>
+            <div class="fg">
+                <label>Coupon Name <span style="color:#dc2626">*</span></label>
+                <input type="text" name="name" value="{{ old('name', $coupon->name ?? '') }}"
+                       required placeholder="e.g. Summer 30% Off">
+                @error('name')<div class="err">{{ $message }}</div>@enderror
+            </div>
+        </div>
+        <div class="fg">
+            <label>Description <span style="color:#9ca3af;font-weight:400;">(internal note)</span></label>
+            <textarea name="description" rows="2"
+                      placeholder="Internal note about this coupon's purpose…">{{ old('description', $coupon->description ?? '') }}</textarea>
+        </div>
+    </div>
+
+    {{-- ── 2. Discount Type & Value ── --}}
+    <div class="ccard">
+        <div class="ccard-title">Discount Type &amp; Value</div>
+        @php $selType = old('type', $coupon->type ?? 'percentage'); @endphp
+        <div class="frow3" style="margin-bottom:20px;">
+            @foreach([
+                ['fixed',         '💰', 'Fixed Amount',  'Deduct a fixed BDT amount from the fee.'],
+                ['percentage',    '📊', 'Percentage',    'Deduct a % of the original fee.'],
+                ['complimentary', '🎁', 'Complimentary', '100% free — no invoice, instant access.'],
+            ] as [$val, $ico, $lbl, $desc])
+            <label style="cursor:pointer;">
+                <input type="radio" name="type" value="{{ $val }}" {{ $selType === $val ? 'checked' : '' }}
+                       style="display:none;" onchange="updateTypeUI()">
+                <div class="type-card {{ $selType === $val ? 'sel' : '' }}" data-val="{{ $val }}">
+                    <div class="ico">{{ $ico }}</div>
+                    <div class="lbl">{{ $lbl }}</div>
+                    <div class="sub">{{ $desc }}</div>
+                </div>
+            </label>
+            @endforeach
+        </div>
+        @error('type')<div class="err" style="margin-bottom:10px;">{{ $message }}</div>@enderror
+
+        <div id="discountValueWrap" style="{{ $selType === 'complimentary' ? 'display:none' : '' }}">
+            <div class="fg" style="max-width:340px;margin-bottom:0;">
+                <label id="discountValueLabel">
+                    {{ $selType === 'fixed' ? 'Discount Amount (BDT)' : 'Discount Percentage (%)' }}
+                    <span style="color:#dc2626">*</span>
+                </label>
+                <input type="number" name="discount_value" id="discountValueInput"
+                       value="{{ old('discount_value', $coupon->discount_value ?? '') }}"
+                       step="0.01" min="0"
+                       placeholder="{{ $selType === 'percentage' ? 'e.g. 20 (for 20%)' : 'e.g. 500' }}">
+                @error('discount_value')<div class="err">{{ $message }}</div>@enderror
             </div>
         </div>
     </div>
 
-    {{-- Coupon Type --}}
-    <div class="card" style="margin-bottom:20px;">
-        <div class="card-header">Discount Type &amp; Value</div>
-        <div class="card-body">
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;" id="typeCards">
-                @php $selType = old('type', $coupon->type ?? 'percentage'); @endphp
-                @foreach([
-                    ['fixed',         '💰', 'Fixed Amount',  'Deduct a fixed BDT amount from the fee.'],
-                    ['percentage',    '📊', 'Percentage',    'Deduct a % of the original fee.'],
-                    ['complimentary', '🎁', 'Complimentary', '100% free — no invoice, instant access.'],
-                ] as [$val, $ico, $lbl, $desc])
-                <label style="cursor:pointer;">
-                    <input type="radio" name="type" value="{{ $val }}" {{ $selType === $val ? 'checked' : '' }}
-                           style="display:none;" onchange="updateTypeUI()">
-                    <div class="type-card {{ $selType === $val ? 'type-card-active' : '' }}" data-val="{{ $val }}"
-                         style="border:2px solid {{ $selType === $val ? '#1e3a8a' : '#e5e7eb' }};border-radius:12px;padding:16px;text-align:center;background:{{ $selType === $val ? '#f0f4ff' : '#fff' }};transition:all .15s;">
-                        <div style="font-size:28px;margin-bottom:6px;">{{ $ico }}</div>
-                        <div style="font-size:13px;font-weight:800;color:#111827;">{{ $lbl }}</div>
-                        <div style="font-size:11.5px;color:#6b7280;margin-top:3px;">{{ $desc }}</div>
-                    </div>
+    {{-- ── 3. Applicability ── --}}
+    <div class="ccard">
+        <div class="ccard-title">Applicability</div>
+        <div class="fg" style="max-width:340px;">
+            <label>Training Type</label>
+            <select name="training_type">
+                @foreach(['both'=>'Both (eLearning & ILT)','elearning'=>'eLearning Only','ilt'=>'ILT / Instructor-Led Only'] as $val=>$lbl)
+                <option value="{{ $val }}" {{ old('training_type', $coupon->training_type ?? 'both') === $val ? 'selected' : '' }}>{{ $lbl }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="fg">
+            <label>Applicable Courses</label>
+            <small style="margin-bottom:8px;display:block;">Leave all unchecked to apply to ALL public courses.</small>
+            @php $selectedCourseIds = old('course_ids', $coupon->course_ids ?? []); @endphp
+            <div style="max-height:220px;overflow-y:auto;border:1.5px solid #e5e7eb;border-radius:9px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                @foreach($courses as $c)
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:4px;font-weight:400;">
+                    <input type="checkbox" name="course_ids[]" value="{{ $c->id }}"
+                           {{ in_array($c->id, $selectedCourseIds ?? []) ? 'checked' : '' }}>
+                    <span>{{ $c->name }}</span>
+                    <span style="font-size:10px;color:#9ca3af;background:#f3f4f6;padding:1px 6px;border-radius:4px;white-space:nowrap;">{{ $c->course_type }}</span>
                 </label>
                 @endforeach
             </div>
-            @error('type')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        </div>
+    </div>
 
-            <div id="discountValueWrap" style="{{ $selType === 'complimentary' ? 'display:none' : '' }}">
-                <div class="form-group">
-                    <label class="form-label" id="discountValueLabel">
-                        {{ $selType === 'fixed' ? 'Discount Amount (BDT)' : 'Discount Percentage (%)' }}
-                        <span style="color:#dc2626">*</span>
-                    </label>
-                    <input type="number" name="discount_value" id="discountValueInput"
-                           value="{{ old('discount_value', $coupon->discount_value ?? '') }}"
-                           class="form-control" step="0.01" min="0"
-                           placeholder="{{ $selType === 'percentage' ? 'e.g. 20 (for 20%)' : 'e.g. 500' }}"
-                           style="max-width:280px;">
-                    @error('discount_value')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                </div>
+    {{-- ── 4. Validity & Limits ── --}}
+    <div class="ccard">
+        <div class="ccard-title">Validity &amp; Usage Limits</div>
+        <div class="frow">
+            <div class="fg">
+                <label>Start Date</label>
+                <input type="date" name="starts_at"
+                       value="{{ old('starts_at', ($coupon->starts_at ?? null)?->format('Y-m-d') ?? '') }}">
+                <small>Leave blank to activate immediately.</small>
+            </div>
+            <div class="fg">
+                <label>Expiry Date</label>
+                <input type="date" name="expires_at"
+                       value="{{ old('expires_at', ($coupon->expires_at ?? null)?->format('Y-m-d') ?? '') }}">
+                <small>Leave blank for no expiry.</small>
+            </div>
+            <div class="fg">
+                <label>Maximum Total Uses</label>
+                <input type="number" name="max_uses" min="1"
+                       value="{{ old('max_uses', $coupon->max_uses ?? '') }}"
+                       placeholder="Leave blank for unlimited">
+                @error('max_uses')<div class="err">{{ $message }}</div>@enderror
+            </div>
+            <div class="fg">
+                <label>Per User / Email Limit</label>
+                <input type="number" name="per_user_limit" min="1" max="10"
+                       value="{{ old('per_user_limit', $coupon->per_user_limit ?? 1) }}">
+                @error('per_user_limit')<div class="err">{{ $message }}</div>@enderror
             </div>
         </div>
     </div>
 
-    {{-- Applicability --}}
-    <div class="card" style="margin-bottom:20px;">
-        <div class="card-header">Applicability</div>
-        <div class="card-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-                <div class="form-group">
-                    <label class="form-label">Training Type</label>
-                    <select name="training_type" class="form-control">
-                        @foreach(['both'=>'Both (eLearning & ILT)','elearning'=>'eLearning Only','ilt'=>'ILT / Instructor-Led Only'] as $val=>$lbl)
-                        <option value="{{ $val }}" {{ old('training_type', $coupon->training_type ?? 'both') === $val ? 'selected' : '' }}>{{ $lbl }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Applicable Courses</label>
-                <small class="text-muted d-block" style="margin-bottom:8px;">Leave all unchecked to apply to ALL public courses.</small>
-                <div style="max-height:220px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:9px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                    @php $selectedCourseIds = old('course_ids', $coupon->course_ids ?? []); @endphp
-                    @foreach($courses as $c)
-                    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:4px;">
-                        <input type="checkbox" name="course_ids[]" value="{{ $c->id }}"
-                               {{ in_array($c->id, $selectedCourseIds ?? []) ? 'checked' : '' }}>
-                        <span>{{ $c->name }}</span>
-                        <span style="font-size:10px;color:#9ca3af;background:#f3f4f6;padding:1px 6px;border-radius:4px;">{{ $c->course_type }}</span>
-                    </label>
-                    @endforeach
-                </div>
-            </div>
+    {{-- ── 5. Status & Notes ── --}}
+    <div class="ccard">
+        <div class="ccard-title">Status &amp; Internal Notes</div>
+        <div class="fg">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                <input type="checkbox" name="is_active" value="1"
+                       {{ old('is_active', $coupon->is_active ?? true) ? 'checked' : '' }}
+                       style="width:17px;height:17px;accent-color:#1e3a8a;">
+                <span>Coupon is Active (participants can use it)</span>
+            </label>
+        </div>
+        <div class="fg" style="margin-bottom:0;">
+            <label>Internal Notes</label>
+            <textarea name="notes" rows="2"
+                      placeholder="e.g. For partner organisation XYZ, valid for Q3 2026">{{ old('notes', $coupon->notes ?? '') }}</textarea>
         </div>
     </div>
 
-    {{-- Validity & Limits --}}
-    <div class="card" style="margin-bottom:20px;">
-        <div class="card-header">Validity &amp; Usage Limits</div>
-        <div class="card-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                <div class="form-group">
-                    <label class="form-label">Start Date</label>
-                    <input type="date" name="starts_at" class="form-control"
-                           value="{{ old('starts_at', ($coupon->starts_at ?? null)?->format('Y-m-d') ?? '') }}">
-                    <small class="text-muted">Leave blank to activate immediately.</small>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Expiry Date</label>
-                    <input type="date" name="expires_at" class="form-control"
-                           value="{{ old('expires_at', ($coupon->expires_at ?? null)?->format('Y-m-d') ?? '') }}">
-                    <small class="text-muted">Leave blank for no expiry.</small>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Maximum Total Uses</label>
-                    <input type="number" name="max_uses" class="form-control" min="1"
-                           value="{{ old('max_uses', $coupon->max_uses ?? '') }}"
-                           placeholder="Leave blank for unlimited">
-                    @error('max_uses')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Per User / Email Limit</label>
-                    <input type="number" name="per_user_limit" class="form-control" min="1" max="10"
-                           value="{{ old('per_user_limit', $coupon->per_user_limit ?? 1) }}">
-                    @error('per_user_limit')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Status & Notes --}}
-    <div class="card" style="margin-bottom:24px;">
-        <div class="card-header">Status &amp; Internal Notes</div>
-        <div class="card-body">
-            <div class="form-group" style="margin-bottom:16px;">
-                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:600;">
-                    <input type="checkbox" name="is_active" value="1"
-                           {{ old('is_active', $coupon->is_active ?? true) ? 'checked' : '' }}
-                           style="width:17px;height:17px;accent-color:#1e3a8a;">
-                    Coupon is Active (participants can use it)
-                </label>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Internal Notes</label>
-                <textarea name="notes" class="form-control" rows="2"
-                          placeholder="e.g. For partner organisation XYZ, valid for Q3 2026">{{ old('notes', $coupon->notes ?? '') }}</textarea>
-            </div>
-        </div>
-    </div>
-
-    <div style="display:flex;gap:12px;">
-        <button type="submit" class="btn btn-primary">
+    <div style="display:flex;gap:12px;margin-bottom:40px;">
+        <button type="submit"
+                style="padding:12px 28px;background:#1e3a8a;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">
             {{ isset($coupon) ? 'Update Coupon' : 'Create Coupon' }}
         </button>
-        <a href="{{ route('admin.coupons.index') }}" class="btn btn-ghost">Cancel</a>
+        <a href="{{ route('admin.coupons.index') }}"
+           style="padding:12px 24px;background:#f3f4f6;color:#374151;border-radius:9px;font-size:14px;font-weight:600;text-decoration:none;">
+            Cancel
+        </a>
     </div>
 </form>
 
 <script>
 function updateTypeUI() {
-    var radios = document.querySelectorAll('input[name="type"]');
+    var radios   = document.querySelectorAll('input[name="type"]');
     var selected = '';
     radios.forEach(function(r) {
         var card = r.closest('label').querySelector('.type-card');
         if (r.checked) {
             selected = r.value;
-            card.style.borderColor = '#1e3a8a';
-            card.style.background  = '#f0f4ff';
+            card.classList.add('sel');
         } else {
-            card.style.borderColor = '#e5e7eb';
-            card.style.background  = '#fff';
+            card.classList.remove('sel');
         }
     });
     var wrap  = document.getElementById('discountValueWrap');
@@ -206,9 +223,8 @@ function updateTypeUI() {
     } else {
         wrap.style.display = '';
         if (input) input.setAttribute('required', 'required');
-        if (label) label.firstChild.textContent = selected === 'fixed'
-            ? 'Discount Amount (BDT) '
-            : 'Discount Percentage (%) ';
+        if (label) label.childNodes[0].textContent = selected === 'fixed'
+            ? 'Discount Amount (BDT) ' : 'Discount Percentage (%) ';
         if (input) input.placeholder = selected === 'fixed' ? 'e.g. 500' : 'e.g. 20 (for 20%)';
     }
 }
