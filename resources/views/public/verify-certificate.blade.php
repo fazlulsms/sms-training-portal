@@ -18,17 +18,29 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    1. HERO SPLIT  (35 / 65)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* Centered hero wrapper */
+.vcp-hero-wrap {
+    background: #f8fafc;
+    padding: 48px 24px;
+}
+.vcp-hero-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(15,23,42,.1);
+}
 .vcp-split {
     display: grid;
-    grid-template-columns: 35fr 65fr;
-    min-height: 620px;
+    grid-template-columns: 380px 1fr;
+    min-height: 580px;
 }
 @media(max-width: 960px) { .vcp-split { grid-template-columns: 1fr; } }
 
 /* ─── LEFT: Form panel ─── */
 .vcp-form {
     background: linear-gradient(180deg, #0F2B6B 0%, #163C8A 100%);
-    padding: 44px 36px 36px;
+    padding: 40px 40px 36px;
     display: flex; flex-direction: column; gap: 0;
     position: relative; overflow: hidden;
 }
@@ -125,9 +137,9 @@
     background: #fff;
     display: flex; align-items: center; justify-content: center;
     padding: 40px 44px;
-    border-left: 1px solid #f0f2f5;
+    border-left: 1px solid rgba(0,0,0,.06);
 }
-@media(max-width: 960px) { .vcp-result { padding: 36px 24px; border-left: none; border-top: 1px solid #f0f2f5; } }
+@media(max-width: 960px) { .vcp-result { padding: 36px 24px; border-left: none; border-top: 1px solid rgba(0,0,0,.06); } }
 
 .vcp-result-inner { width: 100%; max-width: 680px; }
 
@@ -442,8 +454,10 @@
 <div class="vcp">
 
 {{-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     HERO SPLIT — 35% Form / 65% Result
+     HERO SPLIT — 380px Form / remaining Result
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ --}}
+<div class="vcp-hero-wrap">
+<div class="vcp-hero-container">
 <div class="vcp-split">
 
     {{-- ── LEFT: Form Panel ── --}}
@@ -771,6 +785,8 @@
     </div>
 
 </div>{{-- /vcp-split --}}
+</div>{{-- /vcp-hero-container --}}
+</div>{{-- /vcp-hero-wrap --}}
 
 {{-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      STATISTICS BAR
