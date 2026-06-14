@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Certificate — {{ $certificate->certificate_number }}</title>
+    <title>Certificate â€” {{ $certificate->certificate_number }}</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -66,7 +66,7 @@
     </style>
 </head>
 <body>
-<button class="print-btn" onclick="window.print()">🖨 Print Certificate</button>
+<button class="print-btn" onclick="window.print()">ðŸ–¨ Print Certificate</button>
 
 <div class="cert-page">
     <div class="cert-border-outer"></div>
@@ -77,7 +77,7 @@
     <div class="cert-corner corner-br"></div>
 
     <div class="cert-logo">
-        <div class="cert-logo-text">SMS Training Services</div>
+        <div class="cert-logo-text">SMS Training Academy</div>
         <div class="cert-logo-sub">Professional Training &amp; Development</div>
     </div>
 
@@ -93,19 +93,19 @@
 
     <div class="cert-body">
         @if($certificate->participant->position || $certificate->participant->department)
-        <em>{{ $certificate->participant->position }}{{ $certificate->participant->department ? ' — '.$certificate->participant->department : '' }}</em><br>
+        <em>{{ $certificate->participant->position }}{{ $certificate->participant->department ? ' â€” '.$certificate->participant->department : '' }}</em><br>
         @endif
         has successfully completed the training programme
 
         <br><strong>{{ $certificate->session->course_name }}</strong><br>
 
-        organized by <strong>SMS Training Services</strong> for<br>
+        organized by <strong>SMS Training Academy</strong> for<br>
         <strong>{{ $certificate->session->project->company_name }}</strong><br>
 
         @if($certificate->session->training_date)
         held on <strong>{{ $certificate->session->training_date->format('d F Y') }}
         @if($certificate->session->training_date_end && $certificate->session->training_date_end != $certificate->session->training_date)
-        – {{ $certificate->session->training_date_end->format('d F Y') }}
+        â€“ {{ $certificate->session->training_date_end->format('d F Y') }}
         @endif
         </strong>
         @if($certificate->session->venue)
@@ -117,7 +117,7 @@
     <div class="cert-footer">
         <div class="cert-sign">
             <div class="line"></div>
-            <div class="name">SMS Training Services</div>
+            <div class="name">SMS Training Academy</div>
             <div class="role">Authorised Signatory</div>
         </div>
 

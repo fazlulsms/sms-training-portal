@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -13,9 +13,9 @@ html, body {
     background: #ffffff; color: #1e293b;
 }
 
-/* ════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    PAGE SHELL
-════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .page {
     position: relative;
     width: 210mm; height: 297mm;
@@ -41,9 +41,9 @@ html, body {
 .co-bl { bottom: 8mm; left: 8mm;   border-width: 0 0 2.5px 2.5px; }
 .co-br { bottom: 8mm; right: 8mm;  border-width: 0 2.5px 2.5px 0; }
 
-/* ════════════════════════════════════════════════
-   HEADER BAND  (0 → 58mm)  navy background
-════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   HEADER BAND  (0 â†’ 58mm)  navy background
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .hdr {
     display: table;
     width: 100%; height: 58mm;
@@ -60,7 +60,7 @@ html, body {
     );
     z-index: 1;
 }
-/* Left cell — logo */
+/* Left cell â€” logo */
 .hdr-left {
     display: table-cell;
     width: 68mm; height: 58mm;
@@ -71,7 +71,7 @@ html, body {
     padding: 0 6mm;
 }
 .hdr-left img { max-width: 52mm; max-height: 26mm; }
-/* Right cell — title */
+/* Right cell â€” title */
 .hdr-right {
     display: table-cell;
     width: auto; height: 58mm;
@@ -103,9 +103,9 @@ html, body {
     letter-spacing: 2.5px; text-transform: uppercase;
 }
 
-/* ════════════════════════════════════════════════
-   GOLD RULE  (58 → 61mm)
-════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   GOLD RULE  (58 â†’ 61mm)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .rule-gold {
     height: 3mm;
     background: linear-gradient(to right,
@@ -113,12 +113,12 @@ html, body {
         #f0d060 50%, #c9a227 72%, #1a5fa8 88%, #0d1b4b 100%);
 }
 
-/* ════════════════════════════════════════════════
-   BODY  — all centre-aligned text
-════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   BODY  â€” all centre-aligned text
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .body { padding: 7mm 16mm 0; text-align: center; }
 
-/* ── RECIPIENT ── */
+/* â”€â”€ RECIPIENT â”€â”€ */
 .present-line {
     font-size: 9pt; color: #64748b; font-style: italic; margin-bottom: 2.5mm;
 }
@@ -143,7 +143,7 @@ html, body {
     background: #c9a227; vertical-align: middle; margin: 0 2.5mm;
 }
 
-/* ── COURSE ── */
+/* â”€â”€ COURSE â”€â”€ */
 .completed-line {
     font-size: 8.5pt; color: #64748b; font-style: italic; margin-bottom: 2mm;
 }
@@ -155,13 +155,13 @@ html, body {
     font-size: 10pt; font-weight: 600; color: #1a4fa8; margin-bottom: 5mm;
 }
 
-/* ── BODY PARAGRAPH ── */
+/* â”€â”€ BODY PARAGRAPH â”€â”€ */
 .para {
     font-size: 8pt; color: #374151; line-height: 1.65;
     text-align: justify; margin-bottom: 3mm; padding: 0 1mm;
 }
 
-/* ── ACCREDITATION STRIP ── */
+/* â”€â”€ ACCREDITATION STRIP â”€â”€ */
 .accred {
     border-left: 3px solid #c9a227;
     background: #f8fafc;
@@ -171,9 +171,9 @@ html, body {
 }
 .accred p { font-size: 7.5pt; color: #475569; line-height: 1.5; margin: 0; }
 
-/* ════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    DETAILS PANEL
-════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .det-panel {
     background: #eef3fd;
     border-top: 3px solid #0d1b4b;
@@ -204,17 +204,17 @@ html, body {
 .qr-img { width: 20mm; height: 20mm; border: 1px solid #b8caec; padding: 1mm; background: #fff; display: block; margin: 0 auto 1.5mm; }
 .qr-lbl { font-size: 5pt; font-weight: 700; color: #0d1b4b; text-transform: uppercase; letter-spacing: 0.8px; }
 
-/* ════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SEPARATOR
-════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .sep-gold {
     height: 2px; margin: 0 1mm 5mm;
     background: linear-gradient(to right, transparent, #c9a227 20%, #f0d060 50%, #c9a227 80%, transparent);
 }
 
-/* ════════════════════════════════════════════════
-   SIGNATURE ROW — 3 columns
-════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   SIGNATURE ROW â€” 3 columns
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .sig-table { display: table; width: 100%; }
 
 /* Left & right: signature columns */
@@ -252,9 +252,9 @@ html, body {
     text-transform: uppercase; letter-spacing: 0.8px;
 }
 
-/* ════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    FOOTER  (absolute bottom)
-════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .footer {
     position: absolute;
     bottom: 0; left: 0; right: 0;
@@ -267,7 +267,7 @@ html, body {
 }
 .footer-links { font-size: 6.5pt; color: #93c5fd; margin-top: 1mm; }
 
-/* Rainbow strip — sits on top of footer */
+/* Rainbow strip â€” sits on top of footer */
 .rainbow {
     position: absolute;
     bottom: 0; left: 0; right: 0; height: 2.5mm; z-index: 11;
@@ -288,7 +288,7 @@ html, body {
     /* Dates */
     $start  = $schedule?->start_date ? \Carbon\Carbon::parse($schedule->start_date)->format('d M Y') : 'N/A';
     $end    = $schedule?->end_date   ? \Carbon\Carbon::parse($schedule->end_date)->format('d M Y')   : 'N/A';
-    $dates  = ($start === $end) ? $start : $start . ' – ' . $end;
+    $dates  = ($start === $end) ? $start : $start . ' â€“ ' . $end;
     $issued = !empty($enrollment->certificate_issue_date)
                 ? \Carbon\Carbon::parse($enrollment->certificate_issue_date)->format('d M Y') : 'N/A';
 
@@ -296,7 +296,7 @@ html, body {
     $rawDur   = $schedule?->duration ?? '';
     $duration = $rawDur
                 ? (preg_match('/\d/i', $rawDur) && !preg_match('/hour/i', $rawDur) ? $rawDur . ' Hours' : $rawDur)
-                : '—';
+                : 'â€”';
 
     /* Split course name: base + ISO tag */
     $courseBase = $fullName; $isoTag = '';
@@ -341,7 +341,7 @@ html, body {
     <div class="co co-tl"></div><div class="co co-tr"></div>
     <div class="co co-bl"></div><div class="co co-br"></div>
 
-    {{-- ══ HEADER BAND ══════════════════════════════════════════════ --}}
+    {{-- â•â• HEADER BAND â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     <div class="hdr">
         <div class="hdr-texture"></div>
 
@@ -364,10 +364,10 @@ html, body {
         </div>
     </div>
 
-    {{-- ══ GOLD GRADIENT RULE ══════════════════════════════════════ --}}
+    {{-- â•â• GOLD GRADIENT RULE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     <div class="rule-gold"></div>
 
-    {{-- ══ BODY ════════════════════════════════════════════════════ --}}
+    {{-- â•â• BODY â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     <div class="body">
 
         {{-- Recipient --}}
@@ -403,7 +403,7 @@ html, body {
             and satisfies the formal training requirements under the <strong>{{ $schemeName }}</strong>.</p>
         </div>
 
-        {{-- ── DETAILS PANEL ── --}}
+        {{-- â”€â”€ DETAILS PANEL â”€â”€ --}}
         <div class="det-panel">
             <div class="det-outer">
                 {{-- Fields --}}
@@ -416,7 +416,7 @@ html, body {
                             </div>
                             <div class="det-r">
                                 <div class="det-lbl">Standard</div>
-                                <div class="det-val">{{ $isoTag ?: '—' }}</div>
+                                <div class="det-val">{{ $isoTag ?: 'â€”' }}</div>
                             </div>
                         </div>
                         <div class="det-row">
@@ -449,10 +449,10 @@ html, body {
             </div>
         </div>
 
-        {{-- ── SEPARATOR ── --}}
+        {{-- â”€â”€ SEPARATOR â”€â”€ --}}
         <div class="sep-gold"></div>
 
-        {{-- ── SIGNATURES ── --}}
+        {{-- â”€â”€ SIGNATURES â”€â”€ --}}
         <div class="sig-table">
 
             {{-- Left: CEO --}}
@@ -488,21 +488,21 @@ html, body {
                 <div style="height:14mm;"></div>
                 <div class="sig-line"></div>
                 <div class="sig-name">Training Director</div>
-                <div class="sig-role">SMS Training Services<br>Sustainable Management System Inc.</div>
+                <div class="sig-role">SMS Training Academy<br>Sustainable Management System Inc.</div>
             </div>
 
         </div>
 
     </div>{{-- end .body --}}
 
-    {{-- ══ FOOTER ══════════════════════════════════════════════════ --}}
+    {{-- â•â• FOOTER â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     <div class="footer">
         <div class="footer-addr">
             Sustainable Management System Inc. &nbsp;|&nbsp;
             277 Cherry Street, Suite 12N, New York, NY 10002, United States of America
         </div>
         <div class="footer-links">
-            www.smscert.com/verify &nbsp;·&nbsp; www.irqao.com &nbsp;·&nbsp; info@smscert.com
+            www.smscert.com/verify &nbsp;Â·&nbsp; www.irqao.com &nbsp;Â·&nbsp; info@smscert.com
         </div>
     </div>
 

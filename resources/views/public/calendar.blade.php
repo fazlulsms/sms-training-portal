@@ -1,8 +1,8 @@
 @extends('layouts.public')
 
 @section('page-title', 'Training Calendar')
-@section('seo-title', 'Upcoming Training Schedule — SMS Training Services')
-@section('seo-desc', 'Browse upcoming training batches and register for professional certification programs.')
+@section('seo-title', 'Upcoming Training Schedule — SMS Training Academy')
+@section('seo-desc', 'Browse upcoming training batches and register for professional certification programs at SMS Training Academy.')
 
 @section('content')
 <style>
@@ -68,8 +68,8 @@
 
 <div class="cal-hero">
     <div class="pub-container">
-        <h1>📅 Training Calendar</h1>
-        <p>Browse all upcoming and running training batches. Register before seats fill up.</p>
+        <h1>Training Calendar</h1>
+        <p>Browse all upcoming training batches at SMS Training Academy. Register before seats fill up.</p>
     </div>
 </div>
 

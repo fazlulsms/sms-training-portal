@@ -1,7 +1,7 @@
-@extends('layouts.public')
+﻿@extends('layouts.public')
 
-@section('page-title', 'Enroll — ' . ($schedule->course?->name ?? $schedule->training_title))
-@section('seo-title', 'Register for ' . ($schedule->course?->name ?? $schedule->training_title) . ' — SMS Training Services')
+@section('page-title', 'Enroll â€” ' . ($schedule->course?->name ?? $schedule->training_title))
+@section('seo-title', 'Register for ' . ($schedule->course?->name ?? $schedule->training_title) . ' â€” SMS Training Academy')
 @section('seo-desc', 'Secure your seat for ' . ($schedule->course?->name ?? $schedule->training_title) . '. Complete the enrollment form to register.')
 
 @push('head')
@@ -29,25 +29,25 @@
             @endif
             <span>Enroll</span>
         </div>
-        <div class="reg-hero-type">🏢 Instructor-Led Training Registration</div>
+        <div class="reg-hero-type">ðŸ¢ Instructor-Led Training Registration</div>
         <h1>{{ $courseName }}</h1>
         <div class="reg-hero-badges">
-            <span class="reg-hero-badge">📅 {{ \Carbon\Carbon::parse($schedule->start_date)->format('d M') }} – {{ \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') }}</span>
+            <span class="reg-hero-badge">ðŸ“… {{ \Carbon\Carbon::parse($schedule->start_date)->format('d M') }} â€“ {{ \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') }}</span>
             <span class="reg-hero-badge">{{ $schedule->training_mode }}</span>
             @if($schedule->training_mode !== 'Online' && $schedule->venue)
-            <span class="reg-hero-badge">📍 {{ $schedule->venue }}</span>
+            <span class="reg-hero-badge">ðŸ“ {{ $schedule->venue }}</span>
             @elseif($schedule->training_mode === 'Online')
-            <span class="reg-hero-badge">📍 Online (Zoom)</span>
+            <span class="reg-hero-badge">ðŸ“ Online (Zoom)</span>
             @endif
             @if($schedule->trainer)
-            <span class="reg-hero-badge">👤 {{ $schedule->trainer->name }}</span>
+            <span class="reg-hero-badge">ðŸ‘¤ {{ $schedule->trainer->name }}</span>
             @endif
             @if($schedule->batch_code)
-            <span class="reg-hero-badge">🗂 {{ $schedule->batch_code }}</span>
+            <span class="reg-hero-badge">ðŸ—‚ {{ $schedule->batch_code }}</span>
             @endif
             @if(!is_null($seatsLeft))
             <span class="reg-hero-badge" style="{{ $seatsLeft <= 5 ? 'background:rgba(239,68,68,.25);' : '' }}">
-                {{ $seatsLeft <= 0 ? '🔴 Full' : ($seatsLeft <= 5 ? '🟠 ' . $seatsLeft . ' seats left' : '🟢 ' . $seatsLeft . ' seats left') }}
+                {{ $seatsLeft <= 0 ? 'ðŸ”´ Full' : ($seatsLeft <= 5 ? 'ðŸŸ  ' . $seatsLeft . ' seats left' : 'ðŸŸ¢ ' . $seatsLeft . ' seats left') }}
             </span>
             @endif
         </div>
@@ -57,14 +57,14 @@
 <div class="pub-container">
 <div class="reg-body">
 
-{{-- ── LEFT: Form ── --}}
+{{-- â”€â”€ LEFT: Form â”€â”€ --}}
 <div class="reg-main">
 
     @if(session('error'))
-    <div class="reg-alert-error">⚠️ {{ session('error') }}</div>
+    <div class="reg-alert-error">âš ï¸ {{ session('error') }}</div>
     @endif
     @if($errors->any())
-    <div class="reg-alert-error">⚠ Please fix the highlighted errors below before submitting.</div>
+    <div class="reg-alert-error">âš  Please fix the highlighted errors below before submitting.</div>
     @endif
 
     <form method="POST" action="{{ route('public.enroll.store', $schedule->id) }}">
@@ -129,7 +129,7 @@
                     <label class="fl">Years of Experience</label>
                     <select name="experience_years" class="fi">
                         <option value="">Select</option>
-                        @foreach(['Less than 1 year','1–3 years','3–5 years','5–10 years','10+ years'] as $e)
+                        @foreach(['Less than 1 year','1â€“3 years','3â€“5 years','5â€“10 years','10+ years'] as $e)
                         <option value="{{ $e }}" {{ old('experience_years') === $e ? 'selected' : '' }}>{{ $e }}</option>
                         @endforeach
                     </select>
@@ -182,7 +182,7 @@
                     <input type="radio" name="selected_mode" value="Physical"
                            {{ old('selected_mode', $schedule->training_mode !== 'Online' ? 'Physical' : '') === 'Physical' ? 'checked' : '' }}>
                     <div class="mode-card">
-                        <div class="mode-card-icon">🏢</div>
+                        <div class="mode-card-icon">ðŸ¢</div>
                         <div class="mode-card-name">Physical</div>
                         <div class="mode-card-desc">{{ $schedule->venue ?? 'At our venue' }}</div>
                         @if($physicalFee)<div class="mode-card-fee">{{ $currency }} {{ number_format($physicalFee) }}</div>@endif
@@ -194,7 +194,7 @@
                     <input type="radio" name="selected_mode" value="Online"
                            {{ old('selected_mode', $schedule->training_mode === 'Online' ? 'Online' : '') === 'Online' ? 'checked' : '' }}>
                     <div class="mode-card">
-                        <div class="mode-card-icon">💻</div>
+                        <div class="mode-card-icon">ðŸ’»</div>
                         <div class="mode-card-name">Online</div>
                         <div class="mode-card-desc">Live via Zoom</div>
                         @if($onlineFee)<div class="mode-card-fee">{{ $currency }} {{ number_format($onlineFee) }}</div>@endif
@@ -214,7 +214,7 @@
             <div class="fg" style="margin-bottom:16px;">
                 <label class="fl">Dietary Requirements / Special Needs</label>
                 <textarea name="special_requirements" class="fi" rows="2"
-                          placeholder="e.g. vegetarian, wheelchair access…">{{ old('special_requirements') }}</textarea>
+                          placeholder="e.g. vegetarian, wheelchair accessâ€¦">{{ old('special_requirements') }}</textarea>
             </div>
             <div class="fg" style="margin-bottom:16px;">
                 <label class="fl">How did you hear about us?</label>
@@ -227,7 +227,7 @@
             </div>
             <div class="fg">
                 <label class="fl">Any questions for the trainer?</label>
-                <textarea name="pre_questions" class="fi" rows="2" placeholder="Optional…">{{ old('pre_questions') }}</textarea>
+                <textarea name="pre_questions" class="fi" rows="2" placeholder="Optionalâ€¦">{{ old('pre_questions') }}</textarea>
             </div>
         </div>
 
@@ -252,15 +252,15 @@
             @endif
             <div class="fee-row">
                 <span class="fee-label">Dates</span>
-                <span class="fee-value">{{ \Carbon\Carbon::parse($schedule->start_date)->format('d M') }} – {{ \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') }}</span>
+                <span class="fee-value">{{ \Carbon\Carbon::parse($schedule->start_date)->format('d M') }} â€“ {{ \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') }}</span>
             </div>
             <div class="fee-row">
-                <span class="fee-label">Mode (<span id="feeModeLbl">—</span>)</span>
-                <span class="fee-value" id="feeLine">{{ $currency }} —</span>
+                <span class="fee-label">Mode (<span id="feeModeLbl">â€”</span>)</span>
+                <span class="fee-value" id="feeLine">{{ $currency }} â€”</span>
             </div>
             <div class="fee-row">
                 <span class="fee-label">Total Due</span>
-                <span class="fee-value" id="feeTotal">{{ $currency }} —</span>
+                <span class="fee-value" id="feeTotal">{{ $currency }} â€”</span>
             </div>
         </div>
 
@@ -288,7 +288,7 @@
 
 </div>
 
-{{-- ── RIGHT: Sidebar ── --}}
+{{-- â”€â”€ RIGHT: Sidebar â”€â”€ --}}
 <aside class="reg-sidebar">
 
     {{-- Schedule info card --}}
@@ -296,7 +296,7 @@
         <div class="sidebar-img">
             @if($schedule->course?->banner_image)
             <img src="{{ asset('storage/'.$schedule->course->banner_image) }}" alt="{{ $courseName }}">
-            @else <span>🏢</span> @endif
+            @else <span>ðŸ¢</span> @endif
         </div>
         <div class="sidebar-body">
             <div class="sidebar-price-row">
@@ -314,7 +314,7 @@
 
             <div class="feature-row">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                📅 {{ \Carbon\Carbon::parse($schedule->start_date)->format('d M Y') }}
+                ðŸ“… {{ \Carbon\Carbon::parse($schedule->start_date)->format('d M Y') }}
             </div>
             <div class="feature-row">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -350,7 +350,7 @@
     <div class="sidebar-help">
         <div class="sidebar-help-title">Need help enrolling?</div>
         <div class="sidebar-help-sub">Our team is ready to assist you</div>
-        <a href="mailto:training@smscert.com" class="sidebar-help-btn">📧 training@smscert.com</a>
+        <a href="mailto:training@smscert.com" class="sidebar-help-btn">ðŸ“§ training@smscert.com</a>
     </div>
 </aside>
 
@@ -374,7 +374,7 @@
         var line = document.getElementById('feeLine');
         var total = document.getElementById('feeTotal');
         var sbFee = document.getElementById('sbFee');
-        if (lbl)   lbl.textContent   = mode || '—';
+        if (lbl)   lbl.textContent   = mode || 'â€”';
         if (line)  line.textContent  = fee ? fmt(fee) : currency + ' TBA';
         if (total) total.textContent = fee ? fmt(fee) : currency + ' TBA';
         if (sbFee && fee) sbFee.textContent = fmt(fee);

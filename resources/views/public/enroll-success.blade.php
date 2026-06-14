@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('page-title', 'Enrollment Confirmed — SMS Training Services')
+@section('page-title', 'Enrollment Confirmed — SMS Training Academy')
 
 @push('head')
 <style>

@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Exam Result – SMS Training Services</title>
+<title>Exam Result â€“ SMS Training Academy</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1e293b;margin:0;padding:0;}
@@ -36,7 +36,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1e293b;ma
 <body>
 
 <div class="top-bar">
-    <h1>📋 Exam Result</h1>
+    <h1>ðŸ“‹ Exam Result</h1>
     <p>{{ $attempt->enrollment->trainingSchedule?->course?->name ?? 'Training Programme' }}</p>
 </div>
 
@@ -52,14 +52,14 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1e293b;ma
 
 <div class="result-card {{ $isPassed ? 'passed' : ($isPending ? 'pending' : 'failed') }}">
     <div class="result-icon">
-        @if($isPassed) 🎉
-        @elseif($isPending) ⏳
-        @else ❌
+        @if($isPassed) ðŸŽ‰
+        @elseif($isPending) â³
+        @else âŒ
         @endif
     </div>
     <div class="result-title {{ $isPassed ? 'passed' : ($isPending ? 'pending' : 'failed') }}">
         @if($isPassed) Congratulations! You Passed!
-        @elseif($isPending) Submitted — Pending Review
+        @elseif($isPending) Submitted â€” Pending Review
         @else Not Passed
         @endif
     </div>
@@ -82,7 +82,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1e293b;ma
         </div>
         <div class="score-box">
             <div class="score-num" style="color:{{ $isPassed ? '#15803d' : '#dc2626' }};">
-                {{ $isPassed ? '✅' : '❌' }}
+                {{ $isPassed ? 'âœ…' : 'âŒ' }}
             </div>
             <div class="score-label">{{ $isPassed ? 'Passed' : 'Not Passed' }}</div>
         </div>
@@ -93,25 +93,25 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1e293b;ma
 <div class="info-card">
     <table>
         <tr><td>Participant</td><td>{{ $attempt->enrollment->full_name }}</td></tr>
-        <tr><td>Course</td><td>{{ $attempt->enrollment->trainingSchedule?->course?->name ?? '—' }}</td></tr>
+        <tr><td>Course</td><td>{{ $attempt->enrollment->trainingSchedule?->course?->name ?? 'â€”' }}</td></tr>
         <tr><td>Exam</td><td>{{ $attempt->questionSet->title }}</td></tr>
         <tr><td>Attempt #</td><td>{{ $attempt->attempt_number }}</td></tr>
-        <tr><td>Submitted At</td><td>{{ $attempt->submitted_at?->format('d M Y, h:i A') ?? '—' }}</td></tr>
+        <tr><td>Submitted At</td><td>{{ $attempt->submitted_at?->format('d M Y, h:i A') ?? 'â€”' }}</td></tr>
         @if($isPassed && $attempt->questionSet->allow_certificate_after_pass)
-        <tr><td>Certificate</td><td style="color:#15803d;">🏆 Will be issued by admin</td></tr>
+        <tr><td>Certificate</td><td style="color:#15803d;">ðŸ† Will be issued by admin</td></tr>
         @endif
     </table>
 </div>
 
 @if($isFailed)
 <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:16px;font-size:13px;color:#92400e;">
-    ⚠️ Please check your email for instructions. If you have remaining attempts, you will receive a new exam link.
+    âš ï¸ Please check your email for instructions. If you have remaining attempts, you will receive a new exam link.
 </div>
 @endif
 
 <div style="text-align:center;margin-top:24px;">
     <p style="font-size:13px;color:#64748b;">You may close this page. Results and any further instructions will be sent to your email.</p>
-    <p style="font-size:12px;color:#94a3b8;margin-top:8px;">SMS Training Services · Sustainable Management System Bangladesh</p>
+    <p style="font-size:12px;color:#94a3b8;margin-top:8px;">SMS Training Academy Â· Sustainable Management System Inc.</p>
 </div>
 
 </div>

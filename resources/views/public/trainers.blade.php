@@ -1,7 +1,7 @@
-@extends('layouts.public')
+﻿@extends('layouts.public')
 
 @section('page-title', 'Our Expert Trainers')
-@section('seo-title', 'Expert Trainers – SMS Training Services')
+@section('seo-title', 'Expert Trainers â€“ SMS Training Academy')
 @section('seo-desc', 'Meet our team of internationally certified trainers specializing in ISO standards, quality management, compliance, and professional development.')
 
 @section('content')
@@ -59,7 +59,7 @@
     <div class="section-wrap">
         @if($trainers->isEmpty())
         <div class="empty-state">
-            <div style="font-size:60px;">👨‍🏫</div>
+            <div style="font-size:60px;">ðŸ‘¨â€ðŸ«</div>
             <h3>Trainer profiles coming soon</h3>
             <p>Our trainer directory is being updated. Please <a href="/corporate-training" style="color:#1e3a8a;">contact us</a> for trainer information.</p>
         </div>
@@ -83,12 +83,12 @@
                     <p class="trainer-org">{{ $trainer->organization }}</p>
                     @endif
                     @if($trainer->experience)
-                    <span class="trainer-exp">⏱ {{ $trainer->experience }}</span>
+                    <span class="trainer-exp">â± {{ $trainer->experience }}</span>
                     @endif
                     @if($trainer->short_bio)
                     <p class="trainer-bio">{{ $trainer->short_bio }}</p>
                     @endif
-                    <div class="trainer-link">View Profile →</div>
+                    <div class="trainer-link">View Profile â†’</div>
                 </div>
             </a>
             @endforeach

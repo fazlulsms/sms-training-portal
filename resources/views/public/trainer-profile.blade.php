@@ -1,8 +1,8 @@
-@extends('layouts.public')
+﻿@extends('layouts.public')
 
-@section('page-title', $trainer->name . ' — Trainer Profile')
-@section('seo-title', $trainer->name . ' | SMS Training Services')
-@section('seo-desc', $trainer->short_bio ? Str::limit($trainer->short_bio, 160) : 'Expert trainer at SMS Training Services')
+@section('page-title', $trainer->name . ' â€” Trainer Profile')
+@section('seo-title', $trainer->name . ' | SMS Training Academy')
+@section('seo-desc', $trainer->short_bio ? Str::limit($trainer->short_bio, 160) : 'Expert trainer at SMS Training Academy')
 
 @section('content')
 <style>
@@ -33,7 +33,7 @@
 .expertise-list li { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 7px 16px; border-radius: 30px; font-size: 13.5px; font-weight: 600; }
 .cert-list { list-style: none; margin: 0; padding: 0; }
 .cert-list li { padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 14.5px; color: #374151; font-weight: 500; }
-.cert-list li:before { content: '✓'; color: #16a34a; font-weight: 900; margin-right: 10px; }
+.cert-list li:before { content: 'âœ“'; color: #16a34a; font-weight: 900; margin-right: 10px; }
 .schedule-card { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .schedule-course { font-weight: 700; color: #111827; font-size: 15px; }
 .schedule-date { font-size: 13.5px; color: #6b7280; margin-top: 3px; }
@@ -56,8 +56,8 @@
                 @if($trainer->designation)<p class="profile-desig">{{ $trainer->designation }}</p>@endif
                 @if($trainer->organization)<p class="profile-org">{{ $trainer->organization }}</p>@endif
                 <div class="profile-badges">
-                    @if($trainer->experience)<span class="profile-badge">⏱ {{ $trainer->experience }}</span>@endif
-                    @if($trainer->email)<a href="mailto:{{ $trainer->email }}" class="profile-badge" style="color:#fff; text-decoration:none;">✉ Contact</a>@endif
+                    @if($trainer->experience)<span class="profile-badge">â± {{ $trainer->experience }}</span>@endif
+                    @if($trainer->email)<a href="mailto:{{ $trainer->email }}" class="profile-badge" style="color:#fff; text-decoration:none;">âœ‰ Contact</a>@endif
                 </div>
             </div>
         </div>
@@ -112,15 +112,15 @@
                     <div class="schedule-course">{{ $sched->course->name ?? $sched->training_title }}</div>
                     <div class="schedule-date">
                         {{ $sched->start_date->format('d M Y') }}
-                        @if($sched->end_date) – {{ $sched->end_date->format('d M Y') }} @endif
-                        @if($sched->city) · {{ $sched->city }} @endif
+                        @if($sched->end_date) â€“ {{ $sched->end_date->format('d M Y') }} @endif
+                        @if($sched->city) Â· {{ $sched->city }} @endif
                         @if($sched->country), {{ $sched->country }} @endif
                     </div>
                 </div>
                 <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                     @php $mc = match($sched->training_mode) { 'Physical' => ['#dcfce7','#166534'], 'Online' => ['#dbeafe','#1e40af'], default => ['#fef3c7','#92400e'] }; @endphp
                     <span class="schedule-mode" style="background:{{ $mc[0] }}; color:{{ $mc[1] }};">{{ $sched->training_mode }}</span>
-                    <a href="/register-training/{{ $sched->id }}" class="schedule-register">Register →</a>
+                    <a href="/register-training/{{ $sched->id }}" class="schedule-register">Register â†’</a>
                 </div>
             </div>
             @endforeach
@@ -132,7 +132,7 @@
                 Interested in inviting {{ $trainer->name }} for your organization's training?
             </p>
             <a href="/corporate-training" style="background:#1e3a8a; color:#fff; padding:12px 28px; border-radius:10px; font-weight:700; font-size:15px; text-decoration:none; display:inline-block;">
-                Request Corporate Training →
+                Request Corporate Training â†’
             </a>
         </div>
     </div>

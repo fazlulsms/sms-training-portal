@@ -1,8 +1,8 @@
 @extends('layouts.public')
 
 @section('page-title', 'All Courses')
-@section('seo-title', 'Browse All Training Courses')
-@section('seo-desc', 'Browse all training and certification courses offered by SMS Training Services.')
+@section('seo-title', 'Browse All Training Courses — SMS Training Academy')
+@section('seo-desc', 'Browse all professional training and certification courses offered by SMS Training Academy — eLearning, instructor-led, and hybrid formats.')
 
 @section('content')
 <style>
@@ -68,7 +68,7 @@
 <div class="catalog-hero">
     <div class="pub-container">
         <h1>Training Courses</h1>
-        <p>Professional certification programs for individuals and organizations</p>
+        <p>Professional certification programs for individuals and organisations — worldwide delivery</p>
         <form method="GET" action="{{ route('public.courses') }}">
             <div class="catalog-search-bar">
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="Search courses, topics, keywords…">

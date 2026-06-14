@@ -1,8 +1,8 @@
 @extends('layouts.public')
 
 @section('page-title', $course->name)
-@section('seo-title', $course->name)
-@section('seo-desc', $course->short_description ?? Str::limit(strip_tags($course->description), 160))
+@section('seo-title', $course->name . ' — SMS Training Academy')
+@section('seo-desc', $course->short_description ?? Str::limit(strip_tags($course->description ?? ''), 160))
 
 @section('content')
 <style>

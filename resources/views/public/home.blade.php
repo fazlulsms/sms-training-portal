@@ -1,8 +1,8 @@
 @extends('layouts.public')
 
 @section('page-title', 'Professional Training & Certification')
-@section('seo-title', 'SMS Training Services')
-@section('seo-desc', 'Professional capacity building, compliance training, and certification programs in Bangladesh. Instructor-led and eLearning courses.')
+@section('seo-title', 'SMS Training Academy')
+@section('seo-desc', 'SMS Training Academy — Professional capacity building, compliance training, and internationally recognised certification programs. Instructor-led and eLearning courses worldwide.')
 
 @section('content')
 
@@ -212,14 +212,14 @@
 <section class="hero-section">
     <div class="hero-inner">
         <div class="hero-content">
-            <div class="hero-eyebrow">🏆 Bangladesh's Premier Training Provider</div>
+            <div class="hero-eyebrow">🏆 International Professional Training Academy</div>
             <h1 class="hero-title">
                 Build Skills.<br>
                 Earn Certificates.<br>
                 Grow Your Career.
             </h1>
             <p class="hero-sub">
-                Professional capacity building and certification programs for individuals and organizations — instructor-led, eLearning, and hybrid formats.
+                Professional capacity building and internationally recognised certification programs for individuals and organisations — instructor-led, eLearning, and hybrid formats.
             </p>
             <div class="hero-ctas">
                 <a href="{{ route('public.courses') }}" class="hero-cta-primary">
@@ -396,8 +396,8 @@
     <div class="pub-container">
         <div class="cta-section">
             <div class="section-eyebrow" style="color:rgba(255,255,255,.6);">For Organizations</div>
-            <h2 class="cta-title">Corporate & Group Training</h2>
-            <p class="cta-sub">Customised training programs for your entire team — on-site, virtual, or blended delivery.</p>
+            <h2 class="cta-title">Corporate &amp; Group Training</h2>
+            <p class="cta-sub">Customised training programs for your entire team — on-site, virtual, or blended delivery worldwide.</p>
             <div class="cta-btns">
                 <a href="mailto:training@smscert.com" class="hero-cta-primary">📧 Request a Quote</a>
                 <a href="{{ route('public.courses') }}" class="hero-cta-secondary">Browse Courses</a>
@@ -487,7 +487,7 @@
         <div style="background:linear-gradient(135deg,#065f46 0%,#059669 100%); border-radius:20px; padding:48px; text-align:center; color:#fff;">
             <div style="font-size:48px; margin-bottom:14px;">🎓</div>
             <h2 style="font-size:26px; font-weight:900; margin:0 0 10px;">Verify a Certificate</h2>
-            <p style="font-size:16px; opacity:.85; margin:0 0 24px;">Check the authenticity of any SMS Training certificate instantly.</p>
+            <p style="font-size:16px; opacity:.85; margin:0 0 24px;">Check the authenticity of any SMS Training Academy certificate instantly online.</p>
             <a href="{{ route('public.verify-certificate') }}" class="hero-cta-primary" style="display:inline-flex;">
                 Verify Now
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>

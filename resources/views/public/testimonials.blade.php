@@ -1,8 +1,8 @@
 @extends('layouts.public')
 
 @section('page-title', 'Reviews & Testimonials')
-@section('seo-title', 'What Our Participants Say — SMS Training Services')
-@section('seo-desc', 'Read testimonials from participants who completed professional training with SMS Training Services.')
+@section('seo-title', 'Participant Reviews — SMS Training Academy')
+@section('seo-desc', 'Read verified reviews and testimonials from professionals who completed training at SMS Training Academy.')
 
 @section('content')
 <style>
@@ -50,8 +50,8 @@
 <div class="testi-hero">
     <div class="pub-container">
         <div style="font-size:48px;margin-bottom:12px;">⭐</div>
-        <h1>What Participants Say</h1>
-        <p>Real reviews from professionals who completed our training programs</p>
+        <h1>What Our Participants Say</h1>
+        <p>Verified reviews from professionals who completed training at SMS Training Academy</p>
     </div>
 </div>
 
@@ -118,10 +118,12 @@
     @endif
 
     @if($testimonials->isEmpty())
-    <div style="text-align:center;padding:60px 20px;">
-        <div style="font-size:48px;margin-bottom:12px;">⭐</div>
-        <h3 style="font-size:20px;font-weight:800;margin:0 0 6px;">No reviews yet</h3>
-        <p style="color:#6b7280;">Be the first to share your experience!</p>
+    <div style="text-align:center;padding:64px 24px;background:#fff;border:1px solid #e9ecf0;border-radius:16px;margin-bottom:32px;">
+        <div style="width:72px;height:72px;background:linear-gradient(135deg,#f0f4ff,#dbeafe);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <h3 style="font-size:20px;font-weight:900;color:#111827;margin:0 0 8px;">No participant reviews available yet</h3>
+        <p style="color:#6b7280;font-size:15px;margin:0;line-height:1.7;">Reviews will appear automatically after course completion.<br>Be the first to share your experience below!</p>
     </div>
     @else
     <div class="testi-main-grid">
@@ -226,7 +228,7 @@
             <div style="margin-top:16px;">
                 <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:14px;color:#374151;">
                     <input type="checkbox" name="consent" value="1" {{ old('consent') ? 'checked' : '' }} required style="margin-top:2px;accent-color:#1e3a8a;">
-                    I consent to SMS Training Services publishing my review on their website and marketing materials.
+                    I consent to SMS Training Academy (Sustainable Management System Inc.) publishing my review on their website and marketing materials.
                 </label>
                 @error('consent')<p style="color:#ef4444;font-size:12px;margin:4px 0 0;">{{ $message }}</p>@enderror
             </div>

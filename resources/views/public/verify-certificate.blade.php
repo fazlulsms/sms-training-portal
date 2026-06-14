@@ -1,8 +1,8 @@
 @extends('layouts.public')
 
 @section('page-title', 'Verify Certificate')
-@section('seo-title', 'Verify Training Certificate — SMS Training Services')
-@section('seo-desc', 'Verify the authenticity of an SMS Training Services certificate by entering the certificate number.')
+@section('seo-title', 'Verify Training Certificate — SMS Training Academy')
+@section('seo-desc', 'Instantly verify the authenticity of an SMS Training Academy certificate by entering the certificate number and recipient name.')
 
 @section('content')
 <style>
@@ -57,7 +57,7 @@
     <div class="pub-container">
         <div style="font-size:52px;margin-bottom:14px;">🏆</div>
         <h1>Certificate Verification</h1>
-        <p>Enter your name and certificate number to verify authenticity</p>
+        <p>Verify certificates issued by SMS Training Academy — enter your name and certificate number</p>
         <form method="GET" action="{{ route('public.verify-certificate') }}" style="max-width:540px;margin:0 auto;">
             <div class="verify-input-row" style="margin-bottom:10px;">
                 <input type="text" name="name" class="verify-input"
@@ -90,7 +90,7 @@
             <div class="result-icon">✅</div>
             <div>
                 <div class="result-title valid">Certificate Verified</div>
-                <div class="result-sub">This certificate is authentic and issued by SMS Training Services</div>
+                <div class="result-sub">This certificate is authentic and issued by SMS Training Academy</div>
             </div>
         </div>
         <div class="cert-detail-grid">
@@ -128,7 +128,7 @@
             </div>
         </div>
         <div style="margin-top:14px;padding:10px 14px;background:#dcfce7;border-radius:8px;font-size:13px;color:#166534;font-weight:600;">
-            🔒 Verified by SMS Training Services · Sustainable Management System Inc.
+            🔒 Verified by SMS Training Academy · Sustainable Management System Inc.
         </div>
     </div>
 
@@ -191,7 +191,7 @@
     <div class="info-box">
         <h3 class="info-box-title">📋 About Our Certificates</h3>
         <p class="info-box-text">
-            SMS Training Services issues certificates upon successful completion of training programs. Each certificate carries a unique verification code registered in our secure database. Certificates include:
+            SMS Training Academy issues internationally recognised certificates upon successful completion of training programs. Each certificate carries a unique verification code registered in our secure database. Certificates include:
         </p>
         <ul style="margin:12px 0 0;padding-left:18px;font-size:14px;color:#374151;line-height:1.8;">
             <li>Participant full name</li>

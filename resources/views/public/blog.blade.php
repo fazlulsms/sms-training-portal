@@ -1,8 +1,8 @@
 @extends('layouts.public')
 
 @section('page-title', 'Blog & Resources')
-@section('seo-title', 'Training Blog & Insights — SMS Training Services')
-@section('seo-desc', 'Read the latest articles, training insights, and career development tips from SMS Training Services.')
+@section('seo-title', 'Training Blog & Insights — SMS Training Academy')
+@section('seo-desc', 'Read the latest articles, training insights, and career development tips from SMS Training Academy.')
 
 @section('content')
 <style>

@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ $questionSet->title }} – SMS Training Services</title>
+<title>{{ $questionSet->title }} â€“ SMS Training Academy</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1e293b;margin:0;padding:0;}
@@ -45,11 +45,11 @@ input.ans-input:focus{border-color:#1e3a8a;outline:none;}
 
 <div class="top-bar">
     <div>
-        <h1>📋 {{ $questionSet->title }}</h1>
-        <p>{{ $attempt->enrollment->trainingSchedule?->course?->name ?? 'Training Programme' }} — Knowledge Test</p>
+        <h1>ðŸ“‹ {{ $questionSet->title }}</h1>
+        <p>{{ $attempt->enrollment->trainingSchedule?->course?->name ?? 'Training Programme' }} â€” Knowledge Test</p>
     </div>
     @if($questionSet->time_limit_minutes)
-    <div class="timer" id="examTimer">⏱ <span id="timerDisplay">{{ $questionSet->time_limit_minutes }}:00</span></div>
+    <div class="timer" id="examTimer">â± <span id="timerDisplay">{{ $questionSet->time_limit_minutes }}:00</span></div>
     @endif
 </div>
 
@@ -61,13 +61,13 @@ input.ans-input:focus{border-color:#1e3a8a;outline:none;}
         <p>{{ $questionSet->description }}</p>
         @endif
         <div class="info-chips">
-            <span class="chip">📝 {{ $questions->count() }} Questions</span>
-            <span class="chip">🏆 {{ $questionSet->total_marks }} Total Marks</span>
-            <span class="chip">✅ Pass: {{ $questionSet->effectivePassMark() }} marks</span>
+            <span class="chip">ðŸ“ {{ $questions->count() }} Questions</span>
+            <span class="chip">ðŸ† {{ $questionSet->total_marks }} Total Marks</span>
+            <span class="chip">âœ… Pass: {{ $questionSet->effectivePassMark() }} marks</span>
             @if($questionSet->time_limit_minutes)
-            <span class="chip">⏱ {{ $questionSet->time_limit_minutes }} min</span>
+            <span class="chip">â± {{ $questionSet->time_limit_minutes }} min</span>
             @endif
-            <span class="chip">🎯 Attempt #{{ $attempt->attempt_number }}</span>
+            <span class="chip">ðŸŽ¯ Attempt #{{ $attempt->attempt_number }}</span>
         </div>
     </div>
 
@@ -118,13 +118,13 @@ input.ans-input:focus{border-color:#1e3a8a;outline:none;}
 
             @elseif($question->question_type === 'paragraph')
                 <textarea name="q_{{ $question->id }}" class="ans-input" rows="5"
-                          placeholder="Write your answer here…"
+                          placeholder="Write your answer hereâ€¦"
                           {{ $question->is_required ? 'required' : '' }}>{{ $existing?->answer_text }}</textarea>
 
             @elseif($question->question_type === 'short_answer')
                 <input type="text" name="q_{{ $question->id }}" class="ans-input"
                        value="{{ $existing?->answer_text }}"
-                       placeholder="Your answer…"
+                       placeholder="Your answerâ€¦"
                        {{ $question->is_required ? 'required' : '' }}>
 
             @elseif($question->question_type === 'date')
@@ -136,7 +136,7 @@ input.ans-input:focus{border-color:#1e3a8a;outline:none;}
                 <input type="file" name="q_{{ $question->id }}" class="ans-input"
                        {{ $question->is_required && !$existing?->file_path ? 'required' : '' }}>
                 @if($existing?->file_path)
-                <div style="font-size:12px;color:#16a34a;margin-top:6px;">📎 File already uploaded — upload a new one to replace.</div>
+                <div style="font-size:12px;color:#16a34a;margin-top:6px;">ðŸ“Ž File already uploaded â€” upload a new one to replace.</div>
                 @endif
 
             @elseif($question->question_type === 'declaration')
@@ -155,10 +155,10 @@ input.ans-input:focus{border-color:#1e3a8a;outline:none;}
 
         <div class="submit-bar">
             <div style="font-size:13px;color:#64748b;">
-                <strong>{{ $questions->count() }}</strong> questions total ·
+                <strong>{{ $questions->count() }}</strong> questions total Â·
                 Fields marked <span style="color:#ef4444;">*</span> are required
             </div>
-            <button type="submit" class="submit-btn">📤 Submit Exam</button>
+            <button type="submit" class="submit-btn">ðŸ“¤ Submit Exam</button>
         </div>
     </form>
 </div>
