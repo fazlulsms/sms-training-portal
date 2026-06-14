@@ -186,12 +186,7 @@
     {{-- ── Left: Brand panel ── --}}
     <div class="gl-brand">
         <a href="{{ route('public.home') }}" class="gl-brand-logo">
-            <div class="gl-brand-logo-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.5)" stroke-width="1.5"/>
-                    <path d="M8 12l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
+            <img src="{{ asset('sms-logo.png') }}" alt="SMS Training Academy" style="height:44px;width:auto;display:block;filter:brightness(0) invert(1);opacity:.9;">
             <div class="gl-brand-logo-text">
                 <strong>SMS Training Academy</strong>
                 <span>Powered by Sustainable Management System Inc.</span>
@@ -252,12 +247,7 @@
             {{-- Mobile logo --}}
             <div class="gl-mobile-logo">
                 <a href="{{ route('public.home') }}" style="text-decoration:none;">
-                    <div class="gl-mobile-logo-icon">
-                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-                            <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.6)" stroke-width="1.5"/>
-                            <path d="M8 12l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
+                    <img src="{{ asset('sms-logo.png') }}" alt="SMS Training Academy" style="height:52px;width:auto;display:block;margin:0 auto 10px;">
                     <strong>SMS Training Academy</strong>
                     <span>Powered by Sustainable Management System Inc.</span>
                 </a>

@@ -83,14 +83,7 @@
         display: flex; align-items: center; gap: 12px;
         text-decoration: none; flex-shrink: 0;
     }
-    .pub-logo-icon {
-        width: 42px; height: 42px;
-        background: linear-gradient(135deg, #0f2470 0%, #1e3a8a 100%);
-        border-radius: 11px;
-        display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 3px 10px rgba(15,36,112,.28);
-        flex-shrink: 0;
-    }
+    .pub-logo img { flex-shrink: 0; }
     .pub-logo-text strong {
         display: block; font-size: 14.5px; font-weight: 900;
         color: #0f2470; line-height: 1.2;
@@ -198,15 +191,9 @@
     @media (max-width: 560px)  { .pub-footer-grid { grid-template-columns: 1fr; gap: 28px; } }
 
     .footer-brand .footer-logo {
-        display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+        display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
     }
-    .footer-brand .footer-logo-icon {
-        width: 40px; height: 40px;
-        background: linear-gradient(135deg, #1e3a8a, #2563eb);
-        border-radius: 10px;
-        display: flex; align-items: center; justify-content: center;
-        flex-shrink: 0;
-    }
+    .footer-brand .footer-logo img { flex-shrink: 0; }
     .footer-brand .footer-logo-text strong {
         display: block; font-size: 14.5px; font-weight: 900; color: #fff; line-height: 1.2;
     }
@@ -263,6 +250,27 @@
     .pub-container { max-width: var(--max-w); margin: 0 auto; padding: 0 var(--gap-x); }
     .pub-section    { padding: 64px 0; }
     .pub-section-sm { padding: 40px 0; }
+
+    /* ── Course grid — 3 col → 2 col → 1 col ────────────────────── */
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 22px;
+    }
+    @media (max-width: 1024px) { .courses-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 580px)  { .courses-grid { grid-template-columns: 1fr; } }
+
+    /* Section header row */
+    .section-header { margin-bottom: 32px; }
+    .section-header-row {
+        display: flex; align-items: flex-end; justify-content: space-between;
+        flex-wrap: wrap; gap: 12px;
+    }
+    .view-all-link {
+        font-size: 13.5px; font-weight: 700; color: #1e3a8a; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+    .view-all-link:hover { color: #1d4ed8; }
 
     .section-eyebrow {
         font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
@@ -423,13 +431,7 @@
     <div class="pub-nav-inner">
 
         <a href="{{ route('public.home') }}" class="pub-logo">
-            <div class="pub-logo-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" fill="rgba(255,255,255,.18)"/>
-                    <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" stroke="rgba(255,255,255,.6)" stroke-width="1.5"/>
-                    <path d="M8 12l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
+            <img src="{{ asset('sms-logo.png') }}" alt="SMS Training Academy" style="height:42px;width:auto;display:block;">
             <div class="pub-logo-text">
                 <strong>SMS Training Academy</strong>
                 <span>Powered by Sustainable Management System Inc.</span>
@@ -517,13 +519,7 @@
             {{-- Brand col --}}
             <div class="footer-brand">
                 <div class="footer-logo">
-                    <div class="footer-logo-icon">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                            <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" fill="rgba(255,255,255,.15)"/>
-                            <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" stroke="rgba(255,255,255,.5)" stroke-width="1.5"/>
-                            <path d="M8 12l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
+                    <img src="{{ asset('sms-logo.png') }}" alt="SMS Training Academy" style="height:46px;width:auto;display:block;filter:brightness(0) invert(1);opacity:.9;">
                     <div class="footer-logo-text">
                         <strong>SMS Training Academy</strong>
                         <span>Powered by Sustainable Management System Inc.</span>
