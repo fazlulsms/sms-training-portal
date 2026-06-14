@@ -29,11 +29,12 @@
             </span>
             @if($schedule->venue || $schedule->zoom_link)
             <span class="sc-meta-item">
-                📍 {{ $schedule->training_mode === 'Online' ? 'Online (Zoom)' : ($schedule->venue ?? 'TBA') }}
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                {{ $schedule->training_mode === 'Online' ? 'Online (Zoom)' : ($schedule->venue ?? 'TBA') }}
             </span>
             @endif
             @if($schedule->trainer)
-            <span class="sc-meta-item">👤 {{ $schedule->trainer->name }}</span>
+            <span class="sc-meta-item"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>{{ $schedule->trainer->name }}</span>
             @endif
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">

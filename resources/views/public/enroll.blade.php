@@ -1,8 +1,8 @@
 ﻿@extends('layouts.public')
 
-@section('page-title', 'Enroll â€” ' . ($schedule->course?->name ?? $schedule->training_title))
-@section('seo-title', 'Register for ' . ($schedule->course?->name ?? $schedule->training_title) . ' â€” SMS Training Academy')
-@section('seo-desc', 'Secure your seat for ' . ($schedule->course?->name ?? $schedule->training_title) . '. Complete the enrollment form to register.')
+@section('page-title', 'Enroll — ' . ($schedule->course?->name ?? $schedule->training_title))
+@section('seo-title', 'Register for ' . ($schedule->course?->name ?? $schedule->training_title) . ' — SMS Training Academy')
+@section('seo-desc', 'Secure your seat for ' . ($schedule->course?->name ?? $schedule->training_title) . '. Complete the registration form to join upcoming training.')
 
 @push('head')
 @include('partials.registration-styles')
@@ -29,25 +29,25 @@
             @endif
             <span>Enroll</span>
         </div>
-        <div class="reg-hero-type">ðŸ¢ Instructor-Led Training Registration</div>
+        <div class="reg-hero-type"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>Instructor-Led Training Registration</div>
         <h1>{{ $courseName }}</h1>
         <div class="reg-hero-badges">
-            <span class="reg-hero-badge">ðŸ“… {{ \Carbon\Carbon::parse($schedule->start_date)->format('d M') }} â€“ {{ \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') }}</span>
+            <span class="reg-hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>{{ \Carbon\Carbon::parse($schedule->start_date)->format('d M') }} â€“ {{ \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') }}</span>
             <span class="reg-hero-badge">{{ $schedule->training_mode }}</span>
             @if($schedule->training_mode !== 'Online' && $schedule->venue)
-            <span class="reg-hero-badge">ðŸ“ {{ $schedule->venue }}</span>
+            <span class="reg-hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>{{ $schedule->venue }}</span>
             @elseif($schedule->training_mode === 'Online')
-            <span class="reg-hero-badge">ðŸ“ Online (Zoom)</span>
+            <span class="reg-hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Online (Zoom)</span>
             @endif
             @if($schedule->trainer)
-            <span class="reg-hero-badge">ðŸ‘¤ {{ $schedule->trainer->name }}</span>
+            <span class="reg-hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>{{ $schedule->trainer->name }}</span>
             @endif
             @if($schedule->batch_code)
-            <span class="reg-hero-badge">ðŸ—‚ {{ $schedule->batch_code }}</span>
+            <span class="reg-hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>{{ $schedule->batch_code }}</span>
             @endif
             @if(!is_null($seatsLeft))
             <span class="reg-hero-badge" style="{{ $seatsLeft <= 5 ? 'background:rgba(239,68,68,.25);' : '' }}">
-                {{ $seatsLeft <= 0 ? 'ðŸ”´ Full' : ($seatsLeft <= 5 ? 'ðŸŸ  ' . $seatsLeft . ' seats left' : 'ðŸŸ¢ ' . $seatsLeft . ' seats left') }}
+                {{ $seatsLeft <= 0 ? 'Full' : ($seatsLeft <= 5 ? $seatsLeft . ' seats left' : $seatsLeft . ' seats left') }}
             </span>
             @endif
         </div>
@@ -61,10 +61,12 @@
 <div class="reg-main">
 
     @if(session('error'))
-    <div class="reg-alert-error">âš ï¸ {{ session('error') }}</div>
+    <div class="reg-alert-error"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        {{ session('error') }}</div>
     @endif
     @if($errors->any())
-    <div class="reg-alert-error">âš  Please fix the highlighted errors below before submitting.</div>
+    <div class="reg-alert-error"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Please fix the highlighted errors below before submitting.</div>
     @endif
 
     <form method="POST" action="{{ route('public.enroll.store', $schedule->id) }}">
@@ -182,7 +184,7 @@
                     <input type="radio" name="selected_mode" value="Physical"
                            {{ old('selected_mode', $schedule->training_mode !== 'Online' ? 'Physical' : '') === 'Physical' ? 'checked' : '' }}>
                     <div class="mode-card">
-                        <div class="mode-card-icon">ðŸ¢</div>
+                        <div class="mode-card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
                         <div class="mode-card-name">Physical</div>
                         <div class="mode-card-desc">{{ $schedule->venue ?? 'At our venue' }}</div>
                         @if($physicalFee)<div class="mode-card-fee">{{ $currency }} {{ number_format($physicalFee) }}</div>@endif
@@ -194,7 +196,7 @@
                     <input type="radio" name="selected_mode" value="Online"
                            {{ old('selected_mode', $schedule->training_mode === 'Online' ? 'Online' : '') === 'Online' ? 'checked' : '' }}>
                     <div class="mode-card">
-                        <div class="mode-card-icon">ðŸ’»</div>
+                        <div class="mode-card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
                         <div class="mode-card-name">Online</div>
                         <div class="mode-card-desc">Live via Zoom</div>
                         @if($onlineFee)<div class="mode-card-fee">{{ $currency }} {{ number_format($onlineFee) }}</div>@endif
@@ -255,12 +257,12 @@
                 <span class="fee-value">{{ \Carbon\Carbon::parse($schedule->start_date)->format('d M') }} â€“ {{ \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') }}</span>
             </div>
             <div class="fee-row">
-                <span class="fee-label">Mode (<span id="feeModeLbl">â€”</span>)</span>
-                <span class="fee-value" id="feeLine">{{ $currency }} â€”</span>
+                <span class="fee-label">Mode (<span id="feeModeLbl">—</span>)</span>
+                <span class="fee-value" id="feeLine">{{ $currency }} —</span>
             </div>
             <div class="fee-row">
                 <span class="fee-label">Total Due</span>
-                <span class="fee-value" id="feeTotal">{{ $currency }} â€”</span>
+                <span class="fee-value" id="feeTotal">{{ $currency }} —</span>
             </div>
         </div>
 
@@ -296,7 +298,9 @@
         <div class="sidebar-img">
             @if($schedule->course?->banner_image)
             <img src="{{ asset('storage/'.$schedule->course->banner_image) }}" alt="{{ $courseName }}">
-            @else <span>ðŸ¢</span> @endif
+            @else
+                <div style="display:flex;align-items:center;justify-content:center;height:100%;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+                @endif
         </div>
         <div class="sidebar-body">
             <div class="sidebar-price-row">
@@ -314,7 +318,7 @@
 
             <div class="feature-row">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                ðŸ“… {{ \Carbon\Carbon::parse($schedule->start_date)->format('d M Y') }}
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>{{ \Carbon\Carbon::parse($schedule->start_date)->format('d M Y') }}
             </div>
             <div class="feature-row">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -350,7 +354,7 @@
     <div class="sidebar-help">
         <div class="sidebar-help-title">Need help enrolling?</div>
         <div class="sidebar-help-sub">Our team is ready to assist you</div>
-        <a href="mailto:training@smscert.com" class="sidebar-help-btn">ðŸ“§ training@smscert.com</a>
+        <a href="mailto:training@smscert.com" class="sidebar-help-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:4px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points=`"22,6 12,13 2,6`"/></svg>training@smscert.com</a>
     </div>
 </aside>
 
@@ -374,7 +378,7 @@
         var line = document.getElementById('feeLine');
         var total = document.getElementById('feeTotal');
         var sbFee = document.getElementById('sbFee');
-        if (lbl)   lbl.textContent   = mode || 'â€”';
+        if (lbl)   lbl.textContent   = mode || '–';
         if (line)  line.textContent  = fee ? fmt(fee) : currency + ' TBA';
         if (total) total.textContent = fee ? fmt(fee) : currency + ' TBA';
         if (sbFee && fee) sbFee.textContent = fmt(fee);

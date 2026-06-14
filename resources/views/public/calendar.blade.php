@@ -96,15 +96,14 @@
 .cal-tbl thead th:last-child { border-right: none; }
 
 /* Column widths — fixed layout */
-.cal-tbl .col-date     { width: 9%; }
-.cal-tbl .col-course   { width: 23%; }
+.cal-tbl .col-date     { width: 10%; }
+.cal-tbl .col-course   { width: 25%; }
 .cal-tbl .col-dur      { width: 10%; }
-.cal-tbl .col-mode     { width: 7%; }
-.cal-tbl .col-fee      { width: 14%; }
-.cal-tbl .col-trainer  { width: 10%; }
-.cal-tbl .col-venue    { width: 11%; }
-.cal-tbl .col-deadline { width: 9%; }
-.cal-tbl .col-action   { width: 7%; }
+.cal-tbl .col-mode     { width: 8%; }
+.cal-tbl .col-fee      { width: 15%; }
+.cal-tbl .col-trainer  { width: 11%; }
+.cal-tbl .col-venue    { width: 13%; }
+.cal-tbl .col-action   { width: 8%; }
 
 /* Archive widths */
 .cal-tbl .acol-date    { width: 10%; }
@@ -164,16 +163,6 @@
 .fee-amt   { font-weight: 800; color: #1e3a8a; }
 .fee-single { font-size: 14px; font-weight: 900; color: #1e3a8a; }
 .fee-cur    { font-size: 11px; color: #9ca3af; }
-
-/* Deadline */
-.td-deadline { font-size: 13px; white-space: nowrap; }
-.deadline-warn { color: #f97316; font-weight: 700; }
-.deadline-ok   { color: #374151; }
-.deadline-badge {
-    display: inline-block; font-size: 10px; font-weight: 800;
-    background: #fef2f2; color: #dc2626; padding: 1px 6px; border-radius: 9px;
-    margin-top: 2px;
-}
 
 /* Action */
 .enroll-btn {
@@ -417,7 +406,6 @@
     <col class="col-fee">
     <col class="col-trainer">
     <col class="col-venue">
-    <col class="col-deadline">
     <col class="col-action">
 </colgroup>
 <thead>
@@ -429,7 +417,6 @@
     <th>Fee</th>
     <th>Trainer</th>
     <th>Venue</th>
-    <th>Deadline</th>
     <th>Action</th>
 </tr>
 </thead>
@@ -447,9 +434,6 @@
     $modeLabel   = match($modeRaw) { 'online'=>'Online','hybrid'=>'Hybrid', default=>'F2F' };
     $modeCls     = match($modeRaw) { 'online'=>'mode-online','hybrid'=>'mode-hybrid', default=>'mode-f2f' };
     $venue       = $modeRaw === 'online' ? 'Online (Zoom)' : ($s->venue ?? '—');
-    $daysLeft    = $s->registration_deadline
-                   ? now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($s->registration_deadline), false)
-                   : null;
     if ($startDt->format('M Y') === $endDt->format('M Y')) {
         $dateRange = $startDt->format('d') . '–' . $endDt->format('d M Y');
     } else {
@@ -513,20 +497,6 @@
     {{-- VENUE --}}
     <td data-label="Venue" style="font-size:13px;color:#374151;">
         {{ $venue }}
-    </td>
-
-    {{-- DEADLINE --}}
-    <td data-label="Deadline">
-        @if($s->registration_deadline)
-            <div class="{{ ($daysLeft !== null && $daysLeft <= 7) ? 'deadline-warn' : 'deadline-ok' }} td-deadline">
-                {{ \Carbon\Carbon::parse($s->registration_deadline)->format('d M Y') }}
-            </div>
-            @if($daysLeft !== null && $daysLeft >= 0 && $daysLeft <= 7)
-            <div class="deadline-badge">{{ $daysLeft }}d left</div>
-            @endif
-        @else
-            <span style="color:#9ca3af;font-size:12px;">Open</span>
-        @endif
     </td>
 
     {{-- ACTION --}}
