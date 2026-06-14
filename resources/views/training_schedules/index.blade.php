@@ -53,6 +53,7 @@
                 @forelse($schedules as $schedule)
                 @php
                     $st = $schedule->status;
+                    $sst = $schedule->schedule_status;
                     $stBadge = match($st) {
                         'Open'      => 'badge-success',
                         'Closed'    => 'badge-danger',
@@ -73,11 +74,16 @@
                         <div class="td-sub">to {{ \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') }}</div>
                     </td>
                     <td>{{ $schedule->trainer->name ?? '—' }}</td>
-                    <td class="c"><span class="badge {{ $stBadge }}">{{ $st }}</span></td>
+                    <td class="c">
+                        <span class="badge {{ $stBadge }}">{{ $st }}</span>
+                        @if($sst && $sst !== $st)
+                        <br><span class="badge badge-info" style="font-size:10px;margin-top:3px;">{{ $sst }}</span>
+                        @endif
+                    </td>
                     <td class="c">
                         <div class="dt-actions" style="justify-content:center;">
                             <a href="{{ route('attendance.sheet', $schedule->id) }}" class="btn btn-primary btn-xs">Attendance</a>
-                            @if($st === 'Completed')
+                            @if($sst === 'Completed')
                             <a href="{{ route('training-news.create', $schedule->id) }}"
                                class="btn btn-xs" style="background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;"
                                title="Generate AI news article for this training">

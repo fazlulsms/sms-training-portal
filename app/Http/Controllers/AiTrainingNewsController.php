@@ -60,7 +60,7 @@ class AiTrainingNewsController extends Controller
 
         // Completed schedules without a news article yet
         $pending = TrainingSchedule::with('course')
-            ->where('status', 'Completed')
+            ->where('schedule_status', 'Completed')
             ->whereDoesntHave('newsArticles', fn($q) => $q->whereIn('article_type', [BlogPost::TYPE_TRAINING_NEWS, BlogPost::TYPE_SUCCESS_STORY, BlogPost::TYPE_ANNOUNCEMENT]))
             ->orderByDesc('end_date')
             ->limit(5)
@@ -128,7 +128,7 @@ class AiTrainingNewsController extends Controller
     {
         $this->guardAdmin();
 
-        if ($schedule->status !== 'Completed') {
+        if ($schedule->schedule_status !== 'Completed') {
             return back()->with('error', 'News articles can only be generated for Completed training schedules.');
         }
 
