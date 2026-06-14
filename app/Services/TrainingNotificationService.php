@@ -39,7 +39,7 @@ class TrainingNotificationService
         ]);
 
         try {
-            Mail::to($recipient)->send(new TrainingMail($subject, $view, $data, $attachments));
+            Mail::to($recipient)->queue(new TrainingMail($subject, $view, $data, $attachments));
             return true;
         } catch (\Throwable $e) {
             $log->update(['status' => 'failed', 'error_message' => $e->getMessage()]);
@@ -72,7 +72,7 @@ class TrainingNotificationService
         ]);
 
         try {
-            Mail::to($recipient)->send($mailable);
+            Mail::to($recipient)->queue($mailable);
             return true;
         } catch (\Throwable $e) {
             $log->update(['status' => 'failed', 'error_message' => $e->getMessage()]);
