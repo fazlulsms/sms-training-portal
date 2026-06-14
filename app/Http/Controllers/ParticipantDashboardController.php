@@ -209,6 +209,24 @@ class ParticipantDashboardController extends Controller
 
         $this->progressService->markCompleted(Auth::id(), $enrollment, $lesson);
 
-        return back()->with('success', 'Lesson marked as complete!');
+        // Redirect to next lesson instead of staying on the same page
+        $lessons      = ElearningLesson::where('course_id', $enrollment->course_id)
+            ->orderBy('lesson_order')
+            ->get();
+        $currentIndex = $lessons->search(fn ($l) => $l->id === $lesson->id);
+        $nextLesson   = ($currentIndex !== false && $currentIndex < $lessons->count() - 1)
+            ? $lessons[$currentIndex + 1]
+            : null;
+
+        if ($nextLesson) {
+            return redirect()
+                ->route('participant.lesson.show', [$enrollment->id, $nextLesson->id])
+                ->with('success', '✓ Lesson completed! Continuing to the next lesson…');
+        }
+
+        // Last lesson — go to course overview
+        return redirect()
+            ->route('participant.elearning-details', $enrollment->id)
+            ->with('success', '🎉 Congratulations! You have completed all lessons in this course.');
     }
 }

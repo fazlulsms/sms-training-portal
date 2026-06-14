@@ -405,7 +405,7 @@
     {{-- ══ SIDEBAR ════════════════════════════════════════════ --}}
     <aside class="ll-nav" id="llNav">
         <div class="ll-nav-header">
-            <div class="ll-nav-org">SMS Training Services</div>
+            <div class="ll-nav-org">SMS Training Academy</div>
             <div class="ll-nav-course">{{ $courseName }}</div>
             <div class="ll-nav-prog-track">
                 <div class="ll-nav-prog-fill" style="width:{{ $pct }}%"></div>
@@ -580,12 +580,12 @@
                                 {{ $blockCount }} {{ Str::plural('section', $blockCount) }}
                             </span>
                             @endif
-                            @if($lesson->completion_rule === 'pass_quiz')
+                            @if($lesson->completion_rule === 'pass_quiz' && !$isCompleted)
                             <span class="lo-meta-item">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                 Pass quiz to complete{{ $lesson->required_passing_score ? " ({$lesson->required_passing_score}%)" : '' }}
                             </span>
-                            @else
+                            @elseif(!$isCompleted)
                             <span class="lo-meta-item">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                                 Mark complete when done
@@ -622,10 +622,18 @@
                     </div>
                     @else
                     <div style="margin-top:24px;text-align:center;">
+                        @if($isCompleted && !$previewMode)
+                        <button onclick="nextStep()" class="lfb lfb-blue" type="button" style="padding:12px 28px;font-size:15px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                            Review Lesson
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                        @else
                         <button onclick="nextStep()" class="lfb lfb-next" type="button" style="padding:12px 28px;font-size:15px;">
                             Start Lesson
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                         </button>
+                        @endif
                     </div>
                     @endif
 
@@ -1369,7 +1377,11 @@ function toggleReveal(id) {
     }
 }
 
-const stepDone = { 0: true }; // overview always done
+// Revision mode: lesson already completed — no section locks apply
+const IS_COMPLETED = {{ ($isCompleted && !$previewMode) ? 'true' : 'false' }};
+// Pre-mark ALL steps done for completed lessons; only overview for new lessons
+const stepDone = {};
+for (let i = 0; i <= LAST; i++) stepDone[i] = IS_COMPLETED || i === 0;
 let cur = 0;
 const panels = document.querySelectorAll('.lf-panel');
 const dots   = document.querySelectorAll('#lfTrack .lf-dot');
@@ -1439,7 +1451,7 @@ function renderUI() {
     if (fp) fp.style.display = cur === 0 ? 'none' : '';
     if (tp) tp.disabled = cur === 0;
 
-    // Next — locked check applies even on the last panel (e.g. unfinished video)
+    // Next section navigation button
     const fn = document.getElementById('btnNextFoot');
     const tn = document.getElementById('btnNextTop');
     const locked = isCurrentPanelLocked();
@@ -1453,14 +1465,18 @@ function renderUI() {
                 : t === 'scenario'        ? '✋ Choose First'
                 : t === 'matching'        ? '🔗 Match First'
                 : '🔒 Complete First';
-            fn.innerHTML = (locked ? lockLabel : (cur === LAST - 1 ? 'Finish' : 'Next')) +
+            // Use "Finish" only on the step before last for incomplete lessons
+            const nextLabel = (cur === LAST - 1 && !IS_COMPLETED) ? 'Finish' : 'Next';
+            fn.innerHTML = (locked ? lockLabel : nextLabel) +
                 ' <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
         }
     }
     if (tn) tn.disabled = locked || isLast;
 
-    // Completion actions — only when on last step AND fully done (not locked)
-    const showCompletion = isLast && !locked;
+    // Completion actions:
+    // - Completed lessons: always show doneChip + Next Lesson (revision browsing mode)
+    // - Incomplete lessons: show only on last unlocked step (original behaviour)
+    const showCompletion = IS_COMPLETED || (isLast && !locked);
     ['frmComplete','doneChip','previewChip','btnNextLesson','btnCourseOv'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = showCompletion ? '' : 'none';
@@ -1738,6 +1754,7 @@ function currentYtBlockId() {
 }
 
 function isCurrentPanelLocked() {
+    if (IS_COMPLETED) return false; // revision mode — no locks on already-completed lessons
     if (stepDone[cur]) return false;
     const t = STEP_TYPES[cur];
     if (t === 'video') {
