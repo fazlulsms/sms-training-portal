@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.participant')
 @section('page-title', $quiz->title)
 @section('content')
 

@@ -21,6 +21,13 @@ class User extends Authenticatable
         'country',
         'is_active',
         'last_login_at',
+        'department',
+        'linkedin_url',
+        'preferred_language',
+        'bio',
+        'photo_path',
+        'emergency_contact_name',
+        'emergency_contact_phone',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -33,6 +40,23 @@ class User extends Authenticatable
             'is_active'         => 'boolean',
             'last_login_at'     => 'datetime',
         ];
+    }
+
+    // ── Profile photo accessor ────────────────────────────
+
+    public function photoUrl(): string
+    {
+        return $this->photo_path
+            ? asset('storage/' . $this->photo_path)
+            : '';
+    }
+
+    public function initials(): string
+    {
+        $parts = explode(' ', trim($this->name ?? 'U'));
+        $first = strtoupper(substr($parts[0] ?? 'U', 0, 1));
+        $last  = count($parts) > 1 ? strtoupper(substr(end($parts), 0, 1)) : '';
+        return $first . $last;
     }
 
     // ── Role helpers ──────────────────────────────────────

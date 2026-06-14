@@ -1,11 +1,13 @@
-@extends('layouts.app')
+@extends('layouts.participant')
 @section('page-title', 'My Certificates')
 @section('content')
 
 <x-flash-message />
 
-<x-page-header title="My Certificates" desc="Your earned certificates from completed courses.">
-</x-page-header>
+<div style="margin-bottom:20px;">
+    <h2 style="font-size:20px;font-weight:800;color:#111827;margin:0 0 4px;">My Certificates</h2>
+    <p style="color:#6b7280;font-size:14px;margin:0;">Your earned certificates from completed courses.</p>
+</div>
 
 <style>
 .cert-grid {

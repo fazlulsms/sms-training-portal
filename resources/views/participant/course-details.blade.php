@@ -1,5 +1,5 @@
-@extends('layouts.app')
-
+@extends('layouts.participant')
+@section('page-title', $enrollment->schedule->course->name ?? 'Training Details')
 @section('content')
 
 <style>
