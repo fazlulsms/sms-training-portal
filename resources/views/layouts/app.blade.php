@@ -592,7 +592,7 @@
             </div>
 
             <div class="sb-group-items" x-show="open" x-transition>
-                <a href="{{ route('admin.coupons.index') }}"
+                <a href="{{ route('coupons.index') }}"
                    class="sb-sub {{ $promoActive ? 'active' : '' }}"
                    style="{{ $promoActive ? 'background:rgba(245,158,11,.12);color:#fcd34d;' : '' }}">
                     <span class="sb-icon">
