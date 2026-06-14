@@ -167,42 +167,59 @@ class PublicController extends Controller
     // ── Training Calendar ─────────────────────────────────────
     public function calendar(Request $request)
     {
-        $query = TrainingSchedule::with('course', 'trainer')
+        $tab   = $request->get('tab', 'upcoming');
+        $today = now()->toDateString();
+
+        // Shared filter values
+        $filterMode   = $request->input('mode');
+        $filterCourse = $request->input('course');
+
+        // ── Upcoming ──────────────────────────────────────────
+        $upcomingQuery = TrainingSchedule::with('course', 'trainer')
             ->where('is_public', true)
-            ->whereIn('schedule_status', ['Upcoming', 'Running'])
-            ->where(fn($q) =>
-                $q->whereNull('registration_deadline')
-                  ->orWhere('registration_deadline', '>=', now()->toDateString())
-            );
+            ->where('start_date', '>=', $today);
 
-        if ($request->filled('month')) {
-            $query->whereMonth('start_date', Carbon::parse($request->month)->month)
-                  ->whereYear('start_date',  Carbon::parse($request->month)->year);
+        if ($request->filled('month'))  {
+            $upcomingQuery->whereMonth('start_date', Carbon::parse($request->month)->month)
+                          ->whereYear('start_date',  Carbon::parse($request->month)->year);
         }
-        if ($request->filled('mode'))    $query->where('training_mode', $request->mode);
-        if ($request->filled('course'))  $query->where('course_id', $request->course);
+        if ($filterMode)   $upcomingQuery->where('training_mode', $filterMode);
+        if ($filterCourse) $upcomingQuery->where('course_id',     $filterCourse);
+
+        $upcoming = $upcomingQuery->orderBy('start_date')->paginate(20)->withQueryString();
+
+        // ── Past / Archive ────────────────────────────────────
+        $pastQuery = TrainingSchedule::with('course', 'trainer')
+            ->where('is_public', true)
+            ->where('end_date', '<', $today);
+
+        if ($request->filled('year'))   $pastQuery->whereYear('start_date',  $request->year);
+        if ($request->filled('month') && $tab === 'archive') {
+            $pastQuery->whereMonth('start_date', Carbon::parse($request->month)->month);
+        }
+        if ($filterMode)   $pastQuery->where('training_mode', $filterMode);
+        if ($filterCourse) $pastQuery->where('course_id',     $filterCourse);
+
+        $past       = $pastQuery->orderBy('start_date', 'desc')->get();
+        $pastByYear = $past->groupBy(fn($s) => Carbon::parse($s->start_date)->year)
+                           ->sortKeysDesc();
+
+        $courses = Course::where('is_public', true)->select('id', 'name')->orderBy('name')->get();
+
         try {
-            if ($request->filled('city'))    $query->where('city', $request->city);
-            if ($request->filled('country')) $query->where('country', $request->country);
+            $archiveYears = TrainingSchedule::where('is_public', true)
+                ->where('end_date', '<', $today)
+                ->selectRaw('YEAR(start_date) as year')
+                ->distinct()
+                ->orderByDesc('year')
+                ->pluck('year');
         } catch (\Exception $e) {
-            // city/country columns may not exist yet on staging
-        }
-        if ($request->filled('trainer')) $query->where('trainer_id', $request->trainer);
-
-        $schedules = $query->orderBy('start_date')->paginate(15)->withQueryString();
-        $courses   = Course::where('is_public', true)->select('id','name')->get();
-        $trainers  = Trainer::where('status', 1)->select('id','name')->get();
-        try {
-            $cities    = TrainingSchedule::where('is_public', true)->whereNotNull('city')
-                            ->distinct()->orderBy('city')->pluck('city');
-            $countries = TrainingSchedule::where('is_public', true)->whereNotNull('country')
-                            ->distinct()->orderBy('country')->pluck('country');
-        } catch (\Exception $e) {
-            $cities = collect();
-            $countries = collect();
+            $archiveYears = collect();
         }
 
-        return view('public.calendar', compact('schedules', 'courses', 'trainers', 'cities', 'countries'));
+        return view('public.calendar', compact(
+            'upcoming', 'past', 'pastByYear', 'courses', 'archiveYears', 'tab'
+        ));
     }
 
     // ── Trainer Directory ─────────────────────────────────────
