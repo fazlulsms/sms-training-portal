@@ -1,6 +1,8 @@
 @php
-    $minFee  = $course->min_fee;
-    $maxFee  = $course->max_fee;
+    $isElearning = ($course->delivery_type === 'eLearning' || $course->course_type === 'elearning');
+    $elFee   = $isElearning ? ($course->public_price ?: $course->course_fee ?: null) : null;
+    $minFee  = $elFee ?? $course->min_fee;
+    $maxFee  = $elFee ?? $course->max_fee;
     $dtClass = match($course->delivery_type ?? 'Instructor-Led') {
         'eLearning'      => 'db-elearning',
         'Instructor-Led' => 'db-instructor',
@@ -61,7 +63,7 @@
                 @if($minFee == $maxFee) BDT {{ number_format($minFee) }}
                 @else BDT {{ number_format($minFee) }} – {{ number_format($maxFee) }}
                 @endif
-                <small>per participant</small>
+                <small>{{ $isElearning ? 'one-time' : 'per participant' }}</small>
             @else
                 <span style="font-size:13px;font-weight:600;color:#6b7280;">Contact for fee</span>
             @endif

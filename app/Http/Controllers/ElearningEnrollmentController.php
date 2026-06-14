@@ -373,7 +373,7 @@ class ElearningEnrollmentController extends Controller
 
     public function publicRegister(Course $course)
     {
-        abort_unless($course->course_type === 'elearning' && $course->status == 1, 404);
+        abort_unless($course->course_type === 'elearning' && $course->is_public, 404);
 
         if (Setting::get('elearning.allow_self_registration', '1') === '0') {
             return view('elearning.registration-closed', compact('course'));
@@ -384,7 +384,7 @@ class ElearningEnrollmentController extends Controller
 
     public function publicRegisterStore(Request $request, Course $course): RedirectResponse
     {
-        abort_unless($course->course_type === 'elearning' && $course->status == 1, 404);
+        abort_unless($course->course_type === 'elearning' && $course->is_public, 404);
 
         if (Setting::get('elearning.allow_self_registration', '1') === '0') {
             return redirect()
