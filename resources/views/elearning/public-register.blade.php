@@ -173,11 +173,6 @@
         <div class="reg-card">
             <div class="reg-card-title"><div class="reg-card-num">4</div> Additional Information</div>
             <div class="fg" style="margin-bottom:16px;">
-                <label class="fl">Dietary Requirements / Special Needs</label>
-                <textarea name="special_requirements" class="fi" rows="2"
-                          placeholder="e.g. vegetarian, wheelchair access…">{{ old('special_requirements') }}</textarea>
-            </div>
-            <div class="fg" style="margin-bottom:16px;">
                 <label class="fl">How did you hear about us?</label>
                 <select name="referral_source" class="fi">
                     <option value="">Select</option>
