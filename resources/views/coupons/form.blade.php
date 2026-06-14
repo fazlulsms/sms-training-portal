@@ -128,13 +128,13 @@
                 <div class="form-group">
                     <label class="form-label">Start Date</label>
                     <input type="date" name="starts_at" class="form-control"
-                           value="{{ old('starts_at', $coupon->starts_at?->format('Y-m-d') ?? '') }}">
+                           value="{{ old('starts_at', ($coupon->starts_at ?? null)?->format('Y-m-d') ?? '') }}">
                     <small class="text-muted">Leave blank to activate immediately.</small>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Expiry Date</label>
                     <input type="date" name="expires_at" class="form-control"
-                           value="{{ old('expires_at', $coupon->expires_at?->format('Y-m-d') ?? '') }}">
+                           value="{{ old('expires_at', ($coupon->expires_at ?? null)?->format('Y-m-d') ?? '') }}">
                     <small class="text-muted">Leave blank for no expiry.</small>
                 </div>
                 <div class="form-group">
