@@ -2,526 +2,709 @@
 
 @section('page-title', 'Verify Certificate — SMS Training Academy')
 @section('seo-title', 'Verify Training Certificate — SMS Training Academy')
-@section('seo-desc', 'Instantly verify the authenticity of an SMS Training Academy certificate by entering the certificate number and recipient name.')
+@section('seo-desc', 'Instantly verify the authenticity of any SMS Training Academy certificate. Enter the participant name and certificate number to confirm credential validity.')
 
 @section('content')
 <style>
-/* ══════════════════════════════════════════════════════════
-   VERIFY CERTIFICATE — Two-column split layout
-══════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   SMS TRAINING ACADEMY — Premium Certificate Verification Portal
+   UI/UX redesign — logic, routes & DB unchanged
+══════════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; }
 
-/* Full-width page wrapper */
-.vc-page { min-height: 100vh; background: #f1f5f9; }
+/* ── Page shell ── */
+.vcp { background: #fff; font-family: inherit; overflow-x: hidden; }
 
-/* ── Top split section ── */
-.vc-split {
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   1. HERO SPLIT  (35 / 65)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.vcp-split {
     display: grid;
-    grid-template-columns: 420px 1fr;
-    min-height: 520px;
+    grid-template-columns: 35fr 65fr;
+    min-height: 620px;
 }
-@media(max-width: 900px) {
-    .vc-split { grid-template-columns: 1fr; }
-}
+@media(max-width: 960px) { .vcp-split { grid-template-columns: 1fr; } }
 
-/* ── LEFT: Form panel ── */
-.vc-left {
-    background: linear-gradient(160deg, #060d2e 0%, #0f2470 45%, #1e3a8a 100%);
-    position: relative; overflow: hidden;
-    padding: 44px 36px 44px;
+/* ─── LEFT: Form panel ─── */
+.vcp-form {
+    background: linear-gradient(180deg, #0F2B6B 0%, #163C8A 100%);
+    padding: 44px 36px 36px;
     display: flex; flex-direction: column; gap: 0;
+    position: relative; overflow: hidden;
 }
-.vc-left::before {
+/* Dot-grid overlay */
+.vcp-form::before {
     content: '';
     position: absolute; inset: 0;
-    background-image: radial-gradient(rgba(255,255,255,.045) 1px, transparent 1px);
-    background-size: 26px 26px;
+    background-image: radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size: 24px 24px;
     pointer-events: none;
 }
-.vc-left::after {
-    content: '';
-    position: absolute;
-    bottom: -80px; right: -80px;
-    width: 260px; height: 260px; border-radius: 50%;
-    background: rgba(37,99,235,.18);
-    pointer-events: none;
+/* Subtle SMS watermark */
+.vcp-form::after {
+    content: 'SMS';
+    position: absolute; bottom: -16px; right: -10px;
+    font-size: 180px; font-weight: 900; line-height: 1;
+    color: rgba(255,255,255,.03); letter-spacing: -8px;
+    pointer-events: none; user-select: none; z-index: 0;
 }
+.vcp-form > * { position: relative; z-index: 1; }
 
-/* Brand mark */
-.vc-brand {
-    display: flex; align-items: center; gap: 11px;
-    text-decoration: none; margin-bottom: 36px; position: relative; z-index: 1;
-}
-.vc-brand img { height: 36px; width: auto; display: block; filter: brightness(0) invert(1); opacity: .9; }
-.vc-brand-text strong { display: block; font-size: 13.5px; font-weight: 900; color: #fff; line-height: 1.2; }
-.vc-brand-text span   { display: block; font-size: 10px; color: rgba(255,255,255,.45); margin-top: 1px; }
-
-/* Shield icon */
-.vc-form-icon {
-    width: 56px; height: 56px; border-radius: 16px;
+/* Shield icon tile */
+.vcp-shield {
+    width: 52px; height: 52px; border-radius: 14px; margin-bottom: 20px;
     background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
     display: flex; align-items: center; justify-content: center;
-    margin-bottom: 18px; position: relative; z-index: 1;
+    box-shadow: 0 4px 16px rgba(0,0,0,.2);
 }
-.vc-form-heading { font-size: 24px; font-weight: 900; color: #fff; margin: 0 0 6px; position: relative; z-index: 1; }
-.vc-form-sub     { font-size: 13.5px; color: rgba(255,255,255,.6); margin: 0 0 28px; line-height: 1.65; position: relative; z-index: 1; }
+.vcp-form-title { font-size: 22px; font-weight: 900; color: #fff; margin: 0 0 8px; line-height: 1.2; }
+.vcp-form-sub   { font-size: 13px; color: rgba(255,255,255,.6); margin: 0 0 28px; line-height: 1.7; }
 
-/* Form fields */
-.vc-form { position: relative; z-index: 1; }
-.vc-field { margin-bottom: 12px; }
-.vc-field-label {
+/* Fields */
+.vcp-field       { margin-bottom: 12px; }
+.vcp-field-label {
     display: block; font-size: 10.5px; font-weight: 800;
     text-transform: uppercase; letter-spacing: .75px;
-    color: rgba(255,255,255,.45); margin-bottom: 7px;
+    color: rgba(255,255,255,.42); margin-bottom: 6px;
 }
-.vc-input {
-    width: 100%; padding: 12px 15px;
-    border-radius: 10px; border: 1.5px solid rgba(255,255,255,.2);
+.vcp-input {
+    width: 100%; padding: 12px 14px;
+    border-radius: 10px; border: 1.5px solid rgba(255,255,255,.18);
     background: rgba(255,255,255,.08); color: #fff;
     font-size: 14px; font-family: inherit; outline: none;
     transition: border-color .14s, background .14s;
 }
-.vc-input::placeholder { color: rgba(255,255,255,.32); }
-.vc-input:focus {
+.vcp-input::placeholder { color: rgba(255,255,255,.3); }
+.vcp-input:focus {
     border-color: rgba(255,255,255,.55);
     background: rgba(255,255,255,.14);
-    box-shadow: 0 0 0 3px rgba(255,255,255,.05);
+    box-shadow: 0 0 0 3px rgba(255,255,255,.06);
 }
-.vc-input.mono { font-family: 'SFMono-Regular', Consolas, monospace; letter-spacing: .4px; font-size: 13.5px; }
+.vcp-input.mono { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13.5px; letter-spacing: .4px; }
 
-.vc-verify-btn {
+.vcp-btn {
     width: 100%; padding: 13px;
-    background: linear-gradient(135deg, #fff 0%, #dbeafe 100%);
+    background: linear-gradient(135deg, #ffffff, #dbeafe);
     color: #0f2470; border: none; border-radius: 10px;
-    font-weight: 900; font-size: 15px; cursor: pointer; font-family: inherit;
+    font-size: 15px; font-weight: 900; font-family: inherit; cursor: pointer;
     display: flex; align-items: center; justify-content: center; gap: 9px;
     margin-top: 6px;
-    box-shadow: 0 4px 20px rgba(0,0,0,.25);
+    box-shadow: 0 6px 20px rgba(0,0,0,.25);
     transition: transform .14s, box-shadow .14s;
 }
-.vc-verify-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(0,0,0,.35); }
-.vc-verify-btn:active { transform: none; }
+.vcp-btn:hover  { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(0,0,0,.35); }
+.vcp-btn:active { transform: none; }
 
-/* Trust list */
-.vc-trust-list { list-style: none; padding: 0; margin: 24px 0 0; position: relative; z-index: 1; border-top: 1px solid rgba(255,255,255,.1); padding-top: 20px; }
-.vc-trust-list li {
-    display: flex; align-items: center; gap: 9px;
-    font-size: 12.5px; color: rgba(255,255,255,.52); font-weight: 600;
-    padding: 5px 0;
+/* Compact timeline */
+.vcp-divider { border: none; border-top: 1px solid rgba(255,255,255,.1); margin: 24px 0 20px; }
+.vcp-tl-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: rgba(255,255,255,.3); margin-bottom: 14px; }
+.vcp-tl {
+    display: flex; flex-direction: column; gap: 0;
 }
-.vc-trust-list li svg { flex-shrink: 0; color: rgba(255,255,255,.4); }
-
-/* ── RIGHT: Result panel ── */
-.vc-right {
-    background: #f8fafc;
-    display: flex; flex-direction: column;
-    justify-content: center;
-    padding: 44px 40px;
-    position: relative;
-}
-@media(max-width: 900px) { .vc-right { padding: 32px 24px; } }
-
-/* Empty / idle state */
-.vc-idle {
-    text-align: center; padding: 24px 20px;
-}
-.vc-idle-icon {
-    width: 80px; height: 80px; border-radius: 24px;
-    background: linear-gradient(135deg, #eff6ff, #dbeafe);
-    border: 1px solid #bfdbfe;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 20px;
-}
-.vc-idle h3 { font-size: 20px; font-weight: 900; color: #111827; margin: 0 0 8px; }
-.vc-idle p  { font-size: 14px; color: #9ca3af; margin: 0 0 24px; line-height: 1.65; }
-.vc-idle-examples { text-align: left; background: #fff; border: 1px solid #e9ecf0; border-radius: 12px; padding: 16px 18px; }
-.vc-idle-examples-title { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; color: #9ca3af; margin-bottom: 10px; }
-.vc-idle-example { font-size: 13px; color: #374151; padding: 5px 0; border-bottom: 1px solid #f5f5f7; display: flex; align-items: center; gap: 8px; }
-.vc-idle-example:last-child { border-bottom: none; padding-bottom: 0; }
-.vc-idle-example svg { color: #9ca3af; flex-shrink: 0; }
-
-/* ── VERIFIED card ── */
-.vc-verified {
-    border-radius: 16px; overflow: hidden;
-    box-shadow: 0 12px 40px rgba(5,46,22,.18);
-}
-.vc-verified-top {
-    background: linear-gradient(135deg, #052e16, #166534);
-    padding: 22px 24px;
-    display: flex; align-items: center; gap: 14px;
-}
-.vc-verified-icon {
-    width: 48px; height: 48px; border-radius: 13px; flex-shrink: 0;
+.vcp-tl-row  { display: flex; align-items: center; gap: 12px; }
+.vcp-tl-num  {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
     background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
     display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 900; color: #fff;
 }
-.vc-verified-title { font-size: 18px; font-weight: 900; color: #fff; margin: 0 0 3px; }
-.vc-verified-sub   { font-size: 12.5px; color: rgba(255,255,255,.6); margin: 0; }
-.vc-verified-pill {
-    margin-left: auto; flex-shrink: 0;
-    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
-    border-radius: 20px; padding: 6px 14px;
-    font-size: 11px; font-weight: 900; color: #86efac;
-    text-transform: uppercase; letter-spacing: .7px;
-    display: flex; align-items: center; gap: 6px;
-}
-.vc-pulse { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; animation: vc-pulse 1.8s ease-in-out infinite; }
-@keyframes vc-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.45;transform:scale(.7)} }
+.vcp-tl-text  { font-size: 12.5px; color: rgba(255,255,255,.58); font-weight: 600; }
+.vcp-tl-line  { width: 1px; height: 14px; background: rgba(255,255,255,.12); margin-left: 11.5px; }
 
-/* Certificate details */
-.vc-cert-body { background: #fff; }
-.vc-cert-grid { display: grid; grid-template-columns: 1fr 1fr; }
-.vc-cert-cell { padding: 16px 20px; border-right: 1px solid #f0f2f5; border-bottom: 1px solid #f0f2f5; }
-.vc-cert-cell:nth-child(2n) { border-right: none; }
-.vc-cert-cell.full { grid-column: 1/-1; border-right: none; }
-.vc-cert-cell-label {
-    font-size: 10px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: .65px; color: #9ca3af; margin-bottom: 5px;
-    display: flex; align-items: center; gap: 5px;
+/* Form trust badges */
+.vcp-form-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+.vcp-fbadge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.13);
+    border-radius: 20px; padding: 5px 11px;
+    font-size: 11px; font-weight: 700; color: rgba(255,255,255,.5);
 }
-.vc-cert-cell-label svg { opacity: .6; }
-.vc-cert-cell-value { font-size: 14px; font-weight: 800; color: #111827; line-height: 1.3; }
-.vc-cert-cell-value.mono { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; color: #1e3a8a; letter-spacing: .3px; }
 
-.vc-cert-footer {
-    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-    border-top: 1px solid #bbf7d0;
-    padding: 13px 20px;
-    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
-}
-.vc-cert-footer-left { display: flex; align-items: center; gap: 8px; }
-.vc-cert-footer-left svg { color: #16a34a; flex-shrink: 0; }
-.vc-cert-footer-text { font-size: 12.5px; color: #166534; font-weight: 700; }
-.vc-cert-footer-text small { font-weight: 500; opacity: .75; }
-.vc-print-btn {
-    font-size: 12px; color: #16a34a; font-weight: 700;
-    display: flex; align-items: center; gap: 5px;
-    cursor: pointer; background: none; border: none; font-family: inherit; padding: 0; opacity: .7;
-}
-.vc-print-btn:hover { opacity: 1; }
-
-/* ── Alert cards ── */
-.vc-alert {
-    background: #fff; border-radius: 16px;
-    border: 1.5px solid #e9ecf0;
-    padding: 24px;
-    display: flex; align-items: flex-start; gap: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,.05);
-}
-.vc-alert.warning { border-color: #fbbf24; background: #fffbeb; }
-.vc-alert.danger  { border-color: #fca5a5; background: #fff1f2; }
-.vc-alert.info    { border-color: #bfdbfe; background: #eff6ff; }
-.vc-alert-icon {
-    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+/* ─── RIGHT: Result panel ─── */
+.vcp-result {
+    background: #fff;
     display: flex; align-items: center; justify-content: center;
+    padding: 40px 44px;
+    border-left: 1px solid #f0f2f5;
 }
-.vc-alert.warning .vc-alert-icon { background: #fef3c7; }
-.vc-alert.danger  .vc-alert-icon { background: #fee2e2; }
-.vc-alert.info    .vc-alert-icon { background: #dbeafe; }
-.vc-alert-title { font-size: 17px; font-weight: 900; margin: 0 0 7px; }
-.vc-alert.warning .vc-alert-title { color: #92400e; }
-.vc-alert.danger  .vc-alert-title { color: #991b1b; }
-.vc-alert.info    .vc-alert-title { color: #1e40af; }
-.vc-alert-text { font-size: 13.5px; color: #6b7280; line-height: 1.75; margin: 0; }
-.vc-alert-text a { color: #1e3a8a; font-weight: 700; text-decoration: none; }
+@media(max-width: 960px) { .vcp-result { padding: 36px 24px; border-left: none; border-top: 1px solid #f0f2f5; } }
 
-/* ══════════════════════════════════════════════════════════
-   BELOW-FOLD sections
-══════════════════════════════════════════════════════════ */
-.vc-below { max-width: 1100px; margin: 0 auto; padding: 48px 24px 72px; }
+.vcp-result-inner { width: 100%; max-width: 680px; }
 
-.vc-section-hd {
-    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px;
-    color: #9ca3af; display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
-}
-.vc-section-hd::after { content: ''; flex: 1; height: 1px; background: #e9ecf0; }
-
-/* Steps grid */
-.vc-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 40px; }
-@media(max-width: 640px) { .vc-steps { grid-template-columns: 1fr; } }
-
-.vc-step {
-    background: #fff; border: 1px solid #e9ecf0; border-radius: 16px;
-    padding: 22px 22px 18px; position: relative; overflow: hidden;
-    transition: box-shadow .15s, border-color .15s;
-}
-.vc-step:hover { box-shadow: 0 6px 24px rgba(30,58,138,.08); border-color: #bfdbfe; }
-.vc-step-n {
-    font-size: 60px; font-weight: 900; color: #f0f4ff; line-height: 1;
-    position: absolute; right: 12px; bottom: -6px; pointer-events: none; user-select: none;
-}
-.vc-step-icon {
-    width: 42px; height: 42px; border-radius: 12px; margin-bottom: 14px;
-    background: linear-gradient(135deg, #eff6ff, #dbeafe);
-    display: flex; align-items: center; justify-content: center;
-}
-.vc-step h4 { font-size: 14px; font-weight: 800; color: #111827; margin: 0 0 7px; }
-.vc-step p  { font-size: 13px; color: #6b7280; margin: 0; line-height: 1.65; }
-
-/* Info 2-col grid */
-.vc-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 32px; }
-@media(max-width: 640px) { .vc-info-grid { grid-template-columns: 1fr; } }
-
-.vc-info-card { background: #fff; border: 1px solid #e9ecf0; border-radius: 16px; padding: 22px 24px; }
-.vc-info-hd { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-.vc-info-hd-icon {
-    width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
+/* ── Idle / empty state ── */
+.vcp-idle { text-align: center; padding: 20px 0; }
+.vcp-idle-icon-wrap {
+    width: 88px; height: 88px; border-radius: 26px; margin: 0 auto 22px;
     background: linear-gradient(135deg, #f0f4ff, #dbeafe);
+    border: 1px solid #bfdbfe;
+    display: flex; align-items: center; justify-content: center;
 }
-.vc-info-hd-title { font-size: 14.5px; font-weight: 800; color: #111827; }
-.vc-dot-list { list-style: none; padding: 0; margin: 0; }
-.vc-dot-list li {
-    display: flex; align-items: flex-start; gap: 9px;
-    font-size: 13px; color: #374151; padding: 7px 0;
-    border-bottom: 1px solid #f5f5f7; line-height: 1.55;
-}
-.vc-dot-list li:last-child { border-bottom: none; padding-bottom: 0; }
-.vc-dot { width: 6px; height: 6px; border-radius: 50%; background: #2563eb; flex-shrink: 0; margin-top: 5px; }
+.vcp-idle h3 { font-size: 22px; font-weight: 900; color: #111827; margin: 0 0 8px; }
+.vcp-idle p  { font-size: 14px; color: #9ca3af; margin: 0 0 28px; line-height: 1.7; max-width: 380px; margin-left: auto; margin-right: auto; }
 
-/* CTA */
-.vc-cta {
-    background: linear-gradient(135deg, #0a1854, #1e3a8a, #2563eb);
-    border-radius: 18px; padding: 32px 36px;
-    display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+.vcp-idle-preview {
+    border: 1.5px dashed #e2e8f0; border-radius: 14px; padding: 20px;
+    background: #f8fafc; text-align: left; margin-bottom: 20px;
+}
+.vcp-idle-preview-hd { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .7px; color: #d1d5db; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.vcp-idle-preview-hd::before { content: ''; display: block; width: 100%; height: 1px; background: #e9ecf0; }
+.vcp-idle-preview-hd::after  { content: ''; display: block; width: 100%; height: 1px; background: #e9ecf0; }
+.vcp-idle-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.vcp-idle-field-sk {
+    background: #e9ecf0; border-radius: 6px; height: 14px; width: 60%;
+    margin-bottom: 6px;
+}
+.vcp-idle-field-sk.wide { width: 90%; }
+.vcp-idle-field-sk.val  { height: 20px; background: #d1d5db; border-radius: 7px; }
+
+.vcp-idle-formats {
+    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+}
+.vcp-idle-format {
+    background: #f0f4ff; border: 1px solid #bfdbfe;
+    border-radius: 8px; padding: 6px 14px;
+    font-size: 12px; font-weight: 700; color: #1e3a8a;
+    font-family: 'SFMono-Regular', Consolas, monospace; letter-spacing: .3px;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   2. VERIFIED CREDENTIAL CARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.vcp-credential {
+    border-radius: 18px; overflow: hidden;
+    box-shadow: 0 20px 64px rgba(15,122,67,.18), 0 4px 16px rgba(0,0,0,.08);
+    width: 100%;
+}
+
+/* Green top banner */
+.vcp-cred-banner {
+    background: linear-gradient(135deg, #0F7A43 0%, #18A05E 100%);
+    padding: 26px 30px;
+    display: flex; align-items: flex-start; gap: 18px;
     position: relative; overflow: hidden;
 }
-.vc-cta::before {
-    content: ''; position: absolute; inset: 0;
-    background-image: radial-gradient(rgba(255,255,255,.045) 1px, transparent 1px);
-    background-size: 20px 20px;
+/* Large checkmark watermark in banner */
+.vcp-cred-banner::after {
+    content: '';
+    position: absolute; right: -30px; top: -30px;
+    width: 160px; height: 160px;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='46' fill='none' stroke='rgba(255,255,255,.07)' stroke-width='4'/%3E%3Cpolyline points='28,50 44,66 72,34' fill='none' stroke='rgba(255,255,255,.07)' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+    pointer-events: none;
 }
-.vc-cta-body { position: relative; z-index: 1; flex: 1; min-width: 180px; }
-.vc-cta h3 { font-size: 20px; font-weight: 900; color: #fff; margin: 0 0 6px; }
-.vc-cta p  { font-size: 14px; color: rgba(255,255,255,.65); margin: 0; line-height: 1.65; }
-.vc-cta-btns { position: relative; z-index: 1; display: flex; gap: 10px; flex-wrap: wrap; }
-.vc-cta-primary {
-    background: #fff; color: #0f2470; padding: 12px 20px; border-radius: 10px;
-    font-weight: 900; font-size: 13.5px; text-decoration: none;
-    display: flex; align-items: center; gap: 7px; transition: opacity .13s;
+.vcp-cred-check {
+    width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
 }
-.vc-cta-primary:hover { opacity: .92; }
-.vc-cta-ghost {
-    background: rgba(255,255,255,.1); color: #fff;
-    border: 1px solid rgba(255,255,255,.2);
-    padding: 12px 20px; border-radius: 10px;
-    font-weight: 700; font-size: 13.5px; text-decoration: none;
-    display: flex; align-items: center; gap: 7px; transition: background .13s;
+.vcp-cred-banner-text { flex: 1; min-width: 0; }
+.vcp-cred-verified-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 900; color: #86efac;
+    text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 4px;
 }
-.vc-cta-ghost:hover { background: rgba(255,255,255,.18); }
+.vcp-pulse { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; animation: vcp-pulse 1.8s ease-in-out infinite; }
+@keyframes vcp-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.65)} }
+.vcp-cred-title { font-size: 19px; font-weight: 900; color: #fff; margin: 0 0 2px; }
+.vcp-cred-sub   { font-size: 12.5px; color: rgba(255,255,255,.65); margin: 0; }
+.vcp-cred-seal {
+    flex-shrink: 0; text-align: center; position: relative; z-index: 1;
+}
+.vcp-seal-ring {
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.25);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 1px;
+    background: rgba(255,255,255,.08);
+}
+.vcp-seal-ring svg { color: rgba(255,255,255,.8); }
+.vcp-seal-text { font-size: 7.5px; font-weight: 900; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+
+/* Certificate detail grid — 3 columns */
+.vcp-cred-body { background: #fff; }
+.vcp-cred-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+@media(max-width: 680px) { .vcp-cred-grid { grid-template-columns: 1fr 1fr; } }
+@media(max-width: 400px) { .vcp-cred-grid { grid-template-columns: 1fr; } }
+
+.vcp-cred-cell {
+    padding: 18px 22px;
+    border-right: 1px solid #f0f2f5;
+    border-bottom: 1px solid #f0f2f5;
+}
+.vcp-cred-cell:nth-child(3n)   { border-right: none; }
+@media(max-width: 680px) {
+    .vcp-cred-cell:nth-child(2n)  { border-right: none; }
+    .vcp-cred-cell:nth-child(3n)  { border-right: 1px solid #f0f2f5; }
+    .vcp-cred-cell:nth-child(3n+1){ border-right: none; }
+}
+.vcp-cred-cell.span2 { grid-column: span 2; }
+.vcp-cred-cell.span3 { grid-column: 1/-1; border-right: none; }
+.vcp-cred-cell-no-border { border-bottom: none !important; }
+
+.vcp-cell-label {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .65px; color: #9ca3af;
+    display: flex; align-items: center; gap: 5px; margin-bottom: 5px;
+}
+.vcp-cell-label svg { opacity: .55; }
+.vcp-cell-val { font-size: 14px; font-weight: 800; color: #111827; line-height: 1.3; }
+.vcp-cell-val.mono { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; color: #163C8A; letter-spacing: .3px; }
+.vcp-cell-val.lg   { font-size: 16px; }
+
+/* Action buttons */
+.vcp-cred-actions {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 16px 22px;
+    background: #f8fafc; border-top: 1px solid #f0f2f5;
+}
+.vcp-action-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: 9px; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: inherit; text-decoration: none;
+    border: 1.5px solid transparent; transition: all .14s; white-space: nowrap;
+}
+.vcp-action-btn.primary {
+    background: #0f2470; color: #fff; border-color: #0f2470;
+}
+.vcp-action-btn.primary:hover { background: #163C8A; border-color: #163C8A; }
+.vcp-action-btn.ghost  {
+    background: #fff; color: #374151; border-color: #e5e7eb;
+}
+.vcp-action-btn.ghost:hover { border-color: #1e3a8a; color: #1e3a8a; }
+
+/* Verified footer strip */
+.vcp-cred-footer {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border-top: 1px solid #bbf7d0;
+    padding: 12px 22px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    justify-content: space-between;
+}
+.vcp-cred-footer-l { display: flex; align-items: center; gap: 8px; }
+.vcp-cred-footer-l svg { color: #16a34a; flex-shrink: 0; }
+.vcp-cred-footer-text { font-size: 12px; color: #166534; font-weight: 700; }
+.vcp-cred-footer-text small { font-weight: 500; opacity: .75; }
+
+/* Trust badges beside/below verified card */
+.vcp-trust-badges {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px;
+}
+.vcp-tbadge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #fff; border: 1px solid #e9ecf0; border-radius: 20px;
+    padding: 6px 13px; font-size: 11.5px; font-weight: 700; color: #374151;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.vcp-tbadge svg { color: #16a34a; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   3. ALERT STATES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.vcp-alert {
+    background: #fff; border-radius: 16px;
+    border: 1.5px solid #e9ecf0;
+    padding: 24px 28px;
+    display: flex; align-items: flex-start; gap: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.05);
+    width: 100%;
+}
+.vcp-alert.warning { border-color: #fbbf24; background: #fffbeb; }
+.vcp-alert.danger  { border-color: #fca5a5; background: #fff1f2; }
+.vcp-alert.info    { border-color: #bfdbfe; background: #eff6ff; }
+.vcp-alert-icon {
+    width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+}
+.vcp-alert.warning .vcp-alert-icon { background: #fef3c7; }
+.vcp-alert.danger  .vcp-alert-icon { background: #fee2e2; }
+.vcp-alert.info    .vcp-alert-icon { background: #dbeafe; }
+.vcp-alert-title { font-size: 17px; font-weight: 900; margin: 0 0 7px; }
+.vcp-alert.warning .vcp-alert-title { color: #92400e; }
+.vcp-alert.danger  .vcp-alert-title { color: #991b1b; }
+.vcp-alert.info    .vcp-alert-title { color: #1e40af; }
+.vcp-alert-body { font-size: 13.5px; color: #6b7280; line-height: 1.75; margin: 0; }
+.vcp-alert-body a { color: #1e3a8a; font-weight: 700; text-decoration: none; }
+.vcp-alert-body a:hover { text-decoration: underline; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   4. STATISTICS BAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.vcp-stats {
+    background: #fff;
+    border-top: 1px solid #f0f2f5;
+    border-bottom: 1px solid #f0f2f5;
+    padding: 36px 24px;
+}
+.vcp-stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    max-width: 900px; margin: 0 auto; gap: 0;
+}
+@media(max-width: 640px) { .vcp-stats-grid { grid-template-columns: 1fr 1fr; gap: 0; } }
+
+.vcp-stat {
+    text-align: center; padding: 16px 20px;
+    border-right: 1px solid #f0f2f5;
+}
+.vcp-stat:last-child { border-right: none; }
+@media(max-width: 640px) {
+    .vcp-stat:nth-child(2n)  { border-right: none; }
+    .vcp-stat:nth-child(1),
+    .vcp-stat:nth-child(2)   { border-bottom: 1px solid #f0f2f5; }
+}
+.vcp-stat-val {
+    font-size: 34px; font-weight: 900; color: #0f2470; line-height: 1;
+    margin-bottom: 4px; letter-spacing: -1px;
+}
+.vcp-stat-label { font-size: 12.5px; color: #9ca3af; font-weight: 600; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   5. WHY TRUST SMS CREDENTIALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.vcp-why {
+    background: #f8fafc;
+    padding: 52px 24px;
+    position: relative; overflow: hidden;
+}
+/* Section watermark */
+.vcp-why::before {
+    content: 'REGISTRY';
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 120px; font-weight: 900; color: rgba(15,36,112,.025);
+    white-space: nowrap; pointer-events: none; user-select: none;
+    letter-spacing: -2px;
+}
+.vcp-why-inner { max-width: 980px; margin: 0 auto; position: relative; z-index: 1; }
+.vcp-section-hd { text-align: center; margin-bottom: 36px; }
+.vcp-section-eyebrow {
+    display: inline-block; font-size: 11px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1px; color: #163C8A;
+    background: #eff6ff; border: 1px solid #bfdbfe;
+    padding: 4px 14px; border-radius: 20px; margin-bottom: 10px;
+}
+.vcp-section-title { font-size: 24px; font-weight: 900; color: #111827; margin: 0 0 8px; }
+.vcp-section-sub   { font-size: 14px; color: #6b7280; margin: 0; }
+
+.vcp-why-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+}
+@media(max-width: 640px) { .vcp-why-grid { grid-template-columns: 1fr 1fr; gap: 10px; } }
+@media(max-width: 380px) { .vcp-why-grid { grid-template-columns: 1fr; } }
+
+.vcp-why-card {
+    background: #fff; border: 1px solid #e9ecf0; border-radius: 14px;
+    padding: 20px 18px; text-align: center;
+    transition: box-shadow .15s, border-color .15s, transform .15s;
+}
+.vcp-why-card:hover {
+    box-shadow: 0 6px 24px rgba(15,36,112,.09);
+    border-color: #bfdbfe; transform: translateY(-2px);
+}
+.vcp-why-icon {
+    width: 46px; height: 46px; border-radius: 13px;
+    background: linear-gradient(135deg, #f0f4ff, #dbeafe);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 13px;
+}
+.vcp-why-card h4 { font-size: 13.5px; font-weight: 800; color: #111827; margin: 0 0 5px; }
+.vcp-why-card p  { font-size: 12px; color: #9ca3af; margin: 0; line-height: 1.6; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   6. RECOGNITION BAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.vcp-recognition {
+    background: #fff;
+    border-top: 1px solid #f0f2f5;
+    padding: 32px 24px;
+}
+.vcp-recog-inner { max-width: 900px; margin: 0 auto; }
+.vcp-recog-label {
+    text-align: center; font-size: 10.5px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1px; color: #d1d5db;
+    margin-bottom: 20px;
+}
+.vcp-recog-items {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; flex-wrap: wrap;
+}
+.vcp-recog-item {
+    display: flex; align-items: center; gap: 8px;
+    background: #f8fafc; border: 1px solid #e9ecf0; border-radius: 8px;
+    padding: 8px 16px; font-size: 12.5px; font-weight: 700; color: #6b7280;
+    transition: border-color .13s, color .13s;
+}
+.vcp-recog-item:hover { border-color: #bfdbfe; color: #1e3a8a; }
+.vcp-recog-item svg { color: #9ca3af; flex-shrink: 0; }
 </style>
 
-<div class="vc-page">
+<div class="vcp">
 
-{{-- ══════════════ TWO-COLUMN SPLIT ══════════════ --}}
-<div class="vc-split">
+{{-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     HERO SPLIT — 35% Form / 65% Result
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ --}}
+<div class="vcp-split">
 
-    {{-- ── LEFT: Form ── --}}
-    <div class="vc-left">
+    {{-- ── LEFT: Form Panel ── --}}
+    <div class="vcp-form">
 
-        <a href="{{ route('public.home') }}" class="vc-brand">
-            <img src="{{ asset('sms-logo.png') }}" alt="SMS Training Academy">
-            <div class="vc-brand-text">
-                <strong>SMS Training Academy</strong>
-                <span>Powered by Sustainable Management System Inc.</span>
-            </div>
-        </a>
-
-        <div class="vc-form-icon">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="1.8">
+        <div class="vcp-shield">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.88)" stroke-width="1.8">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                <polyline points="9 12 11 14 15 10" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="9 12 11 14 15 10" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         </div>
 
-        <div class="vc-form-heading">Certificate Verification</div>
-        <div class="vc-form-sub">Enter the details exactly as they appear on your certificate to verify its authenticity.</div>
+        <div class="vcp-form-title">Certificate Verification</div>
+        <div class="vcp-form-sub">Verify the authenticity of training certificates issued through SMS Training Academy.</div>
 
-        <form method="GET" action="{{ route('public.verify-certificate') }}" class="vc-form">
-            <div class="vc-field">
-                <label class="vc-field-label">Full name (as on certificate)</label>
-                <input type="text" name="name" class="vc-input"
+        <form method="GET" action="{{ route('public.verify-certificate') }}">
+            <div class="vcp-field">
+                <label class="vcp-field-label">Participant Name</label>
+                <input type="text" name="name" class="vcp-input"
                        value="{{ request('name') }}"
-                       placeholder="e.g. Md. Fazlul Haque"
+                       placeholder="Full name as on certificate"
                        autocomplete="off" required>
             </div>
-            <div class="vc-field">
-                <label class="vc-field-label">Certificate number</label>
-                <input type="text" name="cert" class="vc-input mono"
+            <div class="vcp-field">
+                <label class="vcp-field-label">Certificate Number</label>
+                <input type="text" name="cert" class="vcp-input mono"
                        value="{{ request('cert') }}"
                        placeholder="e.g. SMS-TC-2026-0001"
                        autocomplete="off" spellcheck="false" required>
             </div>
-            <button type="submit" class="vc-verify-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <button type="submit" class="vcp-btn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
                 Verify Certificate
             </button>
         </form>
 
-        <ul class="vc-trust-list">
-            <li>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                Secure &amp; tamper-proof certificate registry
-            </li>
-            <li>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                Instant results — no account required
-            </li>
-            <li>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
-                Internationally recognised CPD-accredited certificates
-            </li>
-            <li>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                Name matched with at least 50% similarity threshold
-            </li>
-        </ul>
+        <hr class="vcp-divider">
+
+        <div class="vcp-tl-label">How it works</div>
+        <div class="vcp-tl">
+            <div class="vcp-tl-row">
+                <div class="vcp-tl-num">1</div>
+                <div class="vcp-tl-text">Enter participant name exactly as printed</div>
+            </div>
+            <div class="vcp-tl-line"></div>
+            <div class="vcp-tl-row">
+                <div class="vcp-tl-num">2</div>
+                <div class="vcp-tl-text">Enter the certificate number from document</div>
+            </div>
+            <div class="vcp-tl-line"></div>
+            <div class="vcp-tl-row">
+                <div class="vcp-tl-num">3</div>
+                <div class="vcp-tl-text">View the authenticated credential record</div>
+            </div>
+        </div>
+
+        <div class="vcp-form-badges">
+            <span class="vcp-fbadge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Secure
+            </span>
+            <span class="vcp-fbadge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Instant
+            </span>
+            <span class="vcp-fbadge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Global
+            </span>
+            <span class="vcp-fbadge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Official
+            </span>
+        </div>
 
     </div>
 
-    {{-- ── RIGHT: Result ── --}}
-    <div class="vc-right">
+    {{-- ── RIGHT: Result Panel ── --}}
+    <div class="vcp-result">
+    <div class="vcp-result-inner">
 
         @if(request('cert') && request('name'))
 
             @if($result && $result['found'])
-            {{-- ✅ VERIFIED --}}
-            <div class="vc-verified">
-                <div class="vc-verified-top">
-                    <div class="vc-verified-icon">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                            <polyline points="9 12 11 14 15 10" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            {{-- ✅ VERIFIED CREDENTIAL CARD --}}
+            <div class="vcp-credential">
+
+                <div class="vcp-cred-banner">
+                    <div class="vcp-cred-check">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
                         </svg>
                     </div>
-                    <div>
-                        <div class="vc-verified-title">Certificate Verified</div>
-                        <div class="vc-verified-sub">Authentic · Registered in our secure database</div>
+                    <div class="vcp-cred-banner-text">
+                        <div class="vcp-cred-verified-tag">
+                            <div class="vcp-pulse"></div>
+                            ✓ Verified
+                        </div>
+                        <div class="vcp-cred-title">Authentic Credential Record</div>
+                        <div class="vcp-cred-sub">Registered in Official SMS Training Academy Registry</div>
                     </div>
-                    <div class="vc-verified-pill">
-                        <div class="vc-pulse"></div>
-                        Authentic
+                    <div class="vcp-cred-seal">
+                        <div class="vcp-seal-ring">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                        </div>
+                        <div class="vcp-seal-text">Official</div>
                     </div>
                 </div>
 
-                <div class="vc-cert-body">
-                    <div class="vc-cert-grid">
+                <div class="vcp-cred-body">
+                    <div class="vcp-cred-grid">
 
-                        <div class="vc-cert-cell">
-                            <div class="vc-cert-cell-label">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/></svg>
+                        <div class="vcp-cred-cell">
+                            <div class="vcp-cell-label">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/></svg>
                                 Certificate No.
                             </div>
-                            <div class="vc-cert-cell-value mono">{{ $result['cert_number'] }}</div>
+                            <div class="vcp-cell-val mono">{{ $result['cert_number'] }}</div>
                         </div>
 
-                        <div class="vc-cert-cell">
-                            <div class="vc-cert-cell-label">
+                        <div class="vcp-cred-cell">
+                            <div class="vcp-cell-label">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                                 Issue Date
                             </div>
-                            <div class="vc-cert-cell-value">
+                            <div class="vcp-cell-val">
                                 {{ $result['issue_date'] ? \Carbon\Carbon::parse($result['issue_date'])->format('d M Y') : '—' }}
                             </div>
                         </div>
 
-                        <div class="vc-cert-cell full" style="border-bottom:1px solid #f0f2f5;">
-                            <div class="vc-cert-cell-label">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                Issued To
-                            </div>
-                            <div class="vc-cert-cell-value" style="font-size:16px;">{{ $result['name'] }}</div>
-                        </div>
-
-                        <div class="vc-cert-cell full" style="border-bottom:1px solid #f0f2f5;">
-                            <div class="vc-cert-cell-label">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                                Course / Programme
-                            </div>
-                            <div class="vc-cert-cell-value" style="font-size:15px;">{{ $result['course'] }}</div>
-                        </div>
-
-                        @if(!empty($result['company']) && $result['company'] !== '—')
-                        <div class="vc-cert-cell">
-                            <div class="vc-cert-cell-label">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-                                Company / Organisation
-                            </div>
-                            <div class="vc-cert-cell-value">{{ $result['company'] }}</div>
-                        </div>
-                        @endif
-
-                        @if(!empty($result['batch']) && $result['batch'] !== '—')
-                        <div class="vc-cert-cell">
-                            <div class="vc-cert-cell-label">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
-                                Batch / Cohort
-                            </div>
-                            <div class="vc-cert-cell-value">{{ $result['batch'] }}</div>
-                        </div>
-                        @endif
-
-                        <div class="vc-cert-cell {{ (empty($result['company']) || $result['company'] === '—') && (empty($result['batch']) || $result['batch'] === '—') ? 'full' : '' }}" style="border-bottom:none;">
-                            <div class="vc-cert-cell-label">
+                        <div class="vcp-cred-cell">
+                            <div class="vcp-cell-label">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
                                 Certificate Type
                             </div>
-                            <div class="vc-cert-cell-value">{{ $result['type'] }} Training Certificate</div>
+                            <div class="vcp-cell-val">{{ $result['type'] }} Certificate</div>
                         </div>
+
+                        <div class="vcp-cred-cell span2" style="border-right:none;">
+                            <div class="vcp-cell-label">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                Participant Name
+                            </div>
+                            <div class="vcp-cell-val lg">{{ $result['name'] }}</div>
+                        </div>
+
+                        @if(!empty($result['batch']) && $result['batch'] !== '—')
+                        <div class="vcp-cred-cell">
+                            <div class="vcp-cell-label">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+                                Batch / Cohort
+                            </div>
+                            <div class="vcp-cell-val">{{ $result['batch'] }}</div>
+                        </div>
+                        @endif
+
+                        <div class="vcp-cred-cell span3" style="border-right:none;">
+                            <div class="vcp-cell-label">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                                Course / Programme
+                            </div>
+                            <div class="vcp-cell-val lg">{{ $result['course'] }}</div>
+                        </div>
+
+                        @if(!empty($result['company']) && $result['company'] !== '—')
+                        <div class="vcp-cred-cell span3 vcp-cred-cell-no-border" style="border-right:none;">
+                            <div class="vcp-cell-label">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                                Organisation
+                            </div>
+                            <div class="vcp-cell-val">{{ $result['company'] }}</div>
+                        </div>
+                        @endif
 
                     </div>
 
-                    <div class="vc-cert-footer">
-                        <div class="vc-cert-footer-left">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    {{-- Credential Actions --}}
+                    <div class="vcp-cred-actions">
+                        <button class="vcp-action-btn primary" onclick="window.print()">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                            Print
+                        </button>
+                        <button class="vcp-action-btn ghost" onclick="shareCredential()">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                            Share
+                        </button>
+                        <button class="vcp-action-btn ghost" onclick="copyVerifyLink()">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            <span id="vcp-copy-txt">Copy Link</span>
+                        </button>
+                    </div>
+
+                    <div class="vcp-cred-footer">
+                        <div class="vcp-cred-footer-l">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                                 <polyline points="9 12 11 14 15 10"/>
                             </svg>
-                            <span class="vc-cert-footer-text">
+                            <span class="vcp-cred-footer-text">
                                 Verified by SMS Training Academy
-                                <small> · Sustainable Management System Inc.</small>
+                                <small> · Sustainable Management System Inc. · New York, USA</small>
                             </span>
                         </div>
-                        <button class="vc-print-btn" onclick="window.print()">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-                            Print / Save
-                        </button>
+                        <span style="font-size:11px;color:#9ca3af;font-weight:600;">{{ now()->format('d M Y, h:i A') }}</span>
                     </div>
                 </div>
             </div>
 
+            {{-- Trust badges below card --}}
+            <div class="vcp-trust-badges">
+                <span class="vcp-tbadge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Official Registry
+                </span>
+                <span class="vcp-tbadge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h.01M9 15h.01M15 9h.01M15 15h.01"/></svg>
+                    QR Verified
+                </span>
+                <span class="vcp-tbadge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Secure Record
+                </span>
+                <span class="vcp-tbadge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    Tamper Resistant
+                </span>
+            </div>
+
             @elseif($result && !$result['found'] && ($result['name_mismatch'] ?? false))
-            {{-- ⚠️ Name mismatch --}}
-            <div class="vc-alert warning">
-                <div class="vc-alert-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
+            <div class="vcp-alert warning">
+                <div class="vcp-alert-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
                         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                         <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                     </svg>
                 </div>
                 <div>
-                    <div class="vc-alert-title">Name Does Not Match</div>
-                    <p class="vc-alert-text">
-                        Certificate <strong>{{ request('cert') }}</strong> exists in our records, but the name you entered doesn't match.
-                        Please check the spelling exactly as printed and try again.<br><br>
-                        Contact <a href="mailto:training@smscert.com">training@smscert.com</a> if you need help.
+                    <div class="vcp-alert-title">Name Does Not Match</div>
+                    <p class="vcp-alert-body">
+                        Certificate <strong>{{ request('cert') }}</strong> exists in our registry, but the name entered does not match our records. Please check the exact spelling as printed on your certificate.<br><br>
+                        Need assistance? <a href="mailto:training@smscert.com">training@smscert.com</a>
                     </p>
                 </div>
             </div>
 
             @else
-            {{-- ❌ Not found --}}
-            <div class="vc-alert danger">
-                <div class="vc-alert-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2">
+            <div class="vcp-alert danger">
+                <div class="vcp-alert-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
                     </svg>
                 </div>
                 <div>
-                    <div class="vc-alert-title">Certificate Not Found</div>
-                    <p class="vc-alert-text">
-                        No certificate matching <strong>"{{ request('cert') }}"</strong> was found in our database.
-                        Double-check the certificate number (e.g. <em>SMS-TC-2026-0001</em>) and try again.<br><br>
+                    <div class="vcp-alert-title">Certificate Not Found</div>
+                    <p class="vcp-alert-body">
+                        No certificate matching <strong>"{{ request('cert') }}"</strong> was found in our registry. Verify the certificate number is entered exactly as printed (e.g. <em>SMS-TC-2026-0001</em>).<br><br>
                         Contact <a href="mailto:training@smscert.com">training@smscert.com</a> if you believe this is an error.
                     </p>
                 </div>
@@ -529,151 +712,261 @@
             @endif
 
         @elseif(request('cert') && !request('name'))
-        {{-- ℹ️ Missing name --}}
-        <div class="vc-alert info">
-            <div class="vc-alert-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+        <div class="vcp-alert info">
+            <div class="vcp-alert-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
                     <circle cx="12" cy="12" r="10"/>
                     <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
             </div>
             <div>
-                <div class="vc-alert-title">Full Name Required</div>
-                <p class="vc-alert-text">Please enter your full name as printed on the certificate, then click Verify.</p>
+                <div class="vcp-alert-title">Participant Name Required</div>
+                <p class="vcp-alert-body">Please enter the participant's full name as printed on the certificate, then click Verify Certificate.</p>
             </div>
         </div>
 
         @else
-        {{-- Idle / no search yet --}}
-        <div class="vc-idle">
-            <div class="vc-idle-icon">
-                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.5">
+        {{-- ── Idle state ── --}}
+        <div class="vcp-idle">
+            <div class="vcp-idle-icon-wrap">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.5">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    <polyline points="9 12 11 14 15 10" stroke-width="2"/>
+                    <polyline points="9 12 11 14 15 10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </div>
-            <h3>Ready to Verify</h3>
-            <p>Enter a name and certificate number on the left to instantly check its authenticity in our database.</p>
-            <div class="vc-idle-examples">
-                <div class="vc-idle-examples-title">Certificate number format</div>
-                <div class="vc-idle-example">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/></svg>
-                    <span style="font-family:monospace;font-size:13px;color:#1e3a8a;font-weight:700;">SMS-TC-2026-0001</span>
-                    <span style="font-size:12px;color:#9ca3af;">Training Certificate</span>
+            <h3>Credential Verification Portal</h3>
+            <p>Enter the participant name and certificate number on the left — the authenticated credential record will appear here instantly.</p>
+
+            <div class="vcp-idle-preview">
+                <div class="vcp-idle-preview-hd">Result Preview</div>
+                <div class="vcp-idle-fields">
+                    <div>
+                        <div class="vcp-idle-field-sk"></div>
+                        <div class="vcp-idle-field-sk val wide"></div>
+                    </div>
+                    <div>
+                        <div class="vcp-idle-field-sk"></div>
+                        <div class="vcp-idle-field-sk val"></div>
+                    </div>
+                    <div>
+                        <div class="vcp-idle-field-sk"></div>
+                        <div class="vcp-idle-field-sk val wide"></div>
+                    </div>
+                    <div>
+                        <div class="vcp-idle-field-sk"></div>
+                        <div class="vcp-idle-field-sk val"></div>
+                    </div>
                 </div>
-                <div class="vc-idle-example">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/></svg>
-                    <span style="font-family:monospace;font-size:13px;color:#1e3a8a;font-weight:700;">SMS-EL-2026-0001</span>
-                    <span style="font-size:12px;color:#9ca3af;">eLearning Certificate</span>
-                </div>
-                <div class="vc-idle-example">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/></svg>
-                    <span style="font-family:monospace;font-size:13px;color:#1e3a8a;font-weight:700;">SMS-CO-2026-0001</span>
-                    <span style="font-size:12px;color:#9ca3af;">Corporate Certificate</span>
-                </div>
+            </div>
+
+            <div class="vcp-idle-formats">
+                <span class="vcp-idle-format">SMS-TC-2026-XXXX</span>
+                <span class="vcp-idle-format">SMS-EL-2026-XXXX</span>
+                <span class="vcp-idle-format">SMS-CO-2026-XXXX</span>
             </div>
         </div>
         @endif
 
     </div>
-</div>
-
-{{-- ══════════════ BELOW-FOLD ══════════════ --}}
-<div class="vc-below">
-
-    <div class="vc-section-hd">How verification works</div>
-    <div class="vc-steps">
-        <div class="vc-step">
-            <div class="vc-step-n">1</div>
-            <div class="vc-step-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                </svg>
-            </div>
-            <h4>Enter Your Name</h4>
-            <p>Type your full name exactly as printed on your certificate — spelling and spacing matter.</p>
-        </div>
-        <div class="vc-step">
-            <div class="vc-step-n">2</div>
-            <div class="vc-step-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2">
-                    <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/>
-                </svg>
-            </div>
-            <h4>Enter Certificate No.</h4>
-            <p>Find the unique number on your document — formatted as <em>SMS-TC-YYYY-XXXX</em>.</p>
-        </div>
-        <div class="vc-step">
-            <div class="vc-step-n">3</div>
-            <div class="vc-step-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    <polyline points="9 12 11 14 15 10"/>
-                </svg>
-            </div>
-            <h4>Get Instant Result</h4>
-            <p>Our secure registry returns the full authenticated certificate record immediately.</p>
-        </div>
     </div>
 
-    <div class="vc-section-hd">Certificate information</div>
-    <div class="vc-info-grid">
-        <div class="vc-info-card">
-            <div class="vc-info-hd">
-                <div class="vc-info-hd-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">
-                        <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
-                    </svg>
-                </div>
-                <div class="vc-info-hd-title">What Each Certificate Contains</div>
-            </div>
-            <ul class="vc-dot-list">
-                <li><div class="vc-dot"></div>Participant's full name and designation</li>
-                <li><div class="vc-dot"></div>Course or programme name and type</li>
-                <li><div class="vc-dot"></div>Completion date and batch information</li>
-                <li><div class="vc-dot"></div>Unique QR-linked certificate number</li>
-                <li><div class="vc-dot"></div>Authorised signatures of Directors &amp; Trainers</li>
-                <li><div class="vc-dot"></div>CPD credit hours (where applicable)</li>
-            </ul>
+</div>{{-- /vcp-split --}}
+
+{{-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     STATISTICS BAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ --}}
+<div class="vcp-stats">
+    <div class="vcp-stats-grid">
+        <div class="vcp-stat">
+            <div class="vcp-stat-val" data-target="25000" data-suffix="+">25,000+</div>
+            <div class="vcp-stat-label">Certificates Issued</div>
         </div>
-        <div class="vc-info-card">
-            <div class="vc-info-hd">
-                <div class="vc-info-hd-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">
-                        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
-                </div>
-                <div class="vc-info-hd-title">Why Verify a Certificate?</div>
-            </div>
-            <ul class="vc-dot-list">
-                <li><div class="vc-dot"></div>Employers confirm staff qualifications instantly</li>
-                <li><div class="vc-dot"></div>Clients verify trainer credentials before engagement</li>
-                <li><div class="vc-dot"></div>Regulatory bodies confirm compliance training records</li>
-                <li><div class="vc-dot"></div>Prevent fraudulent or altered certificates</li>
-                <li><div class="vc-dot"></div>Share a verifiable proof on LinkedIn or CVs</li>
-                <li><div class="vc-dot"></div>Auditors confirm third-party training records</li>
-            </ul>
+        <div class="vcp-stat">
+            <div class="vcp-stat-val" data-target="120" data-suffix="+">120+</div>
+            <div class="vcp-stat-label">Courses Delivered</div>
+        </div>
+        <div class="vcp-stat">
+            <div class="vcp-stat-val" data-target="35" data-suffix="+">35+</div>
+            <div class="vcp-stat-label">Countries Served</div>
+        </div>
+        <div class="vcp-stat">
+            <div class="vcp-stat-val" data-target="98" data-suffix="%">98%</div>
+            <div class="vcp-stat-label">Verification Success Rate</div>
         </div>
     </div>
+</div>
 
-    <div class="vc-cta">
-        <div class="vc-cta-body">
-            <h3>Can't Verify Your Certificate?</h3>
-            <p>Our team is here to help. If you're experiencing issues or need a duplicate certificate, contact our training office directly.</p>
-        </div>
-        <div class="vc-cta-btns">
-            <a href="mailto:training@smscert.com" class="vc-cta-primary">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                Email Support
-            </a>
-            <a href="{{ route('public.courses') }}" class="vc-cta-ghost">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                Browse Courses
-            </a>
-        </div>
+{{-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     WHY TRUST SMS CREDENTIALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ --}}
+<div class="vcp-why">
+<div class="vcp-why-inner">
+    <div class="vcp-section-hd">
+        <div class="vcp-section-eyebrow">Credential Security</div>
+        <div class="vcp-section-title">Why Trust SMS Credentials?</div>
+        <div class="vcp-section-sub">Every certificate is backed by enterprise-grade security and a permanent public registry.</div>
     </div>
+    <div class="vcp-why-grid">
 
+        <div class="vcp-why-card">
+            <div class="vcp-why-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <path d="M9 9h.01M9 15h.01M15 9h.01M15 15h.01"/>
+                </svg>
+            </div>
+            <h4>QR Linked</h4>
+            <p>Every certificate carries a unique QR code linked directly to this verification portal.</p>
+        </div>
+
+        <div class="vcp-why-card">
+            <div class="vcp-why-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                </svg>
+            </div>
+            <h4>Permanent Registry</h4>
+            <p>Credentials are stored in an immutable registry — never deleted, always accessible.</p>
+        </div>
+
+        <div class="vcp-why-card">
+            <div class="vcp-why-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">
+                    <rect x="5" y="2" width="14" height="20" rx="2"/>
+                    <line x1="9" y1="7" x2="15" y2="7"/>
+                    <line x1="9" y1="11" x2="15" y2="11"/>
+                    <line x1="9" y1="15" x2="13" y2="15"/>
+                </svg>
+            </div>
+            <h4>Unique Certificate ID</h4>
+            <p>Each certificate carries a unique sequential ID that cannot be duplicated or forged.</p>
+        </div>
+
+        <div class="vcp-why-card">
+            <div class="vcp-why-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+            </div>
+            <h4>Instant Verification</h4>
+            <p>Results return in milliseconds — no wait time, no login required, no account needed.</p>
+        </div>
+
+        <div class="vcp-why-card">
+            <div class="vcp-why-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+            </div>
+            <h4>Tamper Resistant</h4>
+            <p>Any modification to a certificate immediately invalidates its verification signature.</p>
+        </div>
+
+        <div class="vcp-why-card">
+            <div class="vcp-why-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+            </div>
+            <h4>Global Access</h4>
+            <p>Employers and auditors worldwide can verify credentials 24/7 from any device.</p>
+        </div>
+
+    </div>
 </div>
 </div>
+
+{{-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     RECOGNITION BAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ --}}
+<div class="vcp-recognition">
+<div class="vcp-recog-inner">
+    <div class="vcp-recog-label">Training programmes aligned with</div>
+    <div class="vcp-recog-items">
+
+        <div class="vcp-recog-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+            APSCA
+        </div>
+        <div class="vcp-recog-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            SLCP
+        </div>
+        <div class="vcp-recog-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Higg FEM
+        </div>
+        <div class="vcp-recog-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/></svg>
+            ISO 9001 · 14001 · 45001
+        </div>
+        <div class="vcp-recog-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            NEBOSH
+        </div>
+        <div class="vcp-recog-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/></svg>
+            Professional Development
+        </div>
+
+    </div>
+</div>
+</div>
+
+</div>{{-- /vcp --}}
+
+<script>
+/* ── Share credential ── */
+function shareCredential() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'SMS Training Academy — Verified Certificate',
+            text: 'Verify this training certificate issued by SMS Training Academy',
+            url: window.location.href
+        }).catch(() => {});
+    } else {
+        copyVerifyLink();
+    }
+}
+
+/* ── Copy verification URL ── */
+function copyVerifyLink() {
+    navigator.clipboard.writeText(window.location.href).then(function () {
+        var el = document.getElementById('vcp-copy-txt');
+        if (el) { el.textContent = 'Copied!'; setTimeout(function(){ el.textContent = 'Copy Link'; }, 2000); }
+    }).catch(function () {
+        var el = document.getElementById('vcp-copy-txt');
+        if (el) el.textContent = 'Copy Link';
+    });
+}
+
+/* ── Counter animation ── */
+(function () {
+    var counters = document.querySelectorAll('.vcp-stat-val[data-target]');
+    if (!counters.length) return;
+    var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            var el      = entry.target;
+            var target  = parseInt(el.dataset.target, 10);
+            var suffix  = el.dataset.suffix || '';
+            var current = 0;
+            var step    = Math.max(1, Math.ceil(target / 60));
+            var timer   = setInterval(function () {
+                current = Math.min(current + step, target);
+                el.textContent = current.toLocaleString() + suffix;
+                if (current >= target) clearInterval(timer);
+            }, 16);
+            obs.unobserve(el);
+        });
+    }, { threshold: 0.5 });
+    counters.forEach(function (c) { obs.observe(c); });
+}());
+</script>
 
 @endsection
