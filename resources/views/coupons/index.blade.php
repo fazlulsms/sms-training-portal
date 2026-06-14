@@ -4,7 +4,7 @@
 
 <x-page-header title="Coupons & Promotions" desc="Create and manage discount and complimentary coupons.">
     <x-slot:actions>
-        <a href="{{ route('coupons.create') }}" class="btn btn-primary btn-sm">
+        <a href="{{ route('admin.coupons.create') }}" class="btn btn-primary btn-sm">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             New Coupon
         </a>
@@ -96,9 +96,9 @@
                     </td>
                     <td class="c">
                         <div class="dt-actions" style="justify-content:center;">
-                            <a href="{{ route('coupons.show', $coupon) }}" class="btn btn-xs btn-secondary">Usage</a>
-                            <a href="{{ route('coupons.edit', $coupon) }}" class="btn btn-edit btn-xs">Edit</a>
-                            <form method="POST" action="{{ route('coupons.toggle', $coupon) }}" style="display:inline;">
+                            <a href="{{ route('admin.coupons.show', $coupon) }}" class="btn btn-xs btn-secondary">Usage</a>
+                            <a href="{{ route('admin.coupons.edit', $coupon) }}" class="btn btn-edit btn-xs">Edit</a>
+                            <form method="POST" action="{{ route('admin.coupons.toggle', $coupon) }}" style="display:inline;">
                                 @csrf
                                 <button class="btn btn-xs {{ $coupon->is_active ? 'btn-warning' : 'btn-success' }}"
                                         style="font-size:11px;"
@@ -106,7 +106,7 @@
                                     {{ $coupon->is_active ? 'Deactivate' : 'Activate' }}
                                 </button>
                             </form>
-                            <form method="POST" action="{{ route('coupons.destroy', $coupon) }}" style="display:inline;">
+                            <form method="POST" action="{{ route('admin.coupons.destroy', $coupon) }}" style="display:inline;">
                                 @csrf @method('DELETE')
                                 <button class="btn btn-del btn-xs" onclick="return confirm('Delete this coupon?')">Delete</button>
                             </form>
@@ -119,7 +119,7 @@
                         <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg></div>
                         <p class="empty-title">No coupons yet</p>
                         <p class="empty-desc">Create your first coupon to offer discounts or complimentary access.</p>
-                        <a href="{{ route('coupons.create') }}" class="btn btn-primary btn-sm">Create Coupon</a>
+                        <a href="{{ route('admin.coupons.create') }}" class="btn btn-primary btn-sm">Create Coupon</a>
                     </div>
                 </td></tr>
                 @endforelse

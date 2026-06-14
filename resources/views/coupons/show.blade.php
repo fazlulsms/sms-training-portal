@@ -4,14 +4,14 @@
 
 <x-page-header title="Coupon: {{ $coupon->code }}" desc="{{ $coupon->name }}">
     <x-slot:actions>
-        <a href="{{ route('coupons.edit', $coupon) }}" class="btn btn-edit btn-sm">Edit</a>
-        <form method="POST" action="{{ route('coupons.toggle', $coupon) }}" style="display:inline;">
+        <a href="{{ route('admin.coupons.edit', $coupon) }}" class="btn btn-edit btn-sm">Edit</a>
+        <form method="POST" action="{{ route('admin.coupons.toggle', $coupon) }}" style="display:inline;">
             @csrf
             <button class="btn btn-sm {{ $coupon->is_active ? 'btn-warning' : 'btn-success' }}">
                 {{ $coupon->is_active ? 'Deactivate' : 'Activate' }}
             </button>
         </form>
-        <a href="{{ route('coupons.index') }}" class="btn btn-ghost btn-sm">← All Coupons</a>
+        <a href="{{ route('admin.coupons.index') }}" class="btn btn-ghost btn-sm">← All Coupons</a>
     </x-slot:actions>
 </x-page-header>
 

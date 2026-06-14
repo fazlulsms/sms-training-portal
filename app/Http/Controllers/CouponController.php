@@ -25,7 +25,7 @@ class CouponController extends Controller
     {
         $data = $this->validated($request);
         Coupon::create($data);
-        return redirect()->route('coupons.index')->with('success', 'Coupon created successfully.');
+        return redirect()->route('admin.coupons.index')->with('success', 'Coupon created successfully.');
     }
 
     public function show(Coupon $coupon)
@@ -44,13 +44,13 @@ class CouponController extends Controller
     {
         $data = $this->validated($request, $coupon->id);
         $coupon->update($data);
-        return redirect()->route('coupons.index')->with('success', 'Coupon updated.');
+        return redirect()->route('admin.coupons.index')->with('success', 'Coupon updated.');
     }
 
     public function destroy(Coupon $coupon)
     {
         $coupon->delete();
-        return redirect()->route('coupons.index')->with('success', 'Coupon deleted.');
+        return redirect()->route('admin.coupons.index')->with('success', 'Coupon deleted.');
     }
 
     public function toggle(Coupon $coupon)

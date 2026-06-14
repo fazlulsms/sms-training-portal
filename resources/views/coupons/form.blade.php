@@ -6,14 +6,14 @@
     title="{{ isset($coupon) ? 'Edit Coupon: ' . $coupon->code : 'Create Coupon' }}"
     desc="{{ isset($coupon) ? 'Update coupon details and restrictions.' : 'Set up a discount or complimentary access coupon.' }}">
     <x-slot:actions>
-        <a href="{{ route('coupons.index') }}" class="btn btn-ghost btn-sm">← Back to Coupons</a>
+        <a href="{{ route('admin.coupons.index') }}" class="btn btn-ghost btn-sm">← Back to Coupons</a>
     </x-slot:actions>
 </x-page-header>
 
 <x-flash-message />
 
 <form method="POST"
-      action="{{ isset($coupon) ? route('coupons.update', $coupon) : route('coupons.store') }}"
+      action="{{ isset($coupon) ? route('admin.coupons.update', $coupon) : route('admin.coupons.store') }}"
       style="max-width:760px;">
     @csrf
     @if(isset($coupon)) @method('PUT') @endif
@@ -178,7 +178,7 @@
         <button type="submit" class="btn btn-primary">
             {{ isset($coupon) ? 'Update Coupon' : 'Create Coupon' }}
         </button>
-        <a href="{{ route('coupons.index') }}" class="btn btn-ghost">Cancel</a>
+        <a href="{{ route('admin.coupons.index') }}" class="btn btn-ghost">Cancel</a>
     </div>
 </form>
 
