@@ -2,15 +2,15 @@
 
 @section('page-title', 'Training Calendar')
 @section('seo-title', 'Training Calendar — SMS Training Academy')
-@section('seo-desc', 'Browse upcoming public training sessions and register before the deadline. View the complete past training archive by year, course, and mode.')
-@section('seo-keys', 'training schedule, upcoming training, SMS Training Academy calendar, training archive, past training')
+@section('seo-desc', 'Browse upcoming public training sessions by month. Register online or contact us for corporate group bookings.')
+@section('seo-keys', 'training schedule, upcoming training, SMS Training Academy calendar, training archive')
 
 @section('content')
 <style>
 /* ── Hero ── */
 .cal-hero {
     background: linear-gradient(135deg, #060d2e 0%, #0f2470 45%, #1e3a8a 100%);
-    padding: 44px 0 52px; color: #fff; position: relative; overflow: hidden;
+    padding: 40px 0 48px; color: #fff; position: relative; overflow: hidden;
 }
 .cal-hero::after {
     content: ''; position: absolute; inset: 0;
@@ -18,9 +18,9 @@
     background-size: 26px 26px; pointer-events: none;
 }
 .cal-hero-inner { position: relative; z-index: 1; }
-.cal-hero h1  { font-size: 32px; font-weight: 900; margin: 0 0 8px; }
-.cal-hero p   { font-size: 15px; opacity: .68; margin: 0; line-height: 1.7; }
-@media(max-width:640px){ .cal-hero h1 { font-size: 24px; } }
+.cal-hero h1 { font-size: 30px; font-weight: 900; margin: 0 0 6px; }
+.cal-hero p  { font-size: 14.5px; opacity: .65; margin: 0; }
+@media(max-width:640px){ .cal-hero h1 { font-size: 22px; } }
 
 /* ── Tabs ── */
 .cal-tabs-bar {
@@ -29,7 +29,7 @@
 }
 .cal-tabs-inner { display: flex; }
 .cal-tab {
-    padding: 14px 22px; font-size: 13.5px; font-weight: 700; color: #6b7280;
+    padding: 13px 20px; font-size: 13.5px; font-weight: 700; color: #6b7280;
     text-decoration: none; display: inline-flex; align-items: center; gap: 7px;
     border-bottom: 2.5px solid transparent; margin-bottom: -2px;
     transition: color .12s, border-color .12s; white-space: nowrap;
@@ -43,17 +43,17 @@
 .cal-tab.active .cal-tab-badge { background: #1e3a8a; color: #fff; }
 
 /* ── Filter bar ── */
-.cal-filter-bar { background: #f8fafc; border-bottom: 1px solid #e9ecf0; padding: 12px 0; }
-.cal-filter-row { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+.cal-filter-bar { background: #f8fafc; border-bottom: 1px solid #e9ecf0; padding: 11px 0; }
+.cal-filter-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .cal-fi {
-    padding: 8px 12px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+    padding: 7px 11px; border: 1.5px solid #e5e7eb; border-radius: 8px;
     font-size: 13px; font-family: inherit; color: #374151; background: #fff;
-    transition: border-color .12s; min-width: 120px;
+    transition: border-color .12s; min-width: 110px;
 }
 .cal-fi:focus { outline: none; border-color: #1e3a8a; }
-.cal-fi-wide { min-width: 200px; }
+.cal-fi-wide  { min-width: 190px; }
 .cal-fi-btn {
-    padding: 8px 16px; background: #1e3a8a; color: #fff; border: none;
+    padding: 7px 15px; background: #1e3a8a; color: #fff; border: none;
     border-radius: 8px; font-weight: 700; font-size: 13px;
     cursor: pointer; font-family: inherit; transition: opacity .12s;
     display: inline-flex; align-items: center; gap: 5px;
@@ -61,150 +61,179 @@
 .cal-fi-btn:hover { opacity: .88; }
 .cal-fi-reset {
     font-size: 13px; color: #9ca3af; text-decoration: none;
-    font-weight: 600; padding: 8px 2px; transition: color .12s;
+    font-weight: 600; padding: 7px 2px; transition: color .12s;
     display: inline-flex; align-items: center; gap: 4px;
 }
 .cal-fi-reset:hover { color: #374151; }
 
-/* ── Body ── */
-.cal-body { padding: 28px 0 64px; }
+/* ── Body wrapper ── */
+.cal-body { padding: 22px 0 64px; }
+
 .cal-result-bar {
-    font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 14px;
+    font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 18px;
 }
 .cal-result-bar strong { color: #111827; }
 
-/* ── Table wrapper ── */
-.cal-tbl-wrap {
-    border-radius: 14px; border: 1px solid #e2e8f0;
-    overflow-x: auto;
-    box-shadow: 0 2px 12px rgba(15,36,112,.05);
+/* ── Month heading ── */
+.tl-month-head {
+    display: flex; align-items: center; gap: 11px;
+    margin: 28px 0 10px;
 }
-.cal-tbl {
-    width: 100%; min-width: 960px;
-    border-collapse: collapse; font-size: 13.5px;
-    table-layout: fixed;
+.tl-month-head:first-child { margin-top: 2px; }
+.tl-month-label {
+    font-size: 11px; font-weight: 900; color: #374151;
+    text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;
+}
+.tl-month-count {
+    font-size: 11px; color: #9ca3af; font-weight: 600; white-space: nowrap;
+}
+.tl-month-rule { flex: 1; height: 1px; background: #e2e8f0; }
+
+/* ── Year heading (archive) ── */
+.tl-year-head {
+    display: flex; align-items: center; gap: 12px;
+    margin: 36px 0 6px;
+}
+.tl-year-head:first-child { margin-top: 2px; }
+.tl-year-label {
+    font-size: 17px; font-weight: 900; color: #111827; white-space: nowrap;
+}
+.tl-year-count { font-size: 12px; color: #9ca3af; font-weight: 600; }
+.tl-year-rule  { flex: 1; height: 2px; background: #e2e8f0; }
+
+/* ── Archive month heading (nested, lighter) ── */
+.tl-month-head--arc .tl-month-label { color: #64748b; }
+.tl-month-head--arc .tl-month-rule  { background: #f1f5f9; }
+
+/* ── Timeline item ── */
+.tl-item {
+    display: flex; align-items: stretch;
+    background: #fff; border: 1px solid #e9ecf0; border-radius: 10px;
+    margin-bottom: 8px; min-height: 110px;
+    transition: border-color .15s, box-shadow .15s;
+}
+.tl-item:hover {
+    border-color: #bfdbfe;
+    box-shadow: 0 2px 14px rgba(30,58,138,.07);
 }
 
-/* ── Table header ── */
-.cal-tbl thead th {
-    background: #0f2470; color: #fff;
-    font-size: 10.5px; font-weight: 800;
-    text-transform: uppercase; letter-spacing: .6px;
-    padding: 11px 13px; text-align: left;
-    white-space: nowrap; border-right: 1px solid rgba(255,255,255,.1);
+/* Left: Date block */
+.tl-date {
+    width: 76px; flex-shrink: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    border-right: 1px solid #eef0f3; border-radius: 10px 0 0 10px;
+    padding: 14px 8px; text-align: center; background: #fafbff;
 }
-.cal-tbl thead th:last-child { border-right: none; }
-
-/* Column widths — fixed layout */
-.cal-tbl .col-date     { width: 10%; }
-.cal-tbl .col-course   { width: 25%; }
-.cal-tbl .col-dur      { width: 10%; }
-.cal-tbl .col-mode     { width: 8%; }
-.cal-tbl .col-fee      { width: 15%; }
-.cal-tbl .col-trainer  { width: 11%; }
-.cal-tbl .col-venue    { width: 13%; }
-.cal-tbl .col-action   { width: 8%; }
-
-/* Archive widths */
-.cal-tbl .acol-date    { width: 10%; }
-.cal-tbl .acol-course  { width: 28%; }
-.cal-tbl .acol-dur     { width: 9%; }
-.cal-tbl .acol-mode    { width: 7%; }
-.cal-tbl .acol-trainer { width: 12%; }
-.cal-tbl .acol-venue   { width: 13%; }
-.cal-tbl .acol-status  { width: 9%; }
-.cal-tbl .acol-action  { width: 12%; }
-
-/* ── Table body rows ── */
-.cal-tbl tbody tr { transition: background .1s; }
-.cal-tbl tbody tr:nth-child(odd)  { background: #fff; }
-.cal-tbl tbody tr:nth-child(even) { background: #f8fafc; }
-.cal-tbl tbody tr:hover           { background: #eff6ff; }
-.cal-tbl tbody tr.year-row        { background: #f1f5f9 !important; }
-.cal-tbl tbody tr.year-row:hover  { background: #e8edf3 !important; }
-
-.cal-tbl tbody td {
-    padding: 12px 13px; border-bottom: 1px solid #eef0f3;
-    vertical-align: middle; color: #374151; line-height: 1.5;
-    word-break: break-word;
+.tl-date-day { font-size: 30px; font-weight: 900; color: #0f2470; line-height: 1; }
+.tl-date-mon {
+    font-size: 11px; font-weight: 800; color: #1e3a8a;
+    text-transform: uppercase; letter-spacing: .5px; margin-top: 2px;
 }
-.cal-tbl tbody tr:last-child td  { border-bottom: none; }
-.cal-tbl tbody tr.year-row td    { border-bottom: 1px solid #e2e8f0; }
-
-/* ── Cell types ── */
-.td-date {
-    font-size: 13px; font-weight: 700; color: #111827; white-space: nowrap;
-}
-.td-date-sub { font-size: 11.5px; color: #9ca3af; font-weight: 500; margin-top: 1px; }
-
-.td-course-link {
-    font-weight: 700; color: #111827; text-decoration: none;
-    font-size: 13.5px; display: block; line-height: 1.4;
-}
-.td-course-link:hover { color: #1e3a8a; }
-
-.td-dur { font-size: 13px; color: #374151; }
-.td-dur-time { font-size: 12px; color: #9ca3af; margin-top: 2px; }
-
-/* Mode badges */
-.mode-badge {
-    display: inline-flex; align-items: center;
-    padding: 3px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 700;
+.tl-date-range {
+    margin-top: 6px; padding-top: 6px; border-top: 1px solid #e9ecf0;
+    font-size: 10px; font-weight: 600; color: #9ca3af; line-height: 1.5;
     white-space: nowrap;
 }
-.mode-f2f    { background: #f0fdf4; color: #15803d; }
-.mode-online { background: #eff6ff; color: #1d4ed8; }
-.mode-hybrid { background: #fff7ed; color: #c2410c; }
 
-/* Fee */
-.td-fee { font-size: 12.5px; }
-.fee-row { display: flex; align-items: baseline; gap: 4px; line-height: 1.6; }
-.fee-label { font-size: 11px; font-weight: 700; color: #9ca3af; width: 46px; flex-shrink: 0; }
-.fee-amt   { font-weight: 800; color: #1e3a8a; }
-.fee-single { font-size: 14px; font-weight: 900; color: #1e3a8a; }
-.fee-cur    { font-size: 11px; color: #9ca3af; }
-
-/* Action */
-.enroll-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    padding: 7px 13px; background: #1e3a8a; color: #fff; border-radius: 7px;
-    font-size: 12.5px; font-weight: 700; text-decoration: none;
-    white-space: nowrap; transition: background .12s;
+/* Middle: course + meta */
+.tl-mid {
+    flex: 1; padding: 14px 18px; min-width: 0;
+    display: flex; flex-direction: column; justify-content: space-between;
 }
-.enroll-btn:hover  { background: #1d4ed8; }
-.enroll-closed { font-size: 12px; color: #d1d5db; font-weight: 700; }
-
-.view-btn {
+.tl-top { flex: 1; }
+.tl-course-name {
+    font-size: 14.5px; font-weight: 800; color: #111827;
+    text-decoration: none; line-height: 1.35;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+    margin-bottom: 9px; display: block;
+}
+.tl-course-name:hover { color: #1e3a8a; }
+.tl-meta {
+    display: flex; flex-wrap: wrap; gap: 5px 14px; align-items: center;
+}
+.tl-meta-item {
     display: inline-flex; align-items: center; gap: 4px;
-    padding: 6px 12px; border: 1.5px solid #1e3a8a; color: #1e3a8a;
-    border-radius: 7px; font-size: 12.5px; font-weight: 700; text-decoration: none;
-    white-space: nowrap; transition: background .12s;
+    font-size: 12.5px; color: #6b7280;
 }
-.view-btn:hover { background: #eff6ff; }
+.tl-meta-item svg { opacity: .65; flex-shrink: 0; }
+.tl-meta-dur { font-size: 12px; color: #9ca3af; }
+.tl-bottom { margin-top: 9px; }
+.tl-detail-link {
+    font-size: 11.5px; color: #9ca3af; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 3px;
+    transition: color .12s;
+}
+.tl-detail-link:hover { color: #1e3a8a; }
 
-/* Status badges */
-.status-completed {
+/* Mode badges */
+.tl-badge {
+    display: inline-flex; align-items: center;
+    padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 700;
+    white-space: nowrap; line-height: 1.6;
+}
+.tl-f2f    { background: #f0fdf4; color: #15803d; }
+.tl-online { background: #eff6ff; color: #1d4ed8; }
+.tl-hybrid { background: #fff7ed; color: #c2410c; }
+
+/* Right: fee + action */
+.tl-right {
+    width: 158px; flex-shrink: 0;
+    padding: 14px 16px;
+    display: flex; flex-direction: column;
+    align-items: flex-end; justify-content: space-between;
+    border-left: 1px solid #eef0f3; border-radius: 0 10px 10px 0;
+}
+.tl-fee { text-align: right; }
+.tl-fee-amount {
+    font-size: 14.5px; font-weight: 900; color: #1e3a8a; line-height: 1.2;
+}
+.tl-fee-sub { font-size: 10.5px; color: #9ca3af; margin-top: 1px; }
+.tl-fee-dual { text-align: right; }
+.tl-fee-dual-row {
+    display: flex; align-items: baseline; justify-content: flex-end; gap: 5px;
+    font-size: 11.5px; line-height: 1.55;
+}
+.tl-fee-dual-tag { font-size: 10px; color: #9ca3af; }
+.tl-fee-dual-amt { font-weight: 800; color: #1e3a8a; }
+.tl-fee-contact { font-size: 12px; color: #9ca3af; }
+
+.tl-enroll-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 7px 14px; background: #1e3a8a; color: #fff; border-radius: 7px;
+    font-size: 12.5px; font-weight: 700; text-decoration: none;
+    white-space: nowrap; transition: background .12s; margin-top: 10px;
+}
+.tl-enroll-btn:hover { background: #1d4ed8; }
+.tl-closed {
+    font-size: 11.5px; color: #d1d5db; font-weight: 700; margin-top: 10px;
+    text-align: right;
+}
+
+/* Archive: completed badge + view btn */
+.tl-completed {
     display: inline-flex; align-items: center; gap: 4px;
     background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;
-    padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 700;
+    padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700;
 }
+.tl-view-btn {
+    display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
+    padding: 6px 12px; border: 1.5px solid #d1d5db; color: #6b7280;
+    border-radius: 7px; font-size: 12px; font-weight: 700;
+    text-decoration: none; white-space: nowrap; transition: all .12s;
+}
+.tl-view-btn:hover { border-color: #1e3a8a; color: #1e3a8a; background: #f5f8ff; }
 
-/* ── Year group row (archive) ── */
-.year-row td {
-    padding: 10px 13px;
-}
-.year-row-inner {
-    display: flex; align-items: center; gap: 12px;
-}
-.year-label {
-    font-size: 14px; font-weight: 900; color: #374151;
-}
-.year-count {
-    font-size: 11.5px; color: #9ca3af; font-weight: 600;
-}
+/* Archive item: muted */
+.tl-item-arc .tl-date    { background: #f8fafc; }
+.tl-item-arc .tl-date-day { color: #64748b; }
+.tl-item-arc .tl-date-mon { color: #94a3b8; }
+.tl-item-arc .tl-course-name { color: #374151; }
+.tl-item-arc:hover { border-color: #e2e8f0; box-shadow: none; }
 
-/* ── Archive year pills ── */
-.arc-pills { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 18px; }
+/* ── Year pills (archive filter) ── */
+.arc-pills { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 20px; }
 .arc-pill {
     padding: 5px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700;
     text-decoration: none; border: 1.5px solid #e9ecf0; color: #6b7280; background: #fff;
@@ -215,11 +244,12 @@
 
 /* ── Empty state ── */
 .cal-empty {
-    padding: 64px 24px; text-align: center;
+    padding: 60px 24px; text-align: center;
     background: #f8fafc; border-radius: 14px; border: 1.5px dashed #e2e8f0;
+    margin-top: 8px;
 }
 .cal-empty-icon {
-    width: 52px; height: 52px; border-radius: 14px;
+    width: 50px; height: 50px; border-radius: 14px;
     background: linear-gradient(135deg, #eff6ff, #dbeafe);
     display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;
 }
@@ -228,67 +258,39 @@
 .cal-empty-cta {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 10px 22px; background: #1e3a8a; color: #fff;
-    border-radius: 9px; font-weight: 700; font-size: 14px; text-decoration: none;
-    transition: opacity .12s;
+    border-radius: 9px; font-weight: 700; font-size: 14px;
+    text-decoration: none; transition: opacity .12s;
 }
 .cal-empty-cta:hover { opacity: .9; }
 .cal-empty-note { font-size: 13px; color: #9ca3af; margin-top: 10px; display: block; }
 .cal-empty-note a { color: #1e3a8a; font-weight: 700; text-decoration: none; }
 
-/* ── Pagination tweak ── */
-.cal-pagination { margin-top: 20px; }
+/* ── Pagination ── */
+.cal-pagination { margin-top: 24px; }
 
-/* ════════════════════════════════
-   MOBILE — stacked cards (< 768px)
-   ════════════════════════════════ */
-@media(max-width: 767px) {
-    /* Hide table, show card list */
-    .cal-tbl-wrap { display: none; }
-    .cal-mob-list { display: block; }
+/* ─── Mobile ≤ 639px ─── */
+@media(max-width: 639px) {
+    .tl-item { flex-direction: column; min-height: unset; }
+    .tl-date {
+        width: 100%; flex-direction: row; gap: 10px; text-align: left;
+        justify-content: flex-start; border-right: none;
+        border-bottom: 1px solid #eef0f3;
+        border-radius: 10px 10px 0 0; padding: 10px 14px;
+    }
+    .tl-date-day  { font-size: 22px; }
+    .tl-date-range { margin-top: 0; padding-top: 0; border-top: none; }
+    .tl-mid { padding: 12px 14px; }
+    .tl-right {
+        width: 100%; border-left: none; border-top: 1px solid #eef0f3;
+        border-radius: 0 0 10px 10px; flex-direction: row;
+        align-items: center; padding: 10px 14px;
+    }
+    .tl-enroll-btn { margin-top: 0; }
+    .tl-closed     { margin-top: 0; }
+    .tl-view-btn   { margin-top: 0; }
+    .tl-month-head { margin: 22px 0 8px; }
+    .tl-year-head  { margin: 28px 0 4px; }
 }
-@media(min-width: 768px) {
-    .cal-mob-list { display: none; }
-}
-
-/* Mobile card */
-.mob-card {
-    background: #fff; border: 1px solid #e9ecf0; border-radius: 12px;
-    margin-bottom: 10px; overflow: hidden;
-}
-.mob-card-head {
-    background: linear-gradient(90deg, #0f2470, #1e3a8a);
-    padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;
-}
-.mob-card-date { font-size: 13px; font-weight: 800; color: #fff; }
-.mob-card-mode { /* mode badge small */ }
-.mob-card-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
-.mob-card-title {
-    font-size: 14px; font-weight: 800; color: #111827; text-decoration: none; line-height: 1.4;
-}
-.mob-card-title:hover { color: #1e3a8a; }
-.mob-card-row {
-    display: flex; align-items: flex-start; gap: 6px; font-size: 12.5px; color: #6b7280;
-}
-.mob-card-row-label { font-size: 10.5px; font-weight: 800; color: #9ca3af; text-transform: uppercase; letter-spacing: .4px; width: 58px; flex-shrink: 0; padding-top: 1px; }
-.mob-card-row-val   { color: #374151; font-weight: 500; flex: 1; }
-.mob-card-foot {
-    padding: 10px 14px; border-top: 1px solid #f1f5f9;
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-}
-.mob-card-fee { font-size: 12px; color: #374151; line-height: 1.7; }
-.mob-card-fee b { color: #1e3a8a; }
-
-/* Archive mobile year header */
-.mob-year-head {
-    font-size: 14px; font-weight: 900; color: #374151;
-    padding: 12px 0 8px; border-bottom: 1.5px solid #e9ecf0; margin-bottom: 10px; margin-top: 20px;
-    display: flex; align-items: center; gap: 10px;
-}
-.mob-year-head:first-child { margin-top: 0; }
-.mob-year-cnt { font-size: 11.5px; color: #9ca3af; font-weight: 600; }
-
-/* Archive card is same structure but no Enroll Now */
-.mob-card-arc .mob-card-head { background: #64748b; }
 </style>
 
 {{-- ── Hero ── --}}
@@ -296,7 +298,7 @@
 <div class="pub-container">
 <div class="cal-hero-inner">
     <h1>Training Calendar</h1>
-    <p>Browse upcoming public training sessions and register before the deadline.</p>
+    <p>Public open-enrolment training sessions — browse by month and register online.</p>
 </div>
 </div>
 </div>
@@ -307,14 +309,14 @@
     <div class="cal-tabs-inner">
         <a href="{{ route('public.calendar', array_merge(request()->except(['tab','page']), ['tab'=>'upcoming'])) }}"
            class="cal-tab {{ $tab === 'upcoming' ? 'active' : '' }}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            Upcoming Trainings
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Upcoming
             <span class="cal-tab-badge">{{ $upcoming->total() }}</span>
         </a>
         <a href="{{ route('public.calendar', array_merge(request()->except(['tab','page','month']), ['tab'=>'archive'])) }}"
            class="cal-tab {{ $tab === 'archive' ? 'active' : '' }}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
-            Archive / Past Trainings
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+            Past / Archive
             <span class="cal-tab-badge">{{ $past->count() }}</span>
         </a>
     </div>
@@ -354,13 +356,13 @@
             </select>
 
             <button type="submit" class="cal-fi-btn">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 Search
             </button>
 
             @if(request()->hasAny(['month','mode','course','year']))
             <a href="{{ route('public.calendar', ['tab'=>$tab]) }}" class="cal-fi-reset">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 Reset
             </a>
             @endif
@@ -373,7 +375,7 @@
 <div class="pub-container">
 <div class="cal-body">
 
-{{-- ══════════════ UPCOMING TAB ══════════════ --}}
+{{-- ══════════════════════════ UPCOMING TAB ══════════════════════════ --}}
 @if($tab === 'upcoming')
 
 @if($upcoming->isEmpty())
@@ -381,209 +383,138 @@
     <div class="cal-empty-icon">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
     </div>
-    <h3>No upcoming public training is currently scheduled</h3>
+    <h3>No upcoming public training scheduled</h3>
     <p>Please check the archive or contact us for corporate training enquiries.@if(request()->hasAny(['month','mode','course'])) Try clearing your filters.@endif</p>
-    <a href="{{ route('public.contact') }}" class="cal-empty-cta">Request Training Schedule</a>
-    <span class="cal-empty-note">
-        View past sessions in the <a href="{{ route('public.calendar', ['tab'=>'archive']) }}">Archive</a>.
-    </span>
+    <a href="{{ route('public.contact') }}" class="cal-empty-cta">Request a Training</a>
+    <span class="cal-empty-note">View past sessions in the <a href="{{ route('public.calendar', ['tab'=>'archive']) }}">Archive</a>.</span>
 </div>
 @else
+
+@php
+    $upcomingByMonth = $upcoming->getCollection()->groupBy(function($s) {
+        return \Carbon\Carbon::parse($s->start_date)->format('F Y');
+    });
+@endphp
 
 <p class="cal-result-bar">
     <strong>{{ $upcoming->total() }}</strong> upcoming {{ Str::plural('session', $upcoming->total()) }}
     @if(request()->hasAny(['month','mode','course'])) <span style="color:#9ca3af;font-weight:400;">— filtered</span>@endif
 </p>
 
-{{-- ── Desktop table ── --}}
-<div class="cal-tbl-wrap">
-<table class="cal-tbl">
-<colgroup>
-    <col class="col-date">
-    <col class="col-course">
-    <col class="col-dur">
-    <col class="col-mode">
-    <col class="col-fee">
-    <col class="col-trainer">
-    <col class="col-venue">
-    <col class="col-action">
-</colgroup>
-<thead>
-<tr>
-    <th>Date</th>
-    <th>Course / Topic</th>
-    <th>Duration &amp; Time</th>
-    <th>Mode</th>
-    <th>Fee</th>
-    <th>Trainer</th>
-    <th>Venue</th>
-    <th>Action</th>
-</tr>
-</thead>
-<tbody>
-@foreach($upcoming as $s)
+@foreach($upcomingByMonth as $monthLabel => $sessions)
+
+<div class="tl-month-head">
+    <span class="tl-month-label">{{ $monthLabel }}</span>
+    <span class="tl-month-count">{{ $sessions->count() }} {{ Str::plural('session', $sessions->count()) }}</span>
+    <div class="tl-month-rule"></div>
+</div>
+
+@foreach($sessions as $s)
 @php
     $currency    = $s->currency ?? 'BDT';
     $onlineFee   = (float)($s->online_fee   ?? 0);
     $physicalFee = (float)($s->physical_fee ?? 0);
+    $singleFee   = $onlineFee ?: $physicalFee;
+    $dualFee     = $onlineFee && $physicalFee && $onlineFee !== $physicalFee;
     $startDt     = \Carbon\Carbon::parse($s->start_date);
     $endDt       = $s->end_date ? \Carbon\Carbon::parse($s->end_date) : $startDt;
     $days        = $startDt->diffInDays($endDt) + 1;
     $daysLabel   = $days . ' ' . Str::plural('Day', $days);
     $modeRaw     = strtolower($s->training_mode ?? 'physical');
-    $modeLabel   = match($modeRaw) { 'online'=>'Online','hybrid'=>'Hybrid', default=>'F2F' };
-    $modeCls     = match($modeRaw) { 'online'=>'mode-online','hybrid'=>'mode-hybrid', default=>'mode-f2f' };
+    $modeLabel   = match($modeRaw) { 'online'=>'Online','hybrid'=>'Hybrid', default=>'Physical' };
+    $modeCls     = match($modeRaw) { 'online'=>'tl-online','hybrid'=>'tl-hybrid', default=>'tl-f2f' };
     $venue       = $modeRaw === 'online' ? 'Online (Zoom)' : ($s->venue ?? '—');
-    if ($startDt->format('M Y') === $endDt->format('M Y')) {
-        $dateRange = $startDt->format('d') . '–' . $endDt->format('d M Y');
+    $courseSlug  = $s->course->slug ?? $s->course_id;
+    $sameMonth   = $startDt->format('M Y') === $endDt->format('M Y');
+    if ($sameMonth) {
+        $dateRange = '– ' . $endDt->format('d M');
     } else {
-        $dateRange = $startDt->format('d M') . ' – ' . $endDt->format('d M Y');
+        $dateRange = '– ' . $endDt->format('d M');
     }
+    $multiDay = $days > 1;
 @endphp
-<tr>
+<div class="tl-item">
+
     {{-- DATE --}}
-    <td class="td-date" data-label="Date">
-        {{ $dateRange }}
-        @if($startDt->year === now()->year)
+    <div class="tl-date">
+        <div class="tl-date-day">{{ $startDt->format('d') }}</div>
+        <div class="tl-date-mon">{{ $startDt->format('M') }}</div>
+        @if($multiDay)
+        <div class="tl-date-range">{{ $dateRange }}<br>{{ $endDt->format('Y') }}</div>
         @else
-        <div class="td-date-sub">{{ $startDt->format('Y') }}</div>
+        <div class="tl-date-range">{{ $startDt->format('Y') }}</div>
         @endif
-    </td>
+    </div>
 
-    {{-- COURSE --}}
-    <td data-label="Course">
-        <a href="{{ route('public.course.detail', $s->course->slug ?? $s->course_id) }}" class="td-course-link">
-            {{ $s->course?->name ?? $s->training_title }}
-        </a>
-        @if($s->batch_code)
-        <span style="font-size:11px;color:#9ca3af;">Batch: {{ $s->batch_code }}</span>
-        @endif
-    </td>
-
-    {{-- DURATION & TIME --}}
-    <td data-label="Duration &amp; Time">
-        <div class="td-dur">{{ $daysLabel }}</div>
-        @if($s->time_start && $s->time_end)
-        <div class="td-dur-time">{{ \Carbon\Carbon::parse($s->time_start)->format('g:i A') }} – {{ \Carbon\Carbon::parse($s->time_end)->format('g:i A') }}</div>
-        @endif
-    </td>
-
-    {{-- MODE --}}
-    <td data-label="Mode">
-        <span class="mode-badge {{ $modeCls }}">{{ $modeLabel }}</span>
-    </td>
-
-    {{-- FEE --}}
-    <td data-label="Fee">
-        @if($onlineFee && $physicalFee && $onlineFee !== $physicalFee)
-            <div class="td-fee">
-                <div class="fee-row"><span class="fee-label">Online</span><span class="fee-amt">{{ $currency }} {{ number_format($onlineFee) }}</span></div>
-                <div class="fee-row"><span class="fee-label">Physical</span><span class="fee-amt">{{ $currency }} {{ number_format($physicalFee) }}</span></div>
+    {{-- MIDDLE --}}
+    <div class="tl-mid">
+        <div class="tl-top">
+            <a href="{{ route('public.course.detail', $courseSlug) }}" class="tl-course-name">
+                {{ $s->course?->name ?? $s->training_title }}
+            </a>
+            <div class="tl-meta">
+                <span class="tl-badge {{ $modeCls }}">{{ $modeLabel }}</span>
+                @if($s->trainer)
+                <span class="tl-meta-item">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    {{ $s->trainer->name }}
+                </span>
+                @endif
+                <span class="tl-meta-item">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {{ $venue }}
+                </span>
+                <span class="tl-meta-dur">
+                    {{ $daysLabel }}
+                    @if($s->time_start && $s->time_end)
+                    &nbsp;·&nbsp;{{ \Carbon\Carbon::parse($s->time_start)->format('g A') }}–{{ \Carbon\Carbon::parse($s->time_end)->format('g A') }}
+                    @endif
+                </span>
             </div>
-        @elseif($onlineFee || $physicalFee)
-            @php $singleFee = $onlineFee ?: $physicalFee; @endphp
-            <span class="fee-single">{{ $currency }} {{ number_format($singleFee) }}</span>
-            <div class="fee-cur">per person</div>
-        @else
-            <span style="color:#9ca3af;font-size:12px;">Contact us</span>
-        @endif
-    </td>
-
-    {{-- TRAINER --}}
-    <td data-label="Trainer" style="font-size:13px;color:#374151;">
-        {{ $s->trainer?->name ?? '—' }}
-    </td>
-
-    {{-- VENUE --}}
-    <td data-label="Venue" style="font-size:13px;color:#374151;">
-        {{ $venue }}
-    </td>
-
-    {{-- ACTION --}}
-    <td data-label="Action">
-        @if($s->is_open)
-        <a href="{{ route('public.enroll', $s->id) }}" class="enroll-btn">Enroll Now</a>
-        @else
-        <span class="enroll-closed">Closed</span>
-        @endif
-    </td>
-</tr>
-@endforeach
-</tbody>
-</table>
-</div>
-
-{{-- ── Mobile cards (upcoming) ── --}}
-<div class="cal-mob-list">
-@foreach($upcoming as $s)
-@php
-    $currency    = $s->currency ?? 'BDT';
-    $onlineFee   = (float)($s->online_fee   ?? 0);
-    $physicalFee = (float)($s->physical_fee ?? 0);
-    $startDt     = \Carbon\Carbon::parse($s->start_date);
-    $endDt       = $s->end_date ? \Carbon\Carbon::parse($s->end_date) : $startDt;
-    $modeRaw     = strtolower($s->training_mode ?? 'physical');
-    $modeLabel   = match($modeRaw) { 'online'=>'Online','hybrid'=>'Hybrid', default=>'F2F' };
-    $modeCls     = match($modeRaw) { 'online'=>'mode-online','hybrid'=>'mode-hybrid', default=>'mode-f2f' };
-    $venue       = $modeRaw === 'online' ? 'Online (Zoom)' : ($s->venue ?? '—');
-    if ($startDt->format('M Y') === $endDt->format('M Y')) {
-        $dateRange = $startDt->format('d') . '–' . $endDt->format('d M Y');
-    } else {
-        $dateRange = $startDt->format('d M') . ' – ' . $endDt->format('d M Y');
-    }
-@endphp
-<div class="mob-card">
-    <div class="mob-card-head">
-        <span class="mob-card-date">{{ $dateRange }}</span>
-        <span class="mode-badge {{ $modeCls }}" style="font-size:11px;">{{ $modeLabel }}</span>
+        </div>
+        <div class="tl-bottom">
+            <a href="{{ route('public.course.detail', $courseSlug) }}" class="tl-detail-link">
+                Course details
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </a>
+        </div>
     </div>
-    <div class="mob-card-body">
-        <a href="{{ route('public.course.detail', $s->course->slug ?? $s->course_id) }}" class="mob-card-title">
-            {{ $s->course?->name ?? $s->training_title }}
-        </a>
-        @if($s->time_start)
-        <div class="mob-card-row">
-            <span class="mob-card-row-label">Time</span>
-            <span class="mob-card-row-val">{{ \Carbon\Carbon::parse($s->time_start)->format('g:i A') }} – {{ \Carbon\Carbon::parse($s->time_end)->format('g:i A') }}</span>
-        </div>
-        @endif
-        @if($s->trainer)
-        <div class="mob-card-row">
-            <span class="mob-card-row-label">Trainer</span>
-            <span class="mob-card-row-val">{{ $s->trainer->name }}</span>
-        </div>
-        @endif
-        <div class="mob-card-row">
-            <span class="mob-card-row-label">Venue</span>
-            <span class="mob-card-row-val">{{ $venue }}</span>
-        </div>
-        @if($s->registration_deadline)
-        <div class="mob-card-row">
-            <span class="mob-card-row-label">Deadline</span>
-            <span class="mob-card-row-val" style="color:#f97316;font-weight:700;">{{ \Carbon\Carbon::parse($s->registration_deadline)->format('d M Y') }}</span>
-        </div>
-        @endif
-    </div>
-    <div class="mob-card-foot">
-        <div class="mob-card-fee">
-            @if($onlineFee && $physicalFee && $onlineFee !== $physicalFee)
-                <div>Online: <b>{{ $currency }} {{ number_format($onlineFee) }}</b></div>
-                <div>Physical: <b>{{ $currency }} {{ number_format($physicalFee) }}</b></div>
-            @elseif($onlineFee || $physicalFee)
-                <b>{{ $currency }} {{ number_format($onlineFee ?: $physicalFee) }}</b> / person
+
+    {{-- RIGHT --}}
+    <div class="tl-right">
+        <div class="tl-fee">
+            @if($dualFee)
+            <div class="tl-fee-dual">
+                <div class="tl-fee-dual-row">
+                    <span class="tl-fee-dual-tag">Online</span>
+                    <span class="tl-fee-dual-amt">{{ $currency }} {{ number_format($onlineFee) }}</span>
+                </div>
+                <div class="tl-fee-dual-row">
+                    <span class="tl-fee-dual-tag">Physical</span>
+                    <span class="tl-fee-dual-amt">{{ $currency }} {{ number_format($physicalFee) }}</span>
+                </div>
+            </div>
+            @elseif($singleFee)
+            <div class="tl-fee-amount">{{ $currency }} {{ number_format($singleFee) }}</div>
+            <div class="tl-fee-sub">per person</div>
+            @else
+            <div class="tl-fee-contact">Contact us</div>
             @endif
         </div>
-        @if($s->is_open)
-        <a href="{{ route('public.enroll', $s->id) }}" class="enroll-btn">Enroll Now</a>
-        @else
-        <span class="enroll-closed">Closed</span>
-        @endif
+        <div>
+            @if($s->is_open)
+            <a href="{{ route('public.enroll', $s->id) }}" class="tl-enroll-btn">Enroll Now</a>
+            @else
+            <div class="tl-closed">Closed</div>
+            @endif
+        </div>
     </div>
-</div>
-@endforeach
-</div>
 
-{{-- Pagination --}}
+</div>{{-- .tl-item --}}
+@endforeach
+
+@endforeach
+
 @if($upcoming->hasPages())
 <div class="cal-pagination">{{ $upcoming->links() }}</div>
 @endif
@@ -591,7 +522,7 @@
 @endif {{-- end upcoming not empty --}}
 
 
-{{-- ══════════════ ARCHIVE TAB ══════════════ --}}
+{{-- ══════════════════════════ ARCHIVE TAB ══════════════════════════ --}}
 @else
 
 @if($past->isEmpty())
@@ -605,7 +536,7 @@
 </div>
 @else
 
-{{-- Year pills --}}
+{{-- Year filter pills --}}
 @if($archiveYears->count() > 1)
 <div class="arc-pills">
     <a href="{{ route('public.calendar', array_merge(request()->except(['year','page']), ['tab'=>'archive'])) }}"
@@ -617,148 +548,118 @@
 </div>
 @endif
 
+@php
+    $pastNested = [];
+    foreach ($past as $s) {
+        $yr     = \Carbon\Carbon::parse($s->start_date)->year;
+        $moKey  = \Carbon\Carbon::parse($s->start_date)->format('Y-m');
+        $moLbl  = \Carbon\Carbon::parse($s->start_date)->format('F Y');
+        if (!isset($pastNested[$yr][$moKey])) {
+            $pastNested[$yr][$moKey] = ['label' => $moLbl, 'items' => []];
+        }
+        $pastNested[$yr][$moKey]['items'][] = $s;
+    }
+    krsort($pastNested);
+    foreach ($pastNested as &$months) { krsort($months); }
+    unset($months);
+@endphp
+
 <p class="cal-result-bar">
     <strong>{{ $past->count() }}</strong> past {{ Str::plural('session', $past->count()) }}
     @if(request('year')) <span style="color:#9ca3af;font-weight:400;">in {{ request('year') }}</span>@endif
+    @if(request()->hasAny(['mode','course'])) <span style="color:#9ca3af;font-weight:400;">— filtered</span>@endif
 </p>
 
-{{-- ── Desktop archive table ── --}}
-<div class="cal-tbl-wrap">
-<table class="cal-tbl">
-<colgroup>
-    <col class="acol-date">
-    <col class="acol-course">
-    <col class="acol-dur">
-    <col class="acol-mode">
-    <col class="acol-trainer">
-    <col class="acol-venue">
-    <col class="acol-status">
-    <col class="acol-action">
-</colgroup>
-<thead>
-<tr>
-    <th>Date</th>
-    <th>Course / Topic</th>
-    <th>Duration</th>
-    <th>Mode</th>
-    <th>Trainer</th>
-    <th>Venue</th>
-    <th>Status</th>
-    <th>Action</th>
-</tr>
-</thead>
-<tbody>
-@foreach($pastByYear as $year => $sessions)
-<tr class="year-row">
-    <td colspan="8">
-        <div class="year-row-inner">
-            <span class="year-label">{{ $year }}</span>
-            <span class="year-count">{{ $sessions->count() }} {{ Str::plural('session', $sessions->count()) }}</span>
-        </div>
-    </td>
-</tr>
-@foreach($sessions as $s)
-@php
-    $startDt   = \Carbon\Carbon::parse($s->start_date);
-    $endDt     = $s->end_date ? \Carbon\Carbon::parse($s->end_date) : $startDt;
-    $days      = $startDt->diffInDays($endDt) + 1;
-    $daysLabel = $days . ' ' . Str::plural('Day', $days);
-    $modeRaw   = strtolower($s->training_mode ?? 'physical');
-    $modeLabel = match($modeRaw) { 'online'=>'Online','hybrid'=>'Hybrid', default=>'F2F' };
-    $modeCls   = match($modeRaw) { 'online'=>'mode-online','hybrid'=>'mode-hybrid', default=>'mode-f2f' };
-    $venue     = $modeRaw === 'online' ? 'Online (Zoom)' : ($s->venue ?? '—');
-    if ($startDt->format('M Y') === $endDt->format('M Y')) {
-        $dateRange = $startDt->format('d') . '–' . $endDt->format('d M Y');
-    } else {
-        $dateRange = $startDt->format('d M') . ' – ' . $endDt->format('d M Y');
-    }
-@endphp
-<tr>
-    <td class="td-date" data-label="Date" style="color:#6b7280;">{{ $dateRange }}</td>
-    <td data-label="Course">
-        <a href="{{ route('public.course.detail', $s->course->slug ?? $s->course_id) }}" class="td-course-link" style="color:#374151;">
-            {{ $s->course?->name ?? $s->training_title }}
-        </a>
-    </td>
-    <td data-label="Duration">
-        <div class="td-dur" style="color:#6b7280;">{{ $daysLabel }}</div>
-        @if($s->time_start && $s->time_end)
-        <div class="td-dur-time">{{ \Carbon\Carbon::parse($s->time_start)->format('g:i A') }} – {{ \Carbon\Carbon::parse($s->time_end)->format('g:i A') }}</div>
-        @endif
-    </td>
-    <td data-label="Mode"><span class="mode-badge {{ $modeCls }}" style="opacity:.8;">{{ $modeLabel }}</span></td>
-    <td data-label="Trainer" style="font-size:13px;color:#6b7280;">{{ $s->trainer?->name ?? '—' }}</td>
-    <td data-label="Venue"   style="font-size:13px;color:#6b7280;">{{ $venue }}</td>
-    <td data-label="Status">
-        <span class="status-completed">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-            Completed
-        </span>
-    </td>
-    <td data-label="Action">
-        <a href="{{ route('public.course.detail', $s->course->slug ?? $s->course_id) }}" class="view-btn">
-            View Summary
-        </a>
-    </td>
-</tr>
-@endforeach
-@endforeach
-</tbody>
-</table>
+@foreach($pastNested as $year => $months)
+
+@php $yearTotal = array_sum(array_map(fn($m) => count($m['items']), $months)); @endphp
+<div class="tl-year-head">
+    <span class="tl-year-label">{{ $year }}</span>
+    <span class="tl-year-count">{{ $yearTotal }} {{ Str::plural('session', $yearTotal) }}</span>
+    <div class="tl-year-rule"></div>
 </div>
 
-{{-- ── Mobile cards (archive) ── --}}
-<div class="cal-mob-list">
-@foreach($pastByYear as $year => $sessions)
-<div class="mob-year-head">
-    <span>{{ $year }}</span>
-    <span class="mob-year-cnt">{{ $sessions->count() }} {{ Str::plural('session', $sessions->count()) }}</span>
+@foreach($months as $moKey => $monthData)
+
+<div class="tl-month-head tl-month-head--arc">
+    <span class="tl-month-label">{{ $monthData['label'] }}</span>
+    <span class="tl-month-count">{{ count($monthData['items']) }} {{ Str::plural('session', count($monthData['items'])) }}</span>
+    <div class="tl-month-rule"></div>
 </div>
-@foreach($sessions as $s)
+
+@foreach($monthData['items'] as $s)
 @php
-    $startDt   = \Carbon\Carbon::parse($s->start_date);
-    $endDt     = $s->end_date ? \Carbon\Carbon::parse($s->end_date) : $startDt;
-    $modeRaw   = strtolower($s->training_mode ?? 'physical');
-    $modeLabel = match($modeRaw) { 'online'=>'Online','hybrid'=>'Hybrid', default=>'F2F' };
-    $modeCls   = match($modeRaw) { 'online'=>'mode-online','hybrid'=>'mode-hybrid', default=>'mode-f2f' };
-    $venue     = $modeRaw === 'online' ? 'Online (Zoom)' : ($s->venue ?? '—');
-    if ($startDt->format('M Y') === $endDt->format('M Y')) {
-        $dateRange = $startDt->format('d') . '–' . $endDt->format('d M Y');
-    } else {
-        $dateRange = $startDt->format('d M') . ' – ' . $endDt->format('d M Y');
-    }
+    $startDt    = \Carbon\Carbon::parse($s->start_date);
+    $endDt      = $s->end_date ? \Carbon\Carbon::parse($s->end_date) : $startDt;
+    $days       = $startDt->diffInDays($endDt) + 1;
+    $daysLabel  = $days . ' ' . Str::plural('Day', $days);
+    $modeRaw    = strtolower($s->training_mode ?? 'physical');
+    $modeLabel  = match($modeRaw) { 'online'=>'Online','hybrid'=>'Hybrid', default=>'Physical' };
+    $modeCls    = match($modeRaw) { 'online'=>'tl-online','hybrid'=>'tl-hybrid', default=>'tl-f2f' };
+    $venue      = $modeRaw === 'online' ? 'Online (Zoom)' : ($s->venue ?? '—');
+    $courseSlug = $s->course->slug ?? $s->course_id;
+    $multiDay   = $days > 1;
+    $dateRange  = '– ' . $endDt->format('d M');
 @endphp
-<div class="mob-card mob-card-arc">
-    <div class="mob-card-head">
-        <span class="mob-card-date">{{ $dateRange }}</span>
-        <span class="mode-badge {{ $modeCls }}" style="font-size:11px;">{{ $modeLabel }}</span>
-    </div>
-    <div class="mob-card-body">
-        <a href="{{ route('public.course.detail', $s->course->slug ?? $s->course_id) }}" class="mob-card-title" style="color:#374151;">
-            {{ $s->course?->name ?? $s->training_title }}
-        </a>
-        @if($s->trainer)
-        <div class="mob-card-row">
-            <span class="mob-card-row-label">Trainer</span>
-            <span class="mob-card-row-val">{{ $s->trainer->name }}</span>
-        </div>
+<div class="tl-item tl-item-arc">
+
+    {{-- DATE --}}
+    <div class="tl-date">
+        <div class="tl-date-day">{{ $startDt->format('d') }}</div>
+        <div class="tl-date-mon">{{ $startDt->format('M') }}</div>
+        @if($multiDay)
+        <div class="tl-date-range">{{ $dateRange }}<br>{{ $endDt->format('Y') }}</div>
+        @else
+        <div class="tl-date-range">{{ $startDt->format('Y') }}</div>
         @endif
-        <div class="mob-card-row">
-            <span class="mob-card-row-label">Venue</span>
-            <span class="mob-card-row-val">{{ $venue }}</span>
+    </div>
+
+    {{-- MIDDLE --}}
+    <div class="tl-mid">
+        <div class="tl-top">
+            <a href="{{ route('public.course.detail', $courseSlug) }}" class="tl-course-name">
+                {{ $s->course?->name ?? $s->training_title }}
+            </a>
+            <div class="tl-meta">
+                <span class="tl-badge {{ $modeCls }}" style="opacity:.8;">{{ $modeLabel }}</span>
+                @if($s->trainer)
+                <span class="tl-meta-item">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    {{ $s->trainer->name }}
+                </span>
+                @endif
+                <span class="tl-meta-item">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {{ $venue }}
+                </span>
+                <span class="tl-meta-dur">{{ $daysLabel }}</span>
+            </div>
+        </div>
+        <div class="tl-bottom">
+            <a href="{{ route('public.course.detail', $courseSlug) }}" class="tl-detail-link">
+                View course
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </a>
         </div>
     </div>
-    <div class="mob-card-foot">
-        <span class="status-completed">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+
+    {{-- RIGHT --}}
+    <div class="tl-right">
+        <span class="tl-completed">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
             Completed
         </span>
-        <a href="{{ route('public.course.detail', $s->course->slug ?? $s->course_id) }}" class="view-btn">View Summary</a>
+        <a href="{{ route('public.course.detail', $courseSlug) }}" class="tl-view-btn">
+            View Details
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </a>
     </div>
-</div>
+
+</div>{{-- .tl-item.tl-item-arc --}}
 @endforeach
-@endforeach
-</div>
+
+@endforeach {{-- months --}}
+@endforeach {{-- years --}}
 
 @endif {{-- end archive not empty --}}
 
