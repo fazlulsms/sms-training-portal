@@ -422,4 +422,28 @@ class PublicController extends Controller
 
         return view('public.verify-certificate', compact('result'));
     }
+
+    // ── Static compliance pages ────────────────────────────────
+    public function about()   { return view('public.about'); }
+    public function terms()   { return view('public.terms'); }
+    public function privacy() { return view('public.privacy'); }
+    public function refund()  { return view('public.refund'); }
+
+    public function contact() { return view('public.contact'); }
+
+    public function contactSubmit(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            'name'    => 'required|string|max:150',
+            'email'   => 'required|email|max:150',
+            'subject' => 'required|string|max:250',
+            'message' => 'required|string|max:3000',
+        ]);
+
+        // Log the inquiry; a mail/queue integration can be added here.
+        \Illuminate\Support\Facades\Log::info('Contact enquiry', $request->only('name','email','subject'));
+
+        return redirect()->route('public.contact')
+            ->with('contact_success', 'Thank you for reaching out. We will respond within 1–2 business days.');
+    }
 }

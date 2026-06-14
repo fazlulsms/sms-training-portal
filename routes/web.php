@@ -74,6 +74,14 @@ Route::name('public.')->group(function () {
     Route::get('/corporate-training',           [CorporateInquiryController::class, 'publicPage'])  ->name('corporate');
     Route::post('/corporate-training',          [CorporateInquiryController::class, 'publicStore']) ->name('corporate.submit');
 
+    // Compliance & informational pages
+    Route::get('/about-us',                    [PublicController::class, 'about'])          ->name('about');
+    Route::get('/contact',                     [PublicController::class, 'contact'])        ->name('contact');
+    Route::post('/contact',                    [PublicController::class, 'contactSubmit'])  ->name('contact.submit');
+    Route::get('/terms-and-conditions',        [PublicController::class, 'terms'])          ->name('terms');
+    Route::get('/privacy-policy',              [PublicController::class, 'privacy'])        ->name('privacy');
+    Route::get('/refund-policy',               [PublicController::class, 'refund'])         ->name('refund');
+
     // Public enrollment flow
     Route::get('/enroll/{scheduleId}',          [PublicEnrollmentController::class, 'show'])    ->name('enroll');
     Route::post('/enroll/{scheduleId}',         [PublicEnrollmentController::class, 'store'])   ->name('enroll.store');

@@ -447,6 +447,8 @@
             <a href="{{ route('public.testimonials') }}"       class="{{ request()->routeIs('public.testimonials') ? 'active' : '' }}">Reviews</a>
             <a href="{{ route('public.blog') }}"               class="{{ request()->routeIs('public.blog*') ? 'active' : '' }}">Blog</a>
             <a href="{{ route('public.verify-certificate') }}" class="{{ request()->routeIs('public.verify-certificate') ? 'active' : '' }}">Verify</a>
+            <a href="{{ route('public.about') }}"              class="{{ request()->routeIs('public.about') ? 'active' : '' }}">About</a>
+            <a href="{{ route('public.contact') }}"            class="{{ request()->routeIs('public.contact*') ? 'active' : '' }}">Contact</a>
         </div>
 
         <div class="pub-nav-actions">
@@ -473,6 +475,8 @@
         <a href="{{ route('public.testimonials') }}">Reviews</a>
         <a href="{{ route('public.blog') }}">Blog</a>
         <a href="{{ route('public.verify-certificate') }}">Verify Certificate</a>
+        <a href="{{ route('public.about') }}">About Us</a>
+        <a href="{{ route('public.contact') }}">Contact Us</a>
         <hr class="mob-divider">
         @auth
         <a href="{{ route('participant.my-courses') }}" class="mob-cta">My Dashboard</a>
@@ -558,10 +562,11 @@
                 <ul>
                     <li><a href="{{ route('public.verify-certificate') }}">Verify Certificate</a></li>
                     <li><a href="{{ route('login') }}">Participant Login</a></li>
-                    <li><a href="mailto:training@smscert.com">Corporate Training</a></li>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Terms of Use</a></li>
-                    <li><a href="#">Refund Policy</a></li>
+                    <li><a href="{{ route('public.about') }}">About Us</a></li>
+                    <li><a href="{{ route('public.contact') }}">Contact Us</a></li>
+                    <li><a href="{{ route('public.privacy') }}">Privacy Policy</a></li>
+                    <li><a href="{{ route('public.terms') }}">Terms of Use</a></li>
+                    <li><a href="{{ route('public.refund') }}">Refund Policy</a></li>
                 </ul>
             </div>
 
@@ -588,8 +593,9 @@
         <div class="pub-footer-bottom">
             <span>&copy; {{ date('Y') }} SMS Training Academy. All rights reserved. Powered by Sustainable Management System Inc.</span>
             <div class="pub-footer-bottom-links">
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Use</a>
+                <a href="{{ route('public.privacy') }}">Privacy Policy</a>
+                <a href="{{ route('public.terms') }}">Terms of Use</a>
+                <a href="{{ route('public.refund') }}">Refund Policy</a>
                 <a href="{{ route('public.verify-certificate') }}">Verify Certificate</a>
             </div>
         </div>
