@@ -50,6 +50,7 @@ use App\Http\Controllers\AiTrainerProfileController;
 use App\Http\Controllers\AiLessonContentController;
 use App\Http\Controllers\AiTrainingNewsController;
 use App\Http\Controllers\TrainingMediaController;
+use App\Http\Controllers\CouponController;
 
 /*
 |--------------------------------------------------------------------------
@@ -186,6 +187,9 @@ Route::get('/elearning-register/{course}', [ElearningEnrollmentController::class
     ->name('elearning.public.register');
 Route::post('/elearning-register/{course}', [ElearningEnrollmentController::class, 'publicRegisterStore'])
     ->name('elearning.public.register.store');
+
+// Coupon validation (public AJAX)
+Route::post('/coupon/validate', [CouponController::class, 'validateCoupon'])->name('coupon.validate');
 // ── Participant Exam (public — secure token-based, no auth) ──────────────
 Route::get('/exam/{token}',        [ParticipantExamController::class, 'show'])   ->name('exam.show');
 Route::post('/exam/{token}/submit',[ParticipantExamController::class, 'submit']) ->name('exam.submit');
@@ -577,6 +581,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('testimonials/{testimonial}/reject',     [TestimonialController::class, 'reject']) ->name('testimonials.reject');
     Route::patch('testimonials/{testimonial}/feature',    [TestimonialController::class, 'feature'])->name('testimonials.feature');
     Route::delete('testimonials/{testimonial}',           [TestimonialController::class, 'destroy'])->name('testimonials.destroy');
+
+    // Coupons & Promotions
+    Route::get('coupons',                  [CouponController::class, 'index'])   ->name('coupons.index');
+    Route::get('coupons/create',           [CouponController::class, 'create'])  ->name('coupons.create');
+    Route::post('coupons',                 [CouponController::class, 'store'])   ->name('coupons.store');
+    Route::get('coupons/{coupon}',         [CouponController::class, 'show'])    ->name('coupons.show');
+    Route::get('coupons/{coupon}/edit',    [CouponController::class, 'edit'])    ->name('coupons.edit');
+    Route::put('coupons/{coupon}',         [CouponController::class, 'update'])  ->name('coupons.update');
+    Route::delete('coupons/{coupon}',      [CouponController::class, 'destroy']) ->name('coupons.destroy');
+    Route::post('coupons/{coupon}/toggle', [CouponController::class, 'toggle'])  ->name('coupons.toggle');
 });
 
 /*

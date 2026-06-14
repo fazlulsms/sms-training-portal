@@ -188,6 +188,10 @@
             </div>
         </div>
 
+        {{-- Coupon / Promo Code --}}
+        @php $elFee = (float)($course->public_price ?: $course->course_fee ?: 0); @endphp
+        @include('partials.registration-coupon', ['courseId' => $course->id, 'formType' => 'elearning', 'originalAmount' => $elFee])
+
         {{-- Payment Info --}}
         @include('partials.registration-payment-info', ['type' => 'elearning'])
 

@@ -578,6 +578,31 @@
             </div>
         </div>
 
+        {{-- C6. Promotions ─────────────────────────── --}}
+        @php $promoActive = request()->is('admin/coupons*'); @endphp
+        <div class="sb-group" style="--sg-accent:#f59e0b;"
+             x-data="{ open: {{ $promoActive ? 'true' : 'false' }} }">
+
+            <div class="sb-group-header" @click="open = !open">
+                <div class="sb-group-label" style="color:#f59e0b;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+                    Promotions
+                </div>
+                <svg class="sb-chevron" :class="{ open }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+
+            <div class="sb-group-items" x-show="open" x-transition>
+                <a href="{{ route('admin.coupons.index') }}"
+                   class="sb-sub {{ $promoActive ? 'active' : '' }}"
+                   style="{{ $promoActive ? 'background:rgba(245,158,11,.12);color:#fcd34d;' : '' }}">
+                    <span class="sb-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+                    </span>
+                    Coupons &amp; Discounts
+                </a>
+            </div>
+        </div>
+
         <div class="sb-divider"></div>
 
         {{-- D. Administration ──────────────────────────── --}}

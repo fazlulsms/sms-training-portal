@@ -409,6 +409,7 @@ class ElearningEnrollmentController extends Controller
             'special_requirements'    => 'nullable|string|max:1000',
             'referral_source'         => 'nullable|string|max:100',
             'pre_questions'           => 'nullable|string|max:1000',
+            'coupon_code'             => 'nullable|string|max:50',
         ]);
 
         // Prevent duplicate enrollment
@@ -422,6 +423,33 @@ class ElearningEnrollmentController extends Controller
                 ->with('error', 'You are already registered for this course. Please contact us if you need assistance.');
         }
 
+        // ── Coupon logic ───────────────────────────────────────────────────────
+        $coupon          = null;
+        $couponDiscount  = 0;
+        $isComplimentary = false;
+        $originalFee     = (float) ($course->public_price ?? $course->course_fee ?? 0);
+        $finalFee        = $originalFee;
+
+        if (!empty($request->coupon_code)) {
+            $svc    = app(\App\Services\CouponService::class);
+            $result = $svc->validate(
+                $request->coupon_code,
+                $request->email,
+                $course->id,
+                'elearning',
+                $originalFee
+            );
+
+            if (!$result['valid']) {
+                return back()->withInput()->withErrors(['coupon_code' => $result['message']]);
+            }
+
+            $coupon          = $result['coupon'];
+            $couponDiscount  = $result['discount_amount'];
+            $finalFee        = $result['final_amount'];
+            $isComplimentary = $coupon->type === 'complimentary';
+        }
+
         [$user, $plainPassword, $accountCreated] = $this->resolveOrCreateLearner(
             $request->participant_name,
             $request->email,
@@ -431,48 +459,74 @@ class ElearningEnrollmentController extends Controller
         );
 
         $enrollment = ElearningEnrollment::create([
-            'user_id'                  => $user?->id,
-            'course_id'                => $course->id,
-            'participant_name'         => $request->participant_name,
-            'email'                    => $request->email,
-            'phone'                    => $request->phone,
-            'gender'                   => $request->gender,
-            'company'                  => $request->company,
-            'designation'              => $request->designation,
-            'industry'                 => $request->industry,
-            'experience_years'         => $request->experience_years,
-            'country'                  => $request->country,
-            'city'                     => $request->city,
-            'full_address'             => $request->full_address,
-            'emergency_contact_name'   => $request->emergency_contact_name,
-            'emergency_contact_phone'  => $request->emergency_contact_phone,
-            'special_requirements'     => $request->special_requirements,
-            'referral_source'          => $request->referral_source,
-            'pre_questions'            => $request->pre_questions,
-            'amount'                   => $course->public_price ?? $course->course_fee ?? 0,
-            'currency'                 => 'BDT',
-            'payment_method'           => 'pending',
-            'payment_status'           => 'pending',
-            'access_status'            => 'locked',
-            'completion_status'        => 'not_started',
-            'certificate_status'       => 'not_issued',
+            'user_id'                          => $user?->id,
+            'course_id'                        => $course->id,
+            'participant_name'                 => $request->participant_name,
+            'email'                            => $request->email,
+            'phone'                            => $request->phone,
+            'gender'                           => $request->gender,
+            'company'                          => $request->company,
+            'designation'                      => $request->designation,
+            'industry'                         => $request->industry,
+            'experience_years'                 => $request->experience_years,
+            'country'                          => $request->country,
+            'city'                             => $request->city,
+            'full_address'                     => $request->full_address,
+            'emergency_contact_name'           => $request->emergency_contact_name,
+            'emergency_contact_phone'          => $request->emergency_contact_phone,
+            'special_requirements'             => $request->special_requirements,
+            'referral_source'                  => $request->referral_source,
+            'pre_questions'                    => $request->pre_questions,
+            'coupon_code'                      => $coupon ? strtoupper($request->coupon_code) : null,
+            'original_amount_before_discount'  => $originalFee,
+            'coupon_discount'                  => $couponDiscount,
+            'amount'                           => $finalFee,
+            'currency'                         => 'BDT',
+            'payment_method'                   => $isComplimentary ? 'free' : 'pending',
+            'payment_status'                   => $isComplimentary ? 'free' : 'pending',
+            'access_status'                    => $isComplimentary ? 'unlocked' : 'locked',
+            'completion_status'                => 'not_started',
+            'certificate_status'               => 'not_issued',
         ]);
 
-        // ── SEQUENCE STEP 1: Registration email (no credentials) ────────────
-        try {
-            $invoice = AutoInvoiceService::forElearningEnrollment($enrollment);
-            TrainingNotificationService::elearningRegistrationCompleted($enrollment, $invoice, null);
-        } catch (\Throwable $e) {
-            Log::error('AutoInvoice/RegistrationConfirmed failed (eLearning public)', [
-                'enrollment_id' => $enrollment->id, 'error' => $e->getMessage(),
-            ]);
+        // ── Record coupon usage ────────────────────────────────────────────────
+        if ($coupon) {
+            app(\App\Services\CouponService::class)->recordUsage(
+                $coupon, $request->email, 'elearning', $enrollment->id,
+                $originalFee, $finalFee, $course->name
+            );
         }
-        TrainingNotificationService::adminNewRegistration($enrollment, 'ElearningEnrollment');
-        // Welcome email with credentials sent AFTER payment confirmation (Step 2)
 
-        $message = $accountCreated
-            ? 'Your registration has been received. A learner account has been created and login credentials have been sent to your email address. You can log in once payment is confirmed.'
-            : 'Your registration has been received. Login credentials have been sent to your email. You can log in once payment is confirmed.';
+        // ── Invoice & email handling ───────────────────────────────────────────
+        if ($isComplimentary) {
+            // No invoice, no invoice email — send access confirmation, notify admin
+            try {
+                TrainingNotificationService::adminNewRegistration($enrollment, 'ElearningEnrollment');
+            } catch (\Throwable $e) {
+                Log::error('Admin notification failed (eLearning complimentary)', [
+                    'enrollment_id' => $enrollment->id, 'error' => $e->getMessage(),
+                ]);
+            }
+
+            $message = 'Your complimentary registration has been confirmed! '
+                . ($accountCreated
+                    ? 'A learner account has been created. Login credentials have been sent to your email address — you can access the course immediately.'
+                    : 'You can now log in and access the course immediately.');
+        } else {
+            try {
+                $invoice = AutoInvoiceService::forElearningEnrollment($enrollment);
+                TrainingNotificationService::elearningRegistrationCompleted($enrollment, $invoice, null);
+            } catch (\Throwable $e) {
+                Log::error('AutoInvoice/RegistrationConfirmed failed (eLearning public)', [
+                    'enrollment_id' => $enrollment->id, 'error' => $e->getMessage(),
+                ]);
+            }
+            TrainingNotificationService::adminNewRegistration($enrollment, 'ElearningEnrollment');
+
+            $message = $accountCreated
+                ? 'Your registration has been received. A learner account has been created and login credentials have been sent to your email address. You can log in once payment is confirmed.'
+                : 'Your registration has been received. Login credentials have been sent to your email. You can log in once payment is confirmed.';
+        }
 
         return redirect()
             ->route('elearning.public.register', $course->id)

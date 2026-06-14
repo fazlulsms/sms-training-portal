@@ -44,6 +44,9 @@ class Enrollment extends Model
         'certificate_generated_at',
         'exam_email_sent', 'exam_email_sent_at',
         'remarks',
+        'coupon_code',
+        'original_fee',
+        'coupon_discount',
     ];
 
     protected $casts = [

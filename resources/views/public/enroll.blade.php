@@ -231,6 +231,10 @@
             </div>
         </div>
 
+        {{-- Coupon / Promo Code --}}
+        @php $iltFee = (float)(($schedule->discount_fee ?? $schedule->physical_fee ?? $schedule->online_fee ?? 0)); @endphp
+        @include('partials.registration-coupon', ['courseId' => $schedule->course_id, 'formType' => 'ilt', 'originalAmount' => $iltFee])
+
         {{-- Fee Summary --}}
         <div class="fee-summary"
              data-physical="{{ $physicalFee }}"
@@ -381,6 +385,27 @@
     });
     var checked = document.querySelector('input[name="selected_mode"]:checked');
     update(checked ? checked.value : '');
+
+    var appliedDiscount = 0;
+    window.updateFeeSummaryWithCoupon = function(discountAmt, finalAmt) {
+        appliedDiscount = discountAmt;
+        var mode = (document.querySelector('input[name="selected_mode"]:checked') || {}).value || '';
+        var baseFee = (mode === 'Online') ? online : physical;
+        var discRow = document.getElementById('feeDiscountRow');
+        var total   = document.getElementById('feeTotal');
+        var sbFee   = document.getElementById('sbFee');
+        if (!discRow) {
+            var newRow = document.createElement('div');
+            newRow.id = 'feeDiscountRow';
+            newRow.className = 'fee-row';
+            newRow.innerHTML = '<span class="fee-label">Coupon Discount</span><span class="fee-value" style="color:#fcd34d;">- ' + fmt(discountAmt) + '</span>';
+            document.getElementById('feeLineRow') ? document.getElementById('feeLineRow').insertAdjacentElement('afterend', newRow) : null;
+        } else {
+            discRow.querySelector('.fee-value').textContent = '- ' + fmt(discountAmt);
+        }
+        if (total)  total.textContent  = finalAmt ? fmt(finalAmt) : fmt(Math.max(0, baseFee - discountAmt));
+        if (sbFee && finalAmt) sbFee.textContent = fmt(finalAmt);
+    };
 })();
 </script>
 @endpush

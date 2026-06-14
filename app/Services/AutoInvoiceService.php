@@ -31,16 +31,19 @@ class AutoInvoiceService
 
         $courseName   = $schedule?->course?->name ?? 'Training Program';
         $batchCode    = $schedule?->batch_code    ?? '';
-        $startDate    = $schedule?->start_date    ? \Carbon\Carbon::parse($schedule->start_date)->format('d M Y') : '';
         $venue        = $schedule?->venue         ?? $enrollment->selected_mode ?? '';
         $trainingDate = $schedule?->start_date    ? \Carbon\Carbon::parse($schedule->start_date)->toDateString() : now()->toDateString();
         $mode         = $enrollment->selected_mode ?? 'Physical';
 
-        $fee         = (float) ($enrollment->applied_fee ?? 0);
-        $vatPercent  = 0;
-        $vatAmount   = 0;
-        $discount    = 0;
-        $total       = $fee;
+        $originalFee    = (float) ($enrollment->original_fee ?? $enrollment->applied_fee ?? 0);
+        $couponDiscount = (float) ($enrollment->coupon_discount ?? 0);
+        $subtotal       = $originalFee;
+        $total          = max(0, $subtotal - $couponDiscount);
+
+        $notes = 'Auto-generated on registration';
+        if ($enrollment->coupon_code) {
+            $notes .= ' | Coupon: ' . $enrollment->coupon_code;
+        }
 
         return Invoice::create([
             'invoice_number'        => self::generateInvoiceNumber(),
@@ -58,22 +61,22 @@ class AutoInvoiceService
             'training_duration'     => null,
             'training_method_venue' => $mode . ($venue ? " — {$venue}" : ''),
             'number_of_participants'=> 1,
-            'fee_per_person'        => $fee,
-            'charge_for'            => $fee,
+            'fee_per_person'        => $originalFee,
+            'charge_for'            => $originalFee,
             'invoice_date'          => now()->toDateString(),
             'due_date'              => now()->addDays(7)->toDateString(),
             'currency'              => 'BDT',
-            'subtotal'              => $fee,
-            'vat_percent'           => $vatPercent,
-            'vat_amount'            => $vatAmount,
-            'discount_amount'       => $discount,
+            'subtotal'              => $subtotal,
+            'vat_percent'           => 0,
+            'vat_amount'            => 0,
+            'discount_amount'       => $couponDiscount,
             'grand_total'           => $total,
             'total_amount'          => $total,
             'amount_in_words'       => self::amountInWords($total),
             'payment_status'        => self::mapPaymentStatus($enrollment->payment_status),
             'amount_paid'           => $enrollment->amount_received ?? 0,
             'payment_method'        => $enrollment->payment_method  ?? null,
-            'notes'                 => 'Auto-generated on registration',
+            'notes'                 => $notes,
             'status'                => 'Issued',
         ]);
     }
@@ -88,43 +91,51 @@ class AutoInvoiceService
     {
         $enrollment->loadMissing('course');
 
-        $courseName = $enrollment->course?->name ?? 'eLearning Course';
-        $fee        = (float) ($enrollment->amount ?? 0);
-        $total      = $fee;
+        $courseName     = $enrollment->course?->name ?? 'eLearning Course';
+        $originalFee    = (float) ($enrollment->original_amount_before_discount ?? $enrollment->amount ?? 0);
+        $couponDiscount = (float) ($enrollment->coupon_discount ?? 0);
+        $subtotal       = $originalFee;
+        $total          = max(0, $subtotal - $couponDiscount);
+        $currency       = $enrollment->currency ?? 'BDT';
+
+        $notes = 'Auto-generated on registration';
+        if ($enrollment->coupon_code) {
+            $notes .= ' | Coupon: ' . $enrollment->coupon_code;
+        }
 
         return Invoice::create([
-            'invoice_number'              => self::generateInvoiceNumber(),
-            'invoice_type'                => 'auto',
-            'elearning_enrollment_id'     => $enrollment->id,
-            'client_name'                 => $enrollment->participant_name,
-            'client_email'          => $enrollment->email,
-            'client_phone'          => $enrollment->phone       ?? null,
-            'client_address'        => null,
-            'client_country'        => $enrollment->country     ?? null,
-            'client_company'        => $enrollment->company     ?? null,
-            'service_type'          => 'eLearning',
-            'training_name'         => $courseName,
-            'training_date'         => now()->toDateString(),
-            'training_duration'     => null,
-            'training_method_venue' => 'Online / Self-Paced',
-            'number_of_participants'=> 1,
-            'fee_per_person'        => $fee,
-            'charge_for'            => $fee,
-            'invoice_date'          => now()->toDateString(),
-            'due_date'              => now()->addDays(7)->toDateString(),
-            'currency'              => $enrollment->currency ?? 'BDT',
-            'subtotal'              => $fee,
-            'vat_percent'           => 0,
-            'vat_amount'            => 0,
-            'discount_amount'       => 0,
-            'grand_total'           => $total,
-            'total_amount'          => $total,
-            'amount_in_words'       => self::amountInWords($total, $enrollment->currency ?? 'BDT'),
-            'payment_status'        => self::mapPaymentStatus($enrollment->payment_status),
-            'amount_paid'           => 0,
-            'payment_method'        => $enrollment->payment_method ?? null,
-            'notes'                 => 'Auto-generated on registration',
-            'status'                => 'Issued',
+            'invoice_number'          => self::generateInvoiceNumber(),
+            'invoice_type'            => 'auto',
+            'elearning_enrollment_id' => $enrollment->id,
+            'client_name'             => $enrollment->participant_name,
+            'client_email'            => $enrollment->email,
+            'client_phone'            => $enrollment->phone    ?? null,
+            'client_address'          => null,
+            'client_country'          => $enrollment->country  ?? null,
+            'client_company'          => $enrollment->company  ?? null,
+            'service_type'            => 'eLearning',
+            'training_name'           => $courseName,
+            'training_date'           => now()->toDateString(),
+            'training_duration'       => null,
+            'training_method_venue'   => 'Online / Self-Paced',
+            'number_of_participants'  => 1,
+            'fee_per_person'          => $originalFee,
+            'charge_for'              => $originalFee,
+            'invoice_date'            => now()->toDateString(),
+            'due_date'                => now()->addDays(7)->toDateString(),
+            'currency'                => $currency,
+            'subtotal'                => $subtotal,
+            'vat_percent'             => 0,
+            'vat_amount'              => 0,
+            'discount_amount'         => $couponDiscount,
+            'grand_total'             => $total,
+            'total_amount'            => $total,
+            'amount_in_words'         => self::amountInWords($total, $currency),
+            'payment_status'          => self::mapPaymentStatus($enrollment->payment_status),
+            'amount_paid'             => 0,
+            'payment_method'          => $enrollment->payment_method ?? null,
+            'notes'                   => $notes,
+            'status'                  => 'Issued',
         ]);
     }
 

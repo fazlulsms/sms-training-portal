@@ -3,22 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Mail\RegistrationConfirmed;
-use App\Models\Course;
+use App\Models\Coupon;
 use App\Models\Enrollment;
 use App\Models\TrainingSchedule;
 use App\Models\User;
 use App\Services\AutoInvoiceService;
+use App\Services\CouponService;
 use App\Services\TrainingNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
 class PublicEnrollmentController extends Controller
 {
-    // ── Step 1 & 2: Show enrollment form for a specific schedule ──
     public function show(int $scheduleId)
     {
         $schedule = TrainingSchedule::with('course', 'trainer')
@@ -27,13 +26,11 @@ class PublicEnrollmentController extends Controller
 
         abort_unless($schedule->is_open, 404, 'Registration for this schedule is closed.');
 
-        // Pre-fill from logged-in participant
         $user = Auth::user();
 
         return view('public.enroll', compact('schedule', 'user'));
     }
 
-    // ── Step 3-8: Process enrollment ─────────────────────────────
     public function store(Request $request, int $scheduleId)
     {
         $schedule = TrainingSchedule::with('course')
@@ -64,24 +61,52 @@ class PublicEnrollmentController extends Controller
             'selected_mode'           => 'required|in:Physical,Online',
             'payment_method'          => 'required|in:manual,sslcommerz',
             'participants'            => 'nullable|integer|min:1|max:100',
+            'coupon_code'             => 'nullable|string|max:50',
         ]);
 
         $participants = (int) ($validated['participants'] ?? 1);
-        $fee = $validated['selected_mode'] === 'Physical'
+        $originalFee  = ($validated['selected_mode'] === 'Physical'
             ? ($schedule->physical_fee ?? 0)
-            : ($schedule->online_fee ?? 0);
+            : ($schedule->online_fee   ?? 0)) * $participants;
 
-        // Duplicate check
+        // ── Coupon logic ─────────────────────────────────────────────────────
+        $coupon         = null;
+        $couponDiscount = 0;
+        $finalFee       = $originalFee;
+        $isComplimentary = false;
+        $courseId       = $schedule->course_id;
+
+        if (!empty($validated['coupon_code'])) {
+            $svc    = app(CouponService::class);
+            $result = $svc->validate(
+                $validated['coupon_code'],
+                $validated['email'],
+                $courseId,
+                'ilt',
+                (float) $originalFee
+            );
+
+            if (!$result['valid']) {
+                return back()->withInput()->withErrors(['coupon_code' => $result['message']]);
+            }
+
+            $coupon          = $result['coupon'];
+            $couponDiscount  = $result['discount_amount'];
+            $finalFee        = $result['final_amount'];
+            $isComplimentary = $coupon->type === 'complimentary';
+        }
+
+        // ── Duplicate check ───────────────────────────────────────────────────
         $existing = Enrollment::where('email', $validated['email'])
             ->where('training_schedule_id', $schedule->id)
             ->first();
 
         if ($existing) {
             return back()->withInput()
-                ->with('error', 'An enrollment for this email and schedule already exists (ID: ' . $existing->id . ').');
+                ->with('error', 'An enrollment for this email already exists for this schedule.');
         }
 
-        // Create / link participant account
+        // ── Resolve or create participant account ─────────────────────────────
         [$user, $plainPassword, $accountCreated] = $this->resolveOrCreateParticipant(
             $validated['full_name'], $validated['email'],
             $validated['phone'] ?? $validated['mobile_number'] ?? null,
@@ -89,7 +114,7 @@ class PublicEnrollmentController extends Controller
             $validated['designation'] ?? null,
         );
 
-        // Create enrollment
+        // ── Create enrollment ─────────────────────────────────────────────────
         $enrollment = Enrollment::create([
             'training_schedule_id'    => $schedule->id,
             'full_name'               => $validated['full_name'],
@@ -111,89 +136,91 @@ class PublicEnrollmentController extends Controller
             'referral_source'         => $validated['referral_source'] ?? null,
             'pre_questions'           => $validated['pre_questions'] ?? null,
             'selected_mode'           => $validated['selected_mode'],
-            'applied_fee'             => $fee * $participants,
-            'payment_method'          => $validated['payment_method'],
-            'payment_status'          => 'Pending',
-            'amount_received'         => 0,
+            'original_fee'            => $originalFee,
+            'applied_fee'             => $finalFee,
+            'coupon_code'             => $coupon ? strtoupper($validated['coupon_code']) : null,
+            'coupon_discount'         => $couponDiscount,
+            'payment_method'          => $isComplimentary ? 'free' : $validated['payment_method'],
+            'payment_status'          => $isComplimentary ? 'Free' : 'Pending',
+            'amount_received'         => $isComplimentary ? $originalFee : 0,
             'attendance_status'       => 'Pending',
             'completion_status'       => 'Pending',
-            'registration_status'     => 'Pending',
-            'remarks'                 => 'Enrolled via public website',
+            'registration_status'     => $isComplimentary ? 'Confirmed' : 'Pending',
+            'remarks'                 => 'Enrolled via public website' . ($coupon ? ' | Coupon: ' . $coupon->code : ''),
         ]);
 
-        // ── Auto-invoice ─────────────────────────────────────────────
-        $invoice = null;
-        try {
-            $invoice = AutoInvoiceService::forIltEnrollment($enrollment, $schedule);
-        } catch (\Throwable $e) {
-            Log::error('AutoInvoice failed (ILT public)', [
-                'enrollment_id' => $enrollment->id,
-                'error'         => $e->getMessage(),
-            ]);
+        // ── Record coupon usage ───────────────────────────────────────────────
+        if ($coupon) {
+            app(CouponService::class)->recordUsage(
+                $coupon, $validated['email'], 'ilt', $enrollment->id,
+                $originalFee, $finalFee,
+                $schedule->course?->name ?? 'Training Program'
+            );
         }
 
-        // ── Participant confirmation email (with invoice PDF if available) ─
-        try {
-            $scheduleInfo = collect([
-                $schedule->batch_code,
-                $schedule->start_date?->format('d M Y'),
-                $schedule->venue,
-            ])->filter()->implode(' · ');
+        // ── Invoice & email handling ──────────────────────────────────────────
+        if ($isComplimentary) {
+            // No invoice, no invoice email — just confirmation + admin notification
+            try {
+                TrainingNotificationService::adminNewRegistration($enrollment, 'Enrollment');
+            } catch (\Throwable $e) {
+                Log::error('Admin notification failed (ILT complimentary)', ['enrollment_id' => $enrollment->id, 'error' => $e->getMessage()]);
+            }
+        } else {
+            $invoice = null;
+            try {
+                $invoice = AutoInvoiceService::forIltEnrollment($enrollment, $schedule);
+            } catch (\Throwable $e) {
+                Log::error('AutoInvoice failed (ILT public)', ['enrollment_id' => $enrollment->id, 'error' => $e->getMessage()]);
+            }
 
-            if ($invoice) {
-                Mail::to($validated['email'])
-                    ->send(new RegistrationConfirmed(
+            try {
+                $scheduleInfo = collect([
+                    $schedule->batch_code,
+                    $schedule->start_date?->format('d M Y'),
+                    $schedule->venue,
+                ])->filter()->implode(' · ');
+
+                if ($invoice) {
+                    Mail::to($validated['email'])->send(new RegistrationConfirmed(
                         invoice:      $invoice,
                         courseName:   $schedule->course?->name ?? 'Training Program',
                         scheduleInfo: $scheduleInfo ?: null,
                         tempPassword: $plainPassword,
                         type:         'ILT',
                     ));
+                }
+            } catch (\Throwable $e) {
+                Log::error('RegistrationConfirmed email failed (ILT public)', ['enrollment_id' => $enrollment->id, 'error' => $e->getMessage()]);
             }
-        } catch (\Throwable $e) {
-            Log::error('RegistrationConfirmed email failed (ILT public)', [
-                'enrollment_id' => $enrollment->id,
-                'error'         => $e->getMessage(),
-            ]);
-        }
 
-        // ── Admin notification ───────────────────────────────────────
-        try {
-            TrainingNotificationService::adminNewRegistration($enrollment, 'Enrollment');
-        } catch (\Throwable $e) {
-            Log::error('Admin new-registration notification failed (ILT public)', [
-                'enrollment_id' => $enrollment->id,
-                'error'         => $e->getMessage(),
-            ]);
-        }
+            try {
+                TrainingNotificationService::adminNewRegistration($enrollment, 'Enrollment');
+            } catch (\Throwable $e) {
+                Log::error('Admin notification failed (ILT public)', ['enrollment_id' => $enrollment->id, 'error' => $e->getMessage()]);
+            }
 
-        // If SSLCommerz selected — initiate payment
-        if ($validated['payment_method'] === 'sslcommerz') {
-            return redirect()->route('public.enroll.payment', $enrollment->id);
+            if ($validated['payment_method'] === 'sslcommerz') {
+                return redirect()->route('public.enroll.payment', $enrollment->id);
+            }
         }
 
         return redirect()->route('public.enroll.success', $enrollment->id);
     }
 
-    // ── Success page ──────────────────────────────────────────
     public function success(int $enrollmentId)
     {
         $enrollment = Enrollment::with('trainingSchedule.course')->findOrFail($enrollmentId);
         return view('public.enroll-success', compact('enrollment'));
     }
 
-    // ── Payment initiation (SSLCommerz scaffold) ──────────────
     public function payment(int $enrollmentId)
     {
         $enrollment = Enrollment::with('trainingSchedule.course')->findOrFail($enrollmentId);
-
-        // SSLCommerz integration lives here in Phase 2
-        // For now, redirect to manual payment page
         return redirect()->route('public.enroll.success', $enrollmentId)
             ->with('info', 'Online payment will be available soon. Your enrollment is recorded.');
     }
 
-    // ── Helpers ───────────────────────────────────────────────
     private function resolveOrCreateParticipant(
         string $name, string $email,
         ?string $phone, ?string $company, ?string $designation
