@@ -124,15 +124,39 @@
         </div>
         <div class="fg">
             <label>Applicable Courses</label>
-            <small style="margin-bottom:8px;display:block;">Leave all unchecked to apply to ALL public courses.</small>
+            <small style="margin-bottom:10px;display:block;">Leave all unchecked to apply to ALL public courses.</small>
             @php $selectedCourseIds = old('course_ids', $coupon->course_ids ?? []); @endphp
-            <div style="max-height:220px;overflow-y:auto;border:1.5px solid #e5e7eb;border-radius:9px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+
+            {{-- Search + controls --}}
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
+                <input type="text" id="courseSearch" placeholder="🔍 Search courses…"
+                       oninput="filterCourses()"
+                       style="flex:1;min-width:200px;padding:8px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:inherit;outline:none;">
+                <button type="button" onclick="selectAllCourses(true)"
+                        style="padding:7px 14px;font-size:12px;font-weight:700;border:1.5px solid #d1d5db;border-radius:7px;background:#f9fafb;cursor:pointer;font-family:inherit;white-space:nowrap;">
+                    ✓ Select All
+                </button>
+                <button type="button" onclick="selectAllCourses(false)"
+                        style="padding:7px 14px;font-size:12px;font-weight:700;border:1.5px solid #d1d5db;border-radius:7px;background:#f9fafb;cursor:pointer;font-family:inherit;white-space:nowrap;">
+                    ✕ Clear All
+                </button>
+            </div>
+            <div id="courseSelCount" style="font-size:12px;color:#6b7280;margin-bottom:6px;"></div>
+
+            {{-- Scrollable checklist --}}
+            <div id="courseList" style="max-height:260px;overflow-y:auto;border:1.5px solid #e5e7eb;border-radius:9px;padding:6px;">
                 @foreach($courses as $c)
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:4px;font-weight:400;">
+                <label class="course-item"
+                       data-name="{{ strtolower($c->name) }}"
+                       style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;cursor:pointer;transition:background .1s;font-weight:400;">
                     <input type="checkbox" name="course_ids[]" value="{{ $c->id }}"
-                           {{ in_array($c->id, $selectedCourseIds ?? []) ? 'checked' : '' }}>
-                    <span>{{ $c->name }}</span>
-                    <span style="font-size:10px;color:#9ca3af;background:#f3f4f6;padding:1px 6px;border-radius:4px;white-space:nowrap;">{{ $c->course_type }}</span>
+                           onchange="updateSelCount()"
+                           {{ in_array($c->id, $selectedCourseIds ?? []) ? 'checked' : '' }}
+                           style="width:15px;height:15px;accent-color:#1e3a8a;flex-shrink:0;">
+                    <span style="flex:1;font-size:13.5px;color:#111827;">{{ $c->name }}</span>
+                    <span style="font-size:10.5px;color:#6b7280;background:#f3f4f6;padding:2px 8px;border-radius:4px;white-space:nowrap;">
+                        {{ $c->course_type === 'elearning' ? 'eLearning' : 'ILT' }}
+                    </span>
                 </label>
                 @endforeach
             </div>
@@ -230,6 +254,38 @@ function updateTypeUI() {
 }
 document.querySelectorAll('input[name="type"]').forEach(function(r) {
     r.addEventListener('change', updateTypeUI);
+});
+
+// Course search & select
+function filterCourses() {
+    var q = document.getElementById('courseSearch').value.toLowerCase().trim();
+    document.querySelectorAll('.course-item').forEach(function(el) {
+        el.style.display = (!q || el.dataset.name.includes(q)) ? '' : 'none';
+    });
+}
+function selectAllCourses(state) {
+    document.querySelectorAll('.course-item').forEach(function(el) {
+        if (el.style.display !== 'none') {
+            var cb = el.querySelector('input[type="checkbox"]');
+            if (cb) cb.checked = state;
+        }
+    });
+    updateSelCount();
+}
+function updateSelCount() {
+    var total   = document.querySelectorAll('.course-item input[type="checkbox"]').length;
+    var checked = document.querySelectorAll('.course-item input[type="checkbox"]:checked').length;
+    var el = document.getElementById('courseSelCount');
+    if (el) el.textContent = checked > 0
+        ? checked + ' of ' + total + ' course(s) selected — coupon will only apply to these.'
+        : 'No courses selected — coupon will apply to all public courses.';
+}
+document.addEventListener('DOMContentLoaded', function() {
+    updateSelCount();
+    document.querySelectorAll('.course-item').forEach(function(el) {
+        el.addEventListener('mouseenter', function() { el.style.background = '#f8faff'; });
+        el.addEventListener('mouseleave', function() { el.style.background = ''; });
+    });
 });
 </script>
 @endsection
