@@ -121,8 +121,19 @@ class PublicController extends Controller
                    ->orWhere('category', 'like', "%$q%")
             );
         }
-        if ($request->filled('category'))   $query->where('category', $request->category);
-        if ($request->filled('type'))       $query->where('delivery_type', $request->type);
+        // Structured category filter (slug → category_id)
+        $activeCategory = null;
+        if ($request->filled('cat')) {
+            $catRecord = CourseCategory::where('slug', $request->cat)->where('is_public', true)->first();
+            if ($catRecord) {
+                $query->where('category_id', $catRecord->id);
+                $activeCategory = $catRecord;
+            }
+        } elseif ($request->filled('category')) {
+            // Legacy text filter fallback
+            $query->where('category', $request->category);
+        }
+        if ($request->filled('type'))         $query->where('delivery_type', $request->type);
         if ($request->filled('has_schedule')) $query->having('open_schedules_count', '>', 0);
         if ($request->filled('max_fee')) {
             $query->where(fn($sq) =>
@@ -133,12 +144,14 @@ class PublicController extends Controller
 
         $courses = $query->latest()->paginate(12)->withQueryString();
 
-        $categories = Course::where('is_public', true)
-            ->select('category')->whereNotNull('category')->distinct()->pluck('category');
+        $navCategories = CourseCategory::where('is_public', true)
+            ->withCount(['publicCourses'])
+            ->orderBy('display_order')
+            ->get();
 
         $deliveryTypes = ['eLearning', 'Instructor-Led', 'Hybrid'];
 
-        return view('public.courses', compact('courses', 'categories', 'deliveryTypes'));
+        return view('public.courses', compact('courses', 'navCategories', 'deliveryTypes', 'activeCategory'));
     }
 
     // ── Course Details ────────────────────────────────────────

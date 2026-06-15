@@ -258,10 +258,9 @@
                 @if($categories->count())
                 <div class="hero-cat-chips">
                     @foreach($categories->take(6) as $cat)
-                    @php $catName = is_object($cat) ? ($cat->name ?? $cat->title ?? $cat->category ?? $cat->category_text ?? null) : (is_string($cat) ? $cat : null); @endphp
-                    @if($catName)
-                    <a href="{{ route('public.courses') }}?category={{ urlencode($catName) }}" class="hero-cat-chip">{{ $catName }}</a>
-                    @endif
+                    <a href="{{ route('public.courses') }}?cat={{ $cat->slug }}" class="hero-cat-chip">
+                        @if($cat->icon)<span>{{ $cat->icon }}</span> @endif{{ $cat->name }}
+                    </a>
                     @endforeach
                 </div>
                 @endif
@@ -304,10 +303,9 @@
             <a href="{{ route('public.courses') }}?type=Instructor-Led" class="cat-pill">👨‍🏫 Instructor-Led</a>
             <a href="{{ route('public.courses') }}?type=Hybrid" class="cat-pill">🔀 Hybrid</a>
             @foreach($categories as $cat)
-            @php $catName = is_object($cat) ? ($cat->name ?? $cat->title ?? $cat->category ?? $cat->category_text ?? null) : (is_string($cat) ? $cat : null); @endphp
-            @if($catName)
-            <a href="{{ route('public.courses') }}?category={{ urlencode($catName) }}" class="cat-pill">{{ $catName }}</a>
-            @endif
+            <a href="{{ route('public.courses') }}?cat={{ $cat->slug }}" class="cat-pill">
+                @if($cat->icon){{ $cat->icon }} @endif{{ $cat->name }}
+            </a>
             @endforeach
         </div>
     </div>

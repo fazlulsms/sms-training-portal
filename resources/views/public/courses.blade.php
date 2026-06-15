@@ -67,8 +67,13 @@
 {{-- Hero --}}
 <div class="catalog-hero">
     <div class="pub-container">
+        @if($activeCategory)
+        <h1>{{ $activeCategory->icon ? $activeCategory->icon . ' ' : '' }}{{ $activeCategory->name }}</h1>
+        <p>{{ $activeCategory->description ?? 'Professional certification programs for individuals and organisations.' }}</p>
+        @else
         <h1>Training Courses</h1>
         <p>Professional certification programs for individuals and organisations — worldwide delivery</p>
+        @endif
         <form method="GET" action="{{ route('public.courses') }}">
             <div class="catalog-search-bar">
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="Search courses, topics, keywords…">
@@ -86,8 +91,34 @@
 
     {{-- Sidebar Filters --}}
     <aside class="filter-sidebar">
+        {{-- Category nav (links, not form) --}}
+        @if($navCategories->count())
+        <div class="filter-card">
+            <div class="filter-title">Browse by Category</div>
+            <div class="filter-group" style="margin-top:4px;">
+                <a href="{{ route('public.courses') }}{{ request()->only(['q','type','has_schedule']) ? '?' . http_build_query(request()->only(['q','type','has_schedule'])) : '' }}"
+                   style="display:flex; align-items:center; justify-content:space-between; padding:7px 0; text-decoration:none; font-size:14px; font-weight:{{ !request('cat') ? '700' : '400' }}; color:{{ !request('cat') ? '#1e3a8a' : '#374151' }}; border-bottom:1px solid #f3f4f6;">
+                    <span>🎯 All Categories</span>
+                    <span style="font-size:12px; color:#9ca3af;">{{ $navCategories->sum('public_courses_count') }}</span>
+                </a>
+                @foreach($navCategories as $navCat)
+                @php
+                    $catParams = array_merge(request()->only(['q','type','has_schedule']), ['cat' => $navCat->slug]);
+                    $isActive  = request('cat') === $navCat->slug;
+                @endphp
+                <a href="{{ route('public.courses') }}?{{ http_build_query($catParams) }}"
+                   style="display:flex; align-items:center; justify-content:space-between; padding:7px 0; text-decoration:none; font-size:13.5px; font-weight:{{ $isActive ? '700' : '400' }}; color:{{ $isActive ? '#1e3a8a' : '#374151' }}; border-bottom:1px solid #f3f4f6;">
+                    <span>@if($navCat->icon){{ $navCat->icon }} @endif{{ $navCat->name }}</span>
+                    <span style="font-size:12px; color:{{ $isActive ? '#1e3a8a' : '#9ca3af' }}; font-weight:600;">{{ $navCat->public_courses_count }}</span>
+                </a>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
         <form method="GET" action="{{ route('public.courses') }}" id="filterForm">
             @if(request('q'))<input type="hidden" name="q" value="{{ request('q') }}">@endif
+            @if(request('cat'))<input type="hidden" name="cat" value="{{ request('cat') }}">@endif
 
             <div class="filter-card">
                 <div class="filter-title">Delivery Type</div>
@@ -103,22 +134,6 @@
                 </div>
             </div>
 
-            @if($categories->count())
-            <div class="filter-card">
-                <div class="filter-title">Category</div>
-                <div class="filter-group">
-                    @foreach($categories as $cat)
-                    <label>
-                        <input type="checkbox" name="category" value="{{ $cat }}"
-                               {{ request('category') == $cat ? 'checked' : '' }}
-                               onchange="document.getElementById('filterForm').submit()">
-                        {{ $cat }}
-                    </label>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
             <div class="filter-card">
                 <div class="filter-title">Schedule Availability</div>
                 <div class="filter-group">
@@ -131,7 +146,7 @@
                 </div>
             </div>
 
-            @if(request()->hasAny(['category','type','has_schedule','q']))
+            @if(request()->hasAny(['cat','type','has_schedule','q']))
             <a href="{{ route('public.courses') }}" class="filter-clear-link">✕ Clear all filters</a>
             @endif
         </form>
@@ -150,8 +165,10 @@
                 @if(request('type'))
                 <a href="{{ request()->fullUrlWithoutQuery(['type']) }}" class="filter-chip">{{ request('type') }} ✕</a>
                 @endif
-                @if(request('category'))
-                <a href="{{ request()->fullUrlWithoutQuery(['category']) }}" class="filter-chip">{{ request('category') }} ✕</a>
+                @if(request('cat') && $activeCategory)
+                <a href="{{ request()->fullUrlWithoutQuery(['cat']) }}" class="filter-chip">
+                    @if($activeCategory->icon){{ $activeCategory->icon }} @endif{{ $activeCategory->name }} ✕
+                </a>
                 @endif
                 @if(request('has_schedule'))
                 <a href="{{ request()->fullUrlWithoutQuery(['has_schedule']) }}" class="filter-chip">Has schedule ✕</a>
