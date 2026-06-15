@@ -3,6 +3,11 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Setup\LtfCourseTypeController;
+use App\Http\Controllers\Setup\LtfLearningFrameworkController;
+use App\Http\Controllers\Setup\LtfStandardController;
+use App\Http\Controllers\Setup\LtfIndustryController;
+use App\Http\Controllers\Setup\LtfAudienceTypeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackTemplateController;
 use App\Http\Controllers\FeedbackResponseController;
@@ -478,6 +483,51 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::put(  '/training-media/item/{media}',                 [TrainingMediaController::class, 'update'])         ->name('training-media.update');
     Route::post( '/training-media/item/{media}/featured',        [TrainingMediaController::class, 'setFeatured'])    ->name('training-media.featured');
     Route::delete('/training-media/item/{media}',                [TrainingMediaController::class, 'destroy'])        ->name('training-media.destroy');
+
+    // ── LTF Setup (taxonomy management) ─────────────────────────────
+    Route::prefix('setup')->name('setup.')->group(function () {
+
+        Route::get('course-types',                    [LtfCourseTypeController::class, 'index'])  ->name('course-types.index');
+        Route::get('course-types/create',             [LtfCourseTypeController::class, 'create']) ->name('course-types.create');
+        Route::post('course-types',                   [LtfCourseTypeController::class, 'store'])  ->name('course-types.store');
+        Route::get('course-types/{ltfCourseType}/edit',    [LtfCourseTypeController::class, 'edit'])   ->name('course-types.edit');
+        Route::put('course-types/{ltfCourseType}',         [LtfCourseTypeController::class, 'update']) ->name('course-types.update');
+        Route::patch('course-types/{ltfCourseType}/toggle',[LtfCourseTypeController::class, 'toggle']) ->name('course-types.toggle');
+        Route::delete('course-types/{ltfCourseType}',      [LtfCourseTypeController::class, 'destroy'])->name('course-types.destroy');
+
+        Route::get('frameworks',                          [LtfLearningFrameworkController::class, 'index'])  ->name('frameworks.index');
+        Route::get('frameworks/create',                   [LtfLearningFrameworkController::class, 'create']) ->name('frameworks.create');
+        Route::post('frameworks',                         [LtfLearningFrameworkController::class, 'store'])  ->name('frameworks.store');
+        Route::get('frameworks/{framework}/edit',         [LtfLearningFrameworkController::class, 'edit'])   ->name('frameworks.edit');
+        Route::put('frameworks/{framework}',              [LtfLearningFrameworkController::class, 'update']) ->name('frameworks.update');
+        Route::patch('frameworks/{framework}/toggle',     [LtfLearningFrameworkController::class, 'toggle']) ->name('frameworks.toggle');
+        Route::delete('frameworks/{framework}',           [LtfLearningFrameworkController::class, 'destroy'])->name('frameworks.destroy');
+
+        Route::get('standards',                           [LtfStandardController::class, 'index'])  ->name('standards.index');
+        Route::get('standards/create',                    [LtfStandardController::class, 'create']) ->name('standards.create');
+        Route::post('standards',                          [LtfStandardController::class, 'store'])  ->name('standards.store');
+        Route::get('standards/{standard}/edit',           [LtfStandardController::class, 'edit'])   ->name('standards.edit');
+        Route::put('standards/{standard}',                [LtfStandardController::class, 'update']) ->name('standards.update');
+        Route::patch('standards/{standard}/toggle',       [LtfStandardController::class, 'toggle']) ->name('standards.toggle');
+        Route::delete('standards/{standard}',             [LtfStandardController::class, 'destroy'])->name('standards.destroy');
+
+        Route::get('industries',                          [LtfIndustryController::class, 'index'])  ->name('industries.index');
+        Route::get('industries/create',                   [LtfIndustryController::class, 'create']) ->name('industries.create');
+        Route::post('industries',                         [LtfIndustryController::class, 'store'])  ->name('industries.store');
+        Route::get('industries/{industry}/edit',          [LtfIndustryController::class, 'edit'])   ->name('industries.edit');
+        Route::put('industries/{industry}',               [LtfIndustryController::class, 'update']) ->name('industries.update');
+        Route::patch('industries/{industry}/toggle',      [LtfIndustryController::class, 'toggle']) ->name('industries.toggle');
+        Route::delete('industries/{industry}',            [LtfIndustryController::class, 'destroy'])->name('industries.destroy');
+
+        Route::get('audiences',                           [LtfAudienceTypeController::class, 'index'])  ->name('audiences.index');
+        Route::get('audiences/create',                    [LtfAudienceTypeController::class, 'create']) ->name('audiences.create');
+        Route::post('audiences',                          [LtfAudienceTypeController::class, 'store'])  ->name('audiences.store');
+        Route::get('audiences/{audienceType}/edit',       [LtfAudienceTypeController::class, 'edit'])   ->name('audiences.edit');
+        Route::put('audiences/{audienceType}',            [LtfAudienceTypeController::class, 'update']) ->name('audiences.update');
+        Route::patch('audiences/{audienceType}/toggle',   [LtfAudienceTypeController::class, 'toggle']) ->name('audiences.toggle');
+        Route::delete('audiences/{audienceType}',         [LtfAudienceTypeController::class, 'destroy'])->name('audiences.destroy');
+
+    });
 
 }); // end admin middleware group
 
