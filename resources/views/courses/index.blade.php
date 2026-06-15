@@ -31,9 +31,9 @@
                 <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
             </select>
             <select class="fi" name="ltf_type" style="min-width:170px;">
-                <option value="">All LTF Types</option>
-                @foreach($ltfCourseTypes as $lt)
-                <option value="{{ $lt->id }}" {{ request('ltf_type') == $lt->id ? 'selected' : '' }}>{{ $lt->name }}</option>
+                <option value="">All Program Purposes</option>
+                @foreach($ltfProgramPurposes as $pp)
+                <option value="{{ $pp->id }}" {{ request('ltf_type') == $pp->id ? 'selected' : '' }}>{{ $pp->name }}</option>
                 @endforeach
             </select>
             <select class="fi" name="ltf_classified" style="min-width:150px;">
@@ -53,18 +53,19 @@
 {{-- LTF classification summary bar --}}
 @php
     $total      = $courses->total();
-    $classified = \App\Models\Course::whereNotNull('ltf_course_type_id')->count();
-    $pct        = $total > 0 ? round(($classified / max(\App\Models\Course::count(), 1)) * 100) : 0;
+    $classified = \App\Models\Course::whereNotNull('ltf_program_purpose_id')->count();
+    $allCount   = \App\Models\Course::count();
+    $pct        = $allCount > 0 ? round(($classified / $allCount) * 100) : 0;
 @endphp
 <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px 18px; margin-bottom:16px; display:flex; align-items:center; gap:20px; font-size:13px; flex-wrap:wrap;">
     <span style="font-weight:700; color:#374151;">LTF Classification</span>
     <div style="flex:1; min-width:160px; background:#e5e7eb; border-radius:20px; height:6px;">
         <div style="background:#1e3a8a; width:{{ $pct }}%; height:100%; border-radius:20px; transition:.3s;"></div>
     </div>
-    <span style="color:#6b7280;"><strong style="color:#111827;">{{ $classified }}</strong> of <strong style="color:#111827;">{{ \App\Models\Course::count() }}</strong> courses classified ({{ $pct }}%)</span>
-    @if($classified < \App\Models\Course::count())
+    <span style="color:#6b7280;"><strong style="color:#111827;">{{ $classified }}</strong> of <strong style="color:#111827;">{{ $allCount }}</strong> courses classified ({{ $pct }}%)</span>
+    @if($classified < $allCount)
     <a href="/admin/courses?ltf_classified=0" style="color:#dc2626; font-weight:600; text-decoration:none; font-size:12px;">
-        {{ \App\Models\Course::count() - $classified }} unclassified →
+        {{ $allCount - $classified }} unclassified →
     </a>
     @endif
 </div>
@@ -116,18 +117,19 @@
                         @endif
                     </td>
                     <td>
-                        @if($course->ltfCourseType)
-                            @php
-                                $groupColors = [
-                                    'elearning'  => ['#dbeafe','#1e40af'],
-                                    'ilt'        => ['#fef3c7','#92400e'],
-                                    'assessment' => ['#f3e8ff','#6b21a8'],
-                                ];
-                                $gc = $groupColors[$course->ltfCourseType->group] ?? ['#f3f4f6','#6b7280'];
-                            @endphp
-                            <span style="font-size:11px; background:{{ $gc[0] }}; color:{{ $gc[1] }}; padding:2px 8px; border-radius:10px; font-weight:700; white-space:nowrap;">
-                                {{ $course->ltfCourseType->name }}
-                            </span>
+                        @if($course->ltfProgramPurpose)
+                            <div>
+                                <span style="font-size:11px; background:#eff6ff; color:#1e40af; padding:2px 8px; border-radius:10px; font-weight:700; white-space:nowrap;">
+                                    {{ $course->ltfProgramPurpose->name }}
+                                </span>
+                            </div>
+                            @if($course->ltf_competency_level)
+                            <div style="margin-top:3px;">
+                                <span style="font-size:11px; background:#f0fdf4; color:#166534; padding:2px 8px; border-radius:10px; font-weight:600;">
+                                    {{ ucfirst($course->ltf_competency_level) }}
+                                </span>
+                            </div>
+                            @endif
                         @else
                             <span style="font-size:11px; background:#fff7ed; color:#c2410c; padding:2px 8px; border-radius:10px; font-weight:600;">
                                 ⚠ Unclassified

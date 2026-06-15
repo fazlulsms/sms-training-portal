@@ -175,6 +175,28 @@ class LtfBlockStrategy
             ],
             'rationale' => 'Reflection is central to trainer development; scenario blocks simulate facilitation situations.',
         ],
+
+        // ── Qualification Program (multi-module) ──────────────────────────────
+        // Extended credential program: combines theoretical mastery with
+        // applied portfolio evidence. Assessment-heavy with rich reference
+        // materials. Gallery and PDF blocks support evidence portfolios.
+        // Download provides templates, rubrics, and submission guides.
+        'qualification' => [
+            'sequence' => [
+                'slides',
+                'rich_text',
+                'accordion',
+                'case_study',
+                'scenario',
+                'matching',
+                'reflection',
+                'pdf',
+                'gallery',
+                'knowledge_check',
+                'download',
+            ],
+            'rationale' => 'Assessment-heavy sequence for credential programs; portfolio blocks (pdf, gallery) support evidence submission.',
+        ],
     ];
 
     // ── Fallback when no framework is selected ────────────────────────────────
@@ -227,15 +249,16 @@ class LtfBlockStrategy
     public static function allHints(): array
     {
         return [
-            'awareness'              => 'Awareness Training',
-            'standard_interpretation'=> 'Standard Interpretation',
-            'internal_auditor'       => 'Internal Auditor Training',
-            'lead_auditor'           => 'Lead Auditor Training',
-            'implementation'         => 'Management Systems Implementation',
-            'social_compliance_audit'=> 'Social Compliance Auditing',
-            'technical_skills'       => 'Technical Skills Training',
-            'executive'              => 'Executive / Management Training',
-            'train_the_trainer'      => 'Train the Trainer',
+            'awareness'              => 'Awareness Training Framework',
+            'standard_interpretation'=> 'Standard Interpretation Framework',
+            'internal_auditor'       => 'Internal Auditor Training Framework',
+            'lead_auditor'           => 'Lead Auditor Training Framework',
+            'implementation'         => 'Implementation Training Framework',
+            'social_compliance_audit'=> 'Social Compliance Audit Framework',
+            'technical_skills'       => 'Technical Skills Training Framework',
+            'executive'              => 'Executive Development Framework',
+            'train_the_trainer'      => 'Train the Trainer Framework',
+            'qualification'          => 'Qualification Program Framework',
         ];
     }
 
@@ -283,6 +306,46 @@ class LtfBlockStrategy
                "For each lesson, prefer the following block types in this order: {$readableList}. " .
                "Not all blocks are required for every lesson — choose the most appropriate subset " .
                "based on lesson content and depth.";
+    }
+
+    /**
+     * Builds a plain-English prompt fragment describing how competency level
+     * should shape lesson depth, complexity, and assessment difficulty.
+     * Returns an empty string when level is null or unset.
+     *
+     * @param  string|null $level  One of: beginner, intermediate, advanced, expert
+     * @return string
+     */
+    public static function competencyFragment(?string $level): string
+    {
+        return match ($level) {
+            'beginner' =>
+                'The target learner is a BEGINNER. Use plain language and concrete examples. ' .
+                'Avoid jargon without explanation. Keep knowledge checks straightforward — ' .
+                'single-concept questions with clear correct answers. Case studies should ' .
+                'involve simple, familiar workplace scenarios.',
+
+            'intermediate' =>
+                'The target learner has INTERMEDIATE knowledge. Build on foundational concepts ' .
+                'without restating basics. Introduce nuance, exceptions, and real-world trade-offs. ' .
+                'Knowledge checks may include application-level questions (not just recall). ' .
+                'Case studies should present moderate-complexity situations requiring analysis.',
+
+            'advanced' =>
+                'The target learner is ADVANCED. Assume solid prior knowledge — skip introductory ' .
+                'explanations. Focus on edge cases, complex scenarios, and critical evaluation. ' .
+                'Knowledge checks should require synthesis and judgment, not recall. Case studies ' .
+                'should present ambiguous or multi-stakeholder situations.',
+
+            'expert' =>
+                'The target learner is an EXPERT or practitioner. Frame content as peer-level ' .
+                'reference material. Prioritise depth, precision, and technical accuracy over ' .
+                'scaffolding. Knowledge checks should challenge assumptions and test nuanced ' .
+                'interpretation. Case studies should be complex, cross-functional, and ' .
+                'require expert-level decision-making.',
+
+            default => '',
+        };
     }
 
     /**

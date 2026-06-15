@@ -649,7 +649,7 @@
                 </a>
 
                 <div style="margin:10px 12px 4px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#64748b;">LTF Setup</div>
-                <a href="{{ route('setup.course-types.index') }}"
+                <a href="{{ route('setup.delivery-methods.index') }}"
                    class="sb-sub {{ request()->is('admin/setup*') ? 'active' : '' }}">
                     <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span>
                     Taxonomy Setup

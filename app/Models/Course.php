@@ -9,7 +9,9 @@ class Course extends Model
 {
     protected $fillable = [
         'name', 'code', 'slug', 'category', 'category_id', 'status',
-        'ltf_course_type_id', 'ltf_learning_framework_id',
+        'ltf_learning_framework_id',
+        'ltf_delivery_method_id', 'ltf_training_model_id',
+        'ltf_program_purpose_id', 'ltf_competency_level',
         'delivery_type', 'language', 'duration', 'cpd_hours',
         'course_type', 'description', 'short_description', 'full_description',
         'learning_objectives', 'course_outline', 'who_should_attend', 'prerequisites',
@@ -50,9 +52,19 @@ class Course extends Model
 
     // ── LTF Taxonomy Relationships ─────────────────────────────
 
-    public function ltfCourseType()
+    public function ltfDeliveryMethod()
     {
-        return $this->belongsTo(LtfCourseType::class, 'ltf_course_type_id');
+        return $this->belongsTo(LtfDeliveryMethod::class, 'ltf_delivery_method_id');
+    }
+
+    public function ltfTrainingModel()
+    {
+        return $this->belongsTo(LtfTrainingModel::class, 'ltf_training_model_id');
+    }
+
+    public function ltfProgramPurpose()
+    {
+        return $this->belongsTo(LtfProgramPurpose::class, 'ltf_program_purpose_id');
     }
 
     public function ltfLearningFramework()

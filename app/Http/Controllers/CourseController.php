@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Course;
 use App\Models\CourseCategory;
-use App\Models\LtfCourseType;
+use App\Models\LtfDeliveryMethod;
+use App\Models\LtfTrainingModel;
+use App\Models\LtfProgramPurpose;
 use App\Models\LtfLearningFramework;
 use App\Models\LtfStandard;
 use App\Models\LtfIndustry;
@@ -21,23 +23,23 @@ class CourseController extends Controller
         $ltfTypeId     = $request->input('ltf_type');
         $ltfClassified = $request->input('ltf_classified');
 
-        $courses = Course::with(['ltfCourseType', 'ltfLearningFramework', 'courseCategory'])
+        $courses = Course::with(['ltfProgramPurpose', 'ltfDeliveryMethod', 'ltfLearningFramework', 'courseCategory'])
             ->when($q, fn($query) => $query->where(fn($sub) =>
                 $sub->where('name', 'like', "%$q%")
                     ->orWhere('code', 'like', "%$q%")
             ))
             ->when($courseType, fn($query) => $query->where('course_type', $courseType))
             ->when($status !== null && $status !== '', fn($query) => $query->where('status', $status === 'active' ? 1 : 0))
-            ->when($ltfTypeId, fn($query) => $query->where('ltf_course_type_id', $ltfTypeId))
-            ->when($ltfClassified === '0', fn($query) => $query->whereNull('ltf_course_type_id'))
-            ->when($ltfClassified === '1', fn($query) => $query->whereNotNull('ltf_course_type_id'))
+            ->when($ltfTypeId, fn($query) => $query->where('ltf_program_purpose_id', $ltfTypeId))
+            ->when($ltfClassified === '0', fn($query) => $query->whereNull('ltf_program_purpose_id'))
+            ->when($ltfClassified === '1', fn($query) => $query->whereNotNull('ltf_program_purpose_id'))
             ->orderBy('id', 'desc')
             ->paginate(20)
             ->withQueryString();
 
-        $ltfCourseTypes = LtfCourseType::active()->orderBy('display_order')->get(['id', 'name', 'group']);
+        $ltfProgramPurposes = LtfProgramPurpose::active()->orderBy('display_order')->get(['id', 'name']);
 
-        return view('courses.index', compact('courses', 'ltfCourseTypes'));
+        return view('courses.index', compact('courses', 'ltfProgramPurposes'));
     }
 
     public function exportCsv(Request $request)
@@ -84,14 +86,19 @@ class CourseController extends Controller
         } catch (\Exception $e) {
             $categories = collect();
         }
-        $ltfCourseTypes = LtfCourseType::groupedForSelect();
-        $ltfFrameworks  = LtfLearningFramework::forSelect();
-        $ltfStandards   = LtfStandard::groupedForSelect();
-        $ltfIndustries  = LtfIndustry::forSelect();
-        $ltfAudiences   = LtfAudienceType::forSelect();
+        $ltfDeliveryMethods  = LtfDeliveryMethod::forSelect();
+        $ltfTrainingModels   = LtfTrainingModel::forSelect();
+        $ltfProgramPurposes  = LtfProgramPurpose::forSelect();
+        $ltfFrameworks       = LtfLearningFramework::forSelect();
+        $ltfStandards        = LtfStandard::groupedForSelect();
+        $ltfIndustries       = LtfIndustry::forSelect();
+        $ltfAudiences        = LtfAudienceType::forSelect();
+        $purposeSuggestions  = LtfProgramPurpose::suggestionMap();
         return view('courses.create', compact(
-            'categories', 'ltfCourseTypes', 'ltfFrameworks',
-            'ltfStandards', 'ltfIndustries', 'ltfAudiences'
+            'categories',
+            'ltfDeliveryMethods', 'ltfTrainingModels', 'ltfProgramPurposes',
+            'ltfFrameworks', 'ltfStandards', 'ltfIndustries', 'ltfAudiences',
+            'purposeSuggestions'
         ));
     }
 
@@ -115,13 +122,17 @@ class CourseController extends Controller
             'course_fee', 'public_price',
             'is_public', 'is_featured', 'display_order', 'featured_order',
             'course_video_url', 'faq', 'seo_title', 'seo_description', 'seo_keywords',
-            'ltf_course_type_id', 'ltf_learning_framework_id',
+            'ltf_delivery_method_id', 'ltf_training_model_id',
+            'ltf_program_purpose_id', 'ltf_learning_framework_id', 'ltf_competency_level',
         ]);
 
         $data['is_public']   = $request->boolean('is_public');
         $data['is_featured'] = $request->boolean('is_featured');
-        $data['ltf_course_type_id']        = $request->filled('ltf_course_type_id') ? $request->input('ltf_course_type_id') : null;
-        $data['ltf_learning_framework_id'] = $request->filled('ltf_learning_framework_id') ? $request->input('ltf_learning_framework_id') : null;
+        $data['ltf_delivery_method_id']    = $request->filled('ltf_delivery_method_id')   ? $request->input('ltf_delivery_method_id')   : null;
+        $data['ltf_training_model_id']     = $request->filled('ltf_training_model_id')    ? $request->input('ltf_training_model_id')    : null;
+        $data['ltf_program_purpose_id']    = $request->filled('ltf_program_purpose_id')   ? $request->input('ltf_program_purpose_id')   : null;
+        $data['ltf_learning_framework_id'] = $request->filled('ltf_learning_framework_id')? $request->input('ltf_learning_framework_id'): null;
+        $data['ltf_competency_level']      = $request->filled('ltf_competency_level')     ? $request->input('ltf_competency_level')     : null;
 
         if ($request->hasFile('banner_image')) {
             $data['banner_image'] = $request->file('banner_image')->store('courses', 'public');
@@ -143,17 +154,22 @@ class CourseController extends Controller
         } catch (\Exception $e) {
             $categories = collect();
         }
-        $ltfCourseTypes      = LtfCourseType::groupedForSelect();
+        $ltfDeliveryMethods  = LtfDeliveryMethod::forSelect();
+        $ltfTrainingModels   = LtfTrainingModel::forSelect();
+        $ltfProgramPurposes  = LtfProgramPurpose::forSelect();
         $ltfFrameworks       = LtfLearningFramework::forSelect();
         $ltfStandards        = LtfStandard::groupedForSelect();
         $ltfIndustries       = LtfIndustry::forSelect();
         $ltfAudiences        = LtfAudienceType::forSelect();
+        $purposeSuggestions  = LtfProgramPurpose::suggestionMap();
         $selectedStandardIds = $course->ltfStandards->pluck('id')->toArray();
         $selectedIndustryIds = $course->ltfIndustries->pluck('id')->toArray();
         $selectedAudienceIds = $course->ltfAudiences->pluck('id')->toArray();
         return view('courses.edit', compact(
             'course', 'categories',
-            'ltfCourseTypes', 'ltfFrameworks', 'ltfStandards', 'ltfIndustries', 'ltfAudiences',
+            'ltfDeliveryMethods', 'ltfTrainingModels', 'ltfProgramPurposes',
+            'ltfFrameworks', 'ltfStandards', 'ltfIndustries', 'ltfAudiences',
+            'purposeSuggestions',
             'selectedStandardIds', 'selectedIndustryIds', 'selectedAudienceIds'
         ));
     }
@@ -180,13 +196,17 @@ class CourseController extends Controller
             'course_fee', 'public_price',
             'is_public', 'is_featured', 'display_order', 'featured_order',
             'course_video_url', 'faq', 'seo_title', 'seo_description', 'seo_keywords',
-            'ltf_course_type_id', 'ltf_learning_framework_id',
+            'ltf_delivery_method_id', 'ltf_training_model_id',
+            'ltf_program_purpose_id', 'ltf_learning_framework_id', 'ltf_competency_level',
         ]);
 
         $data['is_public']   = $request->boolean('is_public');
         $data['is_featured'] = $request->boolean('is_featured');
-        $data['ltf_course_type_id']        = $request->filled('ltf_course_type_id') ? $request->input('ltf_course_type_id') : null;
-        $data['ltf_learning_framework_id'] = $request->filled('ltf_learning_framework_id') ? $request->input('ltf_learning_framework_id') : null;
+        $data['ltf_delivery_method_id']    = $request->filled('ltf_delivery_method_id')   ? $request->input('ltf_delivery_method_id')   : null;
+        $data['ltf_training_model_id']     = $request->filled('ltf_training_model_id')    ? $request->input('ltf_training_model_id')    : null;
+        $data['ltf_program_purpose_id']    = $request->filled('ltf_program_purpose_id')   ? $request->input('ltf_program_purpose_id')   : null;
+        $data['ltf_learning_framework_id'] = $request->filled('ltf_learning_framework_id')? $request->input('ltf_learning_framework_id'): null;
+        $data['ltf_competency_level']      = $request->filled('ltf_competency_level')     ? $request->input('ltf_competency_level')     : null;
 
         if ($request->hasFile('banner_image')) {
             $data['banner_image'] = $request->file('banner_image')->store('courses', 'public');

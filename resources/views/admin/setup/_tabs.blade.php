@@ -1,10 +1,12 @@
 @php
 $tabs = [
-    'course-types' => ['label' => 'Course Types',        'route' => 'setup.course-types.index'],
-    'frameworks'   => ['label' => 'Learning Frameworks',  'route' => 'setup.frameworks.index'],
-    'standards'    => ['label' => 'Standards',            'route' => 'setup.standards.index'],
-    'industries'   => ['label' => 'Industries',           'route' => 'setup.industries.index'],
-    'audiences'    => ['label' => 'Audience Types',       'route' => 'setup.audiences.index'],
+    'delivery-methods'  => ['label' => 'Delivery Methods',    'route' => 'setup.delivery-methods.index'],
+    'training-models'   => ['label' => 'Training Models',     'route' => 'setup.training-models.index'],
+    'program-purposes'  => ['label' => 'Program Purposes',    'route' => 'setup.program-purposes.index'],
+    'frameworks'        => ['label' => 'Learning Frameworks', 'route' => 'setup.frameworks.index'],
+    'standards'         => ['label' => 'Standards',           'route' => 'setup.standards.index'],
+    'industries'        => ['label' => 'Industries',          'route' => 'setup.industries.index'],
+    'audiences'         => ['label' => 'Audience Types',      'route' => 'setup.audiences.index'],
 ];
 @endphp
 <div style="display:flex; gap:4px; margin-bottom:20px; background:#f8fafc; border-radius:10px; padding:6px; border:1px solid #e5e7eb;">

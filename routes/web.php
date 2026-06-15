@@ -3,7 +3,9 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Setup\LtfCourseTypeController;
+use App\Http\Controllers\Setup\LtfDeliveryMethodController;
+use App\Http\Controllers\Setup\LtfTrainingModelController;
+use App\Http\Controllers\Setup\LtfProgramPurposeController;
 use App\Http\Controllers\Setup\LtfLearningFrameworkController;
 use App\Http\Controllers\Setup\LtfStandardController;
 use App\Http\Controllers\Setup\LtfIndustryController;
@@ -484,16 +486,36 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post( '/training-media/item/{media}/featured',        [TrainingMediaController::class, 'setFeatured'])    ->name('training-media.featured');
     Route::delete('/training-media/item/{media}',                [TrainingMediaController::class, 'destroy'])        ->name('training-media.destroy');
 
+    // ── Legacy redirect: old course-types URL → delivery-methods ────
+    Route::get('setup/course-types{any?}', fn() => redirect()->route('setup.delivery-methods.index', [], 301))
+        ->where('any', '.*');
+
     // ── LTF Setup (taxonomy management) ─────────────────────────────
     Route::prefix('setup')->name('setup.')->group(function () {
 
-        Route::get('course-types',                    [LtfCourseTypeController::class, 'index'])  ->name('course-types.index');
-        Route::get('course-types/create',             [LtfCourseTypeController::class, 'create']) ->name('course-types.create');
-        Route::post('course-types',                   [LtfCourseTypeController::class, 'store'])  ->name('course-types.store');
-        Route::get('course-types/{ltfCourseType}/edit',    [LtfCourseTypeController::class, 'edit'])   ->name('course-types.edit');
-        Route::put('course-types/{ltfCourseType}',         [LtfCourseTypeController::class, 'update']) ->name('course-types.update');
-        Route::patch('course-types/{ltfCourseType}/toggle',[LtfCourseTypeController::class, 'toggle']) ->name('course-types.toggle');
-        Route::delete('course-types/{ltfCourseType}',      [LtfCourseTypeController::class, 'destroy'])->name('course-types.destroy');
+        Route::get('delivery-methods',                         [LtfDeliveryMethodController::class, 'index'])  ->name('delivery-methods.index');
+        Route::get('delivery-methods/create',                  [LtfDeliveryMethodController::class, 'create']) ->name('delivery-methods.create');
+        Route::post('delivery-methods',                        [LtfDeliveryMethodController::class, 'store'])  ->name('delivery-methods.store');
+        Route::get('delivery-methods/{deliveryMethod}/edit',   [LtfDeliveryMethodController::class, 'edit'])   ->name('delivery-methods.edit');
+        Route::put('delivery-methods/{deliveryMethod}',        [LtfDeliveryMethodController::class, 'update']) ->name('delivery-methods.update');
+        Route::patch('delivery-methods/{deliveryMethod}/toggle',[LtfDeliveryMethodController::class, 'toggle'])->name('delivery-methods.toggle');
+        Route::delete('delivery-methods/{deliveryMethod}',     [LtfDeliveryMethodController::class, 'destroy'])->name('delivery-methods.destroy');
+
+        Route::get('training-models',                          [LtfTrainingModelController::class, 'index'])  ->name('training-models.index');
+        Route::get('training-models/create',                   [LtfTrainingModelController::class, 'create']) ->name('training-models.create');
+        Route::post('training-models',                         [LtfTrainingModelController::class, 'store'])  ->name('training-models.store');
+        Route::get('training-models/{trainingModel}/edit',     [LtfTrainingModelController::class, 'edit'])   ->name('training-models.edit');
+        Route::put('training-models/{trainingModel}',          [LtfTrainingModelController::class, 'update']) ->name('training-models.update');
+        Route::patch('training-models/{trainingModel}/toggle', [LtfTrainingModelController::class, 'toggle']) ->name('training-models.toggle');
+        Route::delete('training-models/{trainingModel}',       [LtfTrainingModelController::class, 'destroy'])->name('training-models.destroy');
+
+        Route::get('program-purposes',                         [LtfProgramPurposeController::class, 'index'])  ->name('program-purposes.index');
+        Route::get('program-purposes/create',                  [LtfProgramPurposeController::class, 'create']) ->name('program-purposes.create');
+        Route::post('program-purposes',                        [LtfProgramPurposeController::class, 'store'])  ->name('program-purposes.store');
+        Route::get('program-purposes/{programPurpose}/edit',   [LtfProgramPurposeController::class, 'edit'])   ->name('program-purposes.edit');
+        Route::put('program-purposes/{programPurpose}',        [LtfProgramPurposeController::class, 'update']) ->name('program-purposes.update');
+        Route::patch('program-purposes/{programPurpose}/toggle',[LtfProgramPurposeController::class, 'toggle'])->name('program-purposes.toggle');
+        Route::delete('program-purposes/{programPurpose}',     [LtfProgramPurposeController::class, 'destroy'])->name('program-purposes.destroy');
 
         Route::get('frameworks',                          [LtfLearningFrameworkController::class, 'index'])  ->name('frameworks.index');
         Route::get('frameworks/create',                   [LtfLearningFrameworkController::class, 'create']) ->name('frameworks.create');

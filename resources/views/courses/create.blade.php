@@ -197,32 +197,87 @@
 
             <div class="frow" style="margin-bottom:20px;">
                 <div class="fg">
-                    <label>Layer 1 — Course Type</label>
-                    <select name="ltf_course_type_id">
-                        <option value="">— Not classified —</option>
-                        @foreach($ltfCourseTypes as $grp)
-                        <optgroup label="{{ $grp['label'] }}">
-                            @foreach($grp['options'] as $id => $name)
-                            <option value="{{ $id }}" {{ old('ltf_course_type_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
-                            @endforeach
-                        </optgroup>
+                    <label>Dim 1 — Delivery Method</label>
+                    <select name="ltf_delivery_method_id">
+                        <option value="">— Not set —</option>
+                        @foreach($ltfDeliveryMethods as $id => $name)
+                        <option value="{{ $id }}" {{ old('ltf_delivery_method_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="fg">
-                    <label>Layer 2 — Learning Framework</label>
-                    <select name="ltf_learning_framework_id">
-                        <option value="">— Not classified —</option>
-                        @foreach($ltfFrameworks as $id => $name)
-                        <option value="{{ $id }}" {{ old('ltf_learning_framework_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
+                    <label>Dim 2 — Training Model</label>
+                    <select name="ltf_training_model_id">
+                        <option value="">— Not set —</option>
+                        @foreach($ltfTrainingModels as $id => $name)
+                        <option value="{{ $id }}" {{ old('ltf_training_model_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
                         @endforeach
                     </select>
                 </div>
             </div>
 
+            <div class="frow" style="margin-bottom:20px;">
+                <div class="fg">
+                    <label>Dim 3 — Program Purpose</label>
+                    <select name="ltf_program_purpose_id" id="purposeSelect" onchange="handlePurposeChange(this)">
+                        <option value="">— Not set —</option>
+                        @foreach($ltfProgramPurposes as $id => $name)
+                        <option value="{{ $id }}" {{ old('ltf_program_purpose_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="fg">
+                    <label>Dim 4 — Learning Framework</label>
+                    <select name="ltf_learning_framework_id" id="frameworkSelect">
+                        <option value="">— Not classified —</option>
+                        @foreach($ltfFrameworks as $id => $name)
+                        <option value="{{ $id }}" {{ old('ltf_learning_framework_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                    <small style="color:#6b7280; font-size:12px; display:block; margin-top:4px;">Auto-suggested from Program Purpose — you may override.</small>
+                </div>
+            </div>
+
+            {{-- Dim 8: Competency Level --}}
+            <div style="margin-bottom:20px;">
+                <label style="display:block; font-weight:600; font-size:13.5px; color:#374151; margin-bottom:10px;">Dim 8 — Competency Level</label>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    @foreach(['beginner' => 'Beginner', 'intermediate' => 'Intermediate', 'advanced' => 'Advanced', 'expert' => 'Expert'] as $cval => $clbl)
+                    @php $csel = old('ltf_competency_level') === $cval; @endphp
+                    <button type="button" onclick="selectCompetency('{{ $cval }}')" data-value="{{ $cval }}"
+                        style="padding:6px 18px; border-radius:20px; border:1.5px solid {{ $csel ? '#1e3a8a' : '#e5e7eb' }}; background:{{ $csel ? '#1e3a8a' : '#fff' }}; color:{{ $csel ? '#fff' : '#374151' }}; font-size:13px; font-weight:600; cursor:pointer;"
+                        class="comp-pill">{{ $clbl }}</button>
+                    @endforeach
+                    @php $cNone = !old('ltf_competency_level'); @endphp
+                    <button type="button" onclick="selectCompetency('')" data-value=""
+                        style="padding:6px 18px; border-radius:20px; border:1.5px solid {{ $cNone ? '#1e3a8a' : '#e5e7eb' }}; background:{{ $cNone ? '#1e3a8a' : '#fff' }}; color:{{ $cNone ? '#fff' : '#9ca3af' }}; font-size:13px; cursor:pointer;"
+                        class="comp-pill">Not set</button>
+                </div>
+                <input type="hidden" name="ltf_competency_level" id="competencyInput" value="{{ old('ltf_competency_level', '') }}">
+            </div>
+
+            <script>
+            var purposeSuggestions = @json($purposeSuggestions ?? []);
+            function handlePurposeChange(sel) {
+                var fw = document.getElementById('frameworkSelect');
+                if (!fw.value && purposeSuggestions[sel.value]) {
+                    fw.value = purposeSuggestions[sel.value];
+                }
+            }
+            function selectCompetency(val) {
+                document.getElementById('competencyInput').value = val;
+                document.querySelectorAll('.comp-pill').forEach(function(btn) {
+                    var active = btn.dataset.value === val;
+                    btn.style.background   = active ? '#1e3a8a' : '#fff';
+                    btn.style.borderColor  = active ? '#1e3a8a' : '#e5e7eb';
+                    btn.style.color        = active ? '#fff' : (btn.dataset.value ? '#374151' : '#9ca3af');
+                });
+            }
+            </script>
+
             {{-- Layer 3: Standards (grouped checkboxes) --}}
             <div style="margin-bottom:20px;">
-                <label style="display:block; font-weight:600; font-size:13.5px; color:#374151; margin-bottom:10px;">Layer 3 — Standards &amp; Frameworks <span style="font-weight:400; color:#9ca3af;">(select all that apply)</span></label>
+                <label style="display:block; font-weight:600; font-size:13.5px; color:#374151; margin-bottom:10px;">Dim 5 — Standards &amp; Frameworks <span style="font-weight:400; color:#9ca3af;">(select all that apply)</span></label>
                 @foreach($ltfStandards as $domainGroup)
                 <div style="margin-bottom:12px;">
                     <div style="font-size:11px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px;">{{ $domainGroup['label'] }}</div>
@@ -240,7 +295,7 @@
 
             {{-- Layer 4: Industries --}}
             <div style="margin-bottom:20px;">
-                <label style="display:block; font-weight:600; font-size:13.5px; color:#374151; margin-bottom:10px;">Layer 4 — Industries <span style="font-weight:400; color:#9ca3af;">(select all that apply)</span></label>
+                <label style="display:block; font-weight:600; font-size:13.5px; color:#374151; margin-bottom:10px;">Dim 6 — Industries <span style="font-weight:400; color:#9ca3af;">(select all that apply)</span></label>
                 <div style="display:flex; flex-wrap:wrap; gap:8px;">
                     @foreach($ltfIndustries as $id => $name)
                     <label style="display:flex; align-items:center; gap:6px; padding:5px 12px; border:1.5px solid {{ in_array($id, old('ltf_industry_ids', [])) ? '#1e3a8a' : '#e5e7eb' }}; border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; background:{{ in_array($id, old('ltf_industry_ids', [])) ? '#eff6ff' : '#fff' }};">
@@ -253,7 +308,7 @@
 
             {{-- Layer 5: Audience Types --}}
             <div style="margin-bottom:20px;">
-                <label style="display:block; font-weight:600; font-size:13.5px; color:#374151; margin-bottom:10px;">Layer 5 — Audience Types <span style="font-weight:400; color:#9ca3af;">(select all that apply)</span></label>
+                <label style="display:block; font-weight:600; font-size:13.5px; color:#374151; margin-bottom:10px;">Dim 7 — Audience Types <span style="font-weight:400; color:#9ca3af;">(select all that apply)</span></label>
                 <div style="display:flex; flex-wrap:wrap; gap:8px;">
                     @foreach($ltfAudiences as $id => $name)
                     <label style="display:flex; align-items:center; gap:6px; padding:5px 12px; border:1.5px solid {{ in_array($id, old('ltf_audience_ids', [])) ? '#1e3a8a' : '#e5e7eb' }}; border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; background:{{ in_array($id, old('ltf_audience_ids', [])) ? '#eff6ff' : '#fff' }};">
