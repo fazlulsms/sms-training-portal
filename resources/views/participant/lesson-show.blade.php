@@ -1397,6 +1397,8 @@ function getFrontier() {
 function goToStep(n) {
     if (n < 0 || n > LAST) return;
     if (n > getFrontier()) return; // block jumping ahead of the furthest reached step
+    // Stop all audio whenever the learner changes section
+    if (typeof window.lfAudioStopAll === 'function') window.lfAudioStopAll();
     // Pause any YT video on the panel we're leaving
     const leavingBid = currentYtBlockId();
     if (leavingBid && ytStates[leavingBid]?.player?.pauseVideo) {
