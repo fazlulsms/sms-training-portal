@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\GenerateAiExplanationJob;
 use App\Jobs\GenerateLessonNarrationJob;
-use App\Models\ElearningCourse;
+use App\Models\Course;
 use App\Models\ElearningLesson;
 use App\Models\LessonAudio;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +17,7 @@ class LessonAudioController extends Controller
     // Admin — generate (creates record + queues job)
     // ──────────────────────────────────────────────────────────
 
-    public function generate(Request $request, ElearningCourse $course, ElearningLesson $lesson): JsonResponse
+    public function generate(Request $request, Course $course, ElearningLesson $lesson): JsonResponse
     {
         $type  = $request->input('type', 'narration');
         $voice = $request->input('voice', 'nova');
@@ -57,7 +57,7 @@ class LessonAudioController extends Controller
     // Admin — regenerate
     // ──────────────────────────────────────────────────────────
 
-    public function regenerate(Request $request, ElearningCourse $course, ElearningLesson $lesson, LessonAudio $audio): JsonResponse
+    public function regenerate(Request $request, Course $course, ElearningLesson $lesson, LessonAudio $audio): JsonResponse
     {
         // Delete old file
         if ($audio->file_path) {
@@ -86,7 +86,7 @@ class LessonAudioController extends Controller
     // Admin — delete
     // ──────────────────────────────────────────────────────────
 
-    public function destroy(ElearningCourse $course, ElearningLesson $lesson, LessonAudio $audio): JsonResponse
+    public function destroy(Course $course, ElearningLesson $lesson, LessonAudio $audio): JsonResponse
     {
         if ($audio->file_path) {
             Storage::disk('public')->delete($audio->file_path);
@@ -100,7 +100,7 @@ class LessonAudioController extends Controller
     // Admin — status poll
     // ──────────────────────────────────────────────────────────
 
-    public function status(ElearningCourse $course, ElearningLesson $lesson): JsonResponse
+    public function status(Course $course, ElearningLesson $lesson): JsonResponse
     {
         $records = LessonAudio::where('lesson_id', $lesson->id)->get();
 
