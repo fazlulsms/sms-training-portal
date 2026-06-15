@@ -11,6 +11,7 @@ class LessonAudio extends Model
 
     protected $fillable = [
         'lesson_id',
+        'block_id',
         'audio_type',
         'voice',
         'language',
@@ -29,6 +30,11 @@ class LessonAudio extends Model
     public function lesson(): BelongsTo
     {
         return $this->belongsTo(ElearningLesson::class, 'lesson_id');
+    }
+
+    public function block(): BelongsTo
+    {
+        return $this->belongsTo(LessonBlock::class, 'block_id');
     }
 
     public function isReady(): bool

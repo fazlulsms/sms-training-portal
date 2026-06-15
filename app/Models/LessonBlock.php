@@ -50,6 +50,20 @@ class LessonBlock extends Model
         'download'           => ['label' => 'Download Resources',  'icon' => 'download',  'color' => '#92400e'],
     ];
 
+    public const AUDIO_ELIGIBLE_TYPES = [
+        'rich_text', 'case_study', 'scenario', 'workplace_example', 'fun_fact', 'myth_fact',
+    ];
+
+    public static function audioEligibleTypes(): array
+    {
+        return self::AUDIO_ELIGIBLE_TYPES;
+    }
+
+    public function isAudioEligible(): bool
+    {
+        return in_array($this->block_type, self::AUDIO_ELIGIBLE_TYPES);
+    }
+
     public function getTypeLabel(): string
     {
         return self::TYPES[$this->block_type]['label'] ?? ucfirst($this->block_type);

@@ -2,102 +2,160 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\GenerateAiExplanationJob;
-use App\Jobs\GenerateLessonNarrationJob;
 use App\Models\Course;
+use App\Models\ElearningEnrollment;
 use App\Models\ElearningLesson;
 use App\Models\LessonAudio;
+use App\Models\LessonBlock;
+use App\Services\LessonAudioService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class LessonAudioController extends Controller
 {
     // ──────────────────────────────────────────────────────────
-    // Admin — generate (creates record + queues job)
+    // Participant — generate block AI Coach audio (synchronous)
     // ──────────────────────────────────────────────────────────
 
-    public function generate(Request $request, Course $course, ElearningLesson $lesson): JsonResponse
-    {
-        $type  = $request->input('type', 'narration');
-        $voice = $request->input('voice', 'nova');
+    public function participantGenerateBlock(
+        Request $request,
+        ElearningEnrollment $enrollment,
+        ElearningLesson $lesson,
+        LessonBlock $block,
+        LessonAudioService $service
+    ): JsonResponse {
+        abort_unless($enrollment->user_id === Auth::id(), 403);
+        abort_unless($lesson->course_id === $enrollment->course_id, 403);
+        abort_unless($block->lesson_id === $lesson->id, 403);
 
-        if (!in_array($type, ['narration', 'ai_explanation'])) {
-            return response()->json(['error' => 'Invalid audio type.'], 422);
+        if (!$block->isAudioEligible()) {
+            return response()->json(['error' => 'This block type does not support AI Coach.'], 422);
         }
 
-        if (!in_array($voice, ['alloy', 'nova', 'echo', 'fable', 'onyx', 'shimmer'])) {
-            $voice = 'nova';
-        }
-
-        // If a record already exists and is ready, require explicit regeneration
-        $existing = LessonAudio::where('lesson_id', $lesson->id)
-            ->where('audio_type', $type)
+        $audio = LessonAudio::where('lesson_id', $lesson->id)
+            ->where('block_id', $block->id)
+            ->where('audio_type', 'ai_coach')
+            ->where('language', 'en')
             ->first();
 
-        if ($existing && $existing->status === 'ready') {
-            return response()->json(['error' => 'Audio already generated. Use regenerate to replace it.'], 409);
+        if ($audio && $audio->isReady()) {
+            return response()->json(['status' => 'ready', 'url' => $audio->publicUrl(), 'id' => $audio->id]);
         }
 
-        if ($existing && $existing->status === 'processing') {
-            return response()->json(['error' => 'Audio generation is already in progress.'], 409);
+        if ($audio && $audio->status === 'processing') {
+            return response()->json(['status' => 'processing']);
         }
 
         $audio = LessonAudio::updateOrCreate(
-            ['lesson_id' => $lesson->id, 'audio_type' => $type, 'language' => 'en'],
-            ['status' => 'pending', 'voice' => $voice, 'error_message' => null, 'file_path' => null, 'generated_at' => null]
+            ['lesson_id' => $lesson->id, 'block_id' => $block->id, 'audio_type' => 'ai_coach', 'language' => 'en'],
+            ['status' => 'processing', 'voice' => 'nova', 'error_message' => null, 'file_path' => null, 'generated_at' => null]
         );
 
-        $this->dispatch($audio);
+        $service->generateBlockCoach($audio);
+        $audio->refresh();
 
-        return response()->json(['message' => 'Audio generation queued.', 'status' => 'pending']);
+        if ($audio->isReady()) {
+            return response()->json(['status' => 'ready', 'url' => $audio->publicUrl(), 'id' => $audio->id]);
+        }
+
+        return response()->json(['status' => 'failed', 'error' => $audio->error_message ?? 'Generation failed.'], 500);
     }
 
     // ──────────────────────────────────────────────────────────
-    // Admin — regenerate
+    // Participant — generate AI Lesson Recap (synchronous)
     // ──────────────────────────────────────────────────────────
 
-    public function regenerate(Request $request, Course $course, ElearningLesson $lesson, LessonAudio $audio): JsonResponse
+    public function participantGenerateRecap(
+        Request $request,
+        ElearningEnrollment $enrollment,
+        ElearningLesson $lesson,
+        LessonAudioService $service
+    ): JsonResponse {
+        abort_unless($enrollment->user_id === Auth::id(), 403);
+        abort_unless($lesson->course_id === $enrollment->course_id, 403);
+
+        $audio = LessonAudio::where('lesson_id', $lesson->id)
+            ->whereNull('block_id')
+            ->where('audio_type', 'lesson_recap')
+            ->where('language', 'en')
+            ->first();
+
+        if ($audio && $audio->isReady()) {
+            return response()->json(['status' => 'ready', 'url' => $audio->publicUrl(), 'id' => $audio->id]);
+        }
+
+        if ($audio && $audio->status === 'processing') {
+            return response()->json(['status' => 'processing']);
+        }
+
+        $audio = LessonAudio::updateOrCreate(
+            ['lesson_id' => $lesson->id, 'block_id' => null, 'audio_type' => 'lesson_recap', 'language' => 'en'],
+            ['status' => 'processing', 'voice' => 'nova', 'error_message' => null, 'file_path' => null, 'generated_at' => null]
+        );
+
+        $service->generateLessonRecap($audio);
+        $audio->refresh();
+
+        if ($audio->isReady()) {
+            return response()->json(['status' => 'ready', 'url' => $audio->publicUrl(), 'id' => $audio->id]);
+        }
+
+        return response()->json(['status' => 'failed', 'error' => $audio->error_message ?? 'Generation failed.'], 500);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // Admin — generate lesson recap (queued)
+    // ──────────────────────────────────────────────────────────
+
+    public function generateRecap(Request $request, Course $course, ElearningLesson $lesson, LessonAudioService $service): JsonResponse
     {
-        // Delete old file
-        if ($audio->file_path) {
-            Storage::disk('public')->delete($audio->file_path);
+        $existing = LessonAudio::where('lesson_id', $lesson->id)
+            ->whereNull('block_id')
+            ->where('audio_type', 'lesson_recap')
+            ->first();
+
+        if ($existing && $existing->status === 'ready') {
+            return response()->json(['error' => 'Recap already generated. Use regenerate to replace it.'], 409);
         }
 
-        $voice = $request->input('voice', $audio->voice);
-        if (!in_array($voice, ['alloy', 'nova', 'echo', 'fable', 'onyx', 'shimmer'])) {
-            $voice = $audio->voice;
+        if ($existing && $existing->status === 'processing') {
+            return response()->json(['error' => 'Recap generation is already in progress.'], 409);
         }
 
-        $audio->update([
-            'status'        => 'pending',
-            'voice'         => $voice,
-            'file_path'     => null,
-            'error_message' => null,
-            'generated_at'  => null,
+        $audio = LessonAudio::updateOrCreate(
+            ['lesson_id' => $lesson->id, 'block_id' => null, 'audio_type' => 'lesson_recap', 'language' => 'en'],
+            ['status' => 'processing', 'voice' => 'nova', 'error_message' => null, 'file_path' => null, 'generated_at' => null]
+        );
+
+        $service->generateLessonRecap($audio);
+        $audio->refresh();
+
+        return response()->json([
+            'message' => $audio->isReady() ? 'Recap generated.' : 'Generation failed.',
+            'status'  => $audio->status,
+            'url'     => $audio->publicUrl(),
+            'error'   => $audio->error_message,
         ]);
-
-        $this->dispatch($audio);
-
-        return response()->json(['message' => 'Regeneration queued.', 'status' => 'pending']);
     }
 
     // ──────────────────────────────────────────────────────────
-    // Admin — delete
+    // Admin — delete lesson recap
     // ──────────────────────────────────────────────────────────
 
-    public function destroy(Course $course, ElearningLesson $lesson, LessonAudio $audio): JsonResponse
+    public function destroyRecap(Course $course, ElearningLesson $lesson, LessonAudio $audio): JsonResponse
     {
         if ($audio->file_path) {
             Storage::disk('public')->delete($audio->file_path);
         }
         $audio->delete();
 
-        return response()->json(['message' => 'Audio deleted.']);
+        return response()->json(['message' => 'Recap audio deleted.']);
     }
 
     // ──────────────────────────────────────────────────────────
-    // Admin — status poll
+    // Admin — status poll (lesson_recap only now)
     // ──────────────────────────────────────────────────────────
 
     public function status(Course $course, ElearningLesson $lesson): JsonResponse
@@ -106,7 +164,11 @@ class LessonAudioController extends Controller
 
         $data = [];
         foreach ($records as $r) {
-            $data[$r->audio_type] = [
+            $key = $r->audio_type === 'ai_coach'
+                ? 'block_' . $r->block_id
+                : $r->audio_type;
+
+            $data[$key] = [
                 'id'            => $r->id,
                 'status'        => $r->status,
                 'voice'         => $r->voice,
@@ -117,41 +179,5 @@ class LessonAudioController extends Controller
         }
 
         return response()->json($data);
-    }
-
-    // ──────────────────────────────────────────────────────────
-    // Participant — get audio URL for enrolled learner
-    // ──────────────────────────────────────────────────────────
-
-    public function participantAudio(Request $request, $enrollment, ElearningLesson $lesson): JsonResponse
-    {
-        $type = $request->input('type', 'narration');
-
-        $audio = LessonAudio::where('lesson_id', $lesson->id)
-            ->where('audio_type', $type)
-            ->where('status', 'ready')
-            ->first();
-
-        if (!$audio) {
-            return response()->json(['error' => 'Audio not available.'], 404);
-        }
-
-        return response()->json([
-            'url'           => $audio->publicUrl(),
-            'generated_at'  => $audio->generated_at?->format('d M Y'),
-        ]);
-    }
-
-    // ──────────────────────────────────────────────────────────
-    // Dispatch appropriate job
-    // ──────────────────────────────────────────────────────────
-
-    private function dispatch(LessonAudio $audio): void
-    {
-        if ($audio->audio_type === 'narration') {
-            GenerateLessonNarrationJob::dispatch($audio->id);
-        } else {
-            GenerateAiExplanationJob::dispatch($audio->id);
-        }
     }
 }

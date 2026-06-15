@@ -141,8 +141,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/my-elearning/{enrollment}/lessons/{lesson}/complete', [ParticipantDashboardController::class, 'markLessonComplete'])
         ->name('participant.lesson.complete');
 
-    Route::get('/my-elearning/{enrollment}/lessons/{lesson}/audio', [LessonAudioController::class, 'participantAudio'])
-        ->name('participant.lesson.audio');
+    Route::post('/my-elearning/{enrollment}/lessons/{lesson}/blocks/{block}/audio', [LessonAudioController::class, 'participantGenerateBlock'])
+        ->name('participant.block.audio.generate');
+
+    Route::post('/my-elearning/{enrollment}/lessons/{lesson}/recap-audio', [LessonAudioController::class, 'participantGenerateRecap'])
+        ->name('participant.lesson.recap.generate');
 
     Route::get('/my-elearning/{enrollment}/quizzes/{quiz}', [ParticipantQuizController::class, 'start'])
         ->name('participant.quiz.start');
@@ -519,10 +522,9 @@ Route::middleware(['auth', 'admin'])->prefix('elearning')->name('elearning.')->g
     Route::post('courses/{course}/lessons/{lesson}/ai-cancel',   [AiLessonContentController::class, 'cancel'])  ->name('ai-lesson-content.cancel');
 
     // AI Audio Learning Assistant — admin routes
-    Route::post('courses/{course}/lessons/{lesson}/audio/generate',           [LessonAudioController::class, 'generate'])   ->name('audio.generate');
-    Route::post('courses/{course}/lessons/{lesson}/audio/{audio}/regenerate', [LessonAudioController::class, 'regenerate']) ->name('audio.regenerate');
-    Route::delete('courses/{course}/lessons/{lesson}/audio/{audio}',          [LessonAudioController::class, 'destroy'])    ->name('audio.destroy');
-    Route::get('courses/{course}/lessons/{lesson}/audio/status',              [LessonAudioController::class, 'status'])     ->name('audio.status');
+    Route::post('courses/{course}/lessons/{lesson}/audio/recap',         [LessonAudioController::class, 'generateRecap']) ->name('audio.recap.generate');
+    Route::delete('courses/{course}/lessons/{lesson}/audio/recap/{audio}', [LessonAudioController::class, 'destroyRecap'])  ->name('audio.recap.destroy');
+    Route::get('courses/{course}/lessons/{lesson}/audio/status',         [LessonAudioController::class, 'status'])        ->name('audio.status');
 
     Route::get('enrollments', [ElearningEnrollmentController::class, 'index'])->name('enrollments.index');
     Route::get('enrollments/create', [ElearningEnrollmentController::class, 'create'])->name('enrollments.create');

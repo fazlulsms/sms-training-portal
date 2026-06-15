@@ -157,8 +157,8 @@ class ParticipantDashboardController extends Controller
         $nextLesson     = $currentIndex < $lessons->count() - 1 ? $lessons[$currentIndex + 1] : null;
 
         $audioRecords    = LessonAudio::where('lesson_id', $lesson->id)->where('status', 'ready')->get();
-        $narrationAudio  = $audioRecords->firstWhere('audio_type', 'narration');
-        $aiExplanationAudio = $audioRecords->firstWhere('audio_type', 'ai_explanation');
+        $blockAudioMap   = $audioRecords->where('audio_type', 'ai_coach')->keyBy('block_id');
+        $lessonRecapAudio = $audioRecords->firstWhere('audio_type', 'lesson_recap');
 
         return view('participant.lesson-show', compact(
             'enrollment',
@@ -169,8 +169,8 @@ class ParticipantDashboardController extends Controller
             'nextLesson',
             'lessons',
             'currentIndex',
-            'narrationAudio',
-            'aiExplanationAudio'
+            'blockAudioMap',
+            'lessonRecapAudio'
         ));
     }
 

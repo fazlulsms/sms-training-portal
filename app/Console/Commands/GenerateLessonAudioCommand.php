@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\ElearningLesson;
 use App\Models\LessonAudio;
+use App\Models\LessonBlock;
 use App\Services\LessonAudioService;
 use Illuminate\Console\Command;
 
@@ -11,14 +12,15 @@ class GenerateLessonAudioCommand extends Command
 {
     protected $signature = 'audio:generate
                             {lesson : Lesson ID}
-                            {--type=both : narration, ai_explanation, or both}
-                            {--voice=nova : TTS voice (nova, alloy, echo, fable, onyx, shimmer)}';
+                            {--type=recap : recap, blocks, or all}
+                            {--voice=nova : TTS voice (nova, alloy, echo, fable, onyx, shimmer)}
+                            {--block= : Specific block ID (when --type=blocks)}';
 
     protected $description = 'Generate AI audio for a lesson (runs synchronously, no queue worker needed)';
 
     public function handle(LessonAudioService $service): int
     {
-        $lesson = ElearningLesson::with(['course', 'blocks'])->find($this->argument('lesson'));
+        $lesson = ElearningLesson::with(['course', 'blocks' => fn ($q) => $q->where('status', 'active')->orderBy('sort_order')])->find($this->argument('lesson'));
 
         if (!$lesson) {
             $this->error('Lesson not found.');
@@ -29,45 +31,65 @@ class GenerateLessonAudioCommand extends Command
         $this->info("Course: {$lesson->course?->name}");
         $this->line('');
 
-        $types = match ($this->option('type')) {
-            'narration'      => ['narration'],
-            'ai_explanation' => ['ai_explanation'],
-            default          => ['narration', 'ai_explanation'],
-        };
+        $type  = $this->option('type');
+        $voice = $this->option('voice');
 
-        $voice  = $this->option('voice');
-        $labels = ['narration' => 'Lesson Narration', 'ai_explanation' => 'AI Teacher Mode'];
-
-        foreach ($types as $type) {
-            $this->line("▶  Generating {$labels[$type]}…");
-
+        if ($type === 'recap' || $type === 'all') {
+            $this->line('▶  Generating AI Lesson Recap…');
             $audio = LessonAudio::updateOrCreate(
-                ['lesson_id' => $lesson->id, 'audio_type' => $type, 'language' => 'en'],
-                ['status' => 'pending', 'voice' => $voice, 'error_message' => null, 'file_path' => null, 'generated_at' => null]
+                ['lesson_id' => $lesson->id, 'block_id' => null, 'audio_type' => 'lesson_recap', 'language' => 'en'],
+                ['status' => 'processing', 'voice' => $voice, 'error_message' => null, 'file_path' => null, 'generated_at' => null]
             );
 
             $start = microtime(true);
-
-            if ($type === 'narration') {
-                $service->generateNarration($audio);
-            } else {
-                $service->generateAiExplanation($audio);
-            }
-
+            $service->generateLessonRecap($audio);
             $audio->refresh();
             $elapsed = round(microtime(true) - $start, 1);
 
             if ($audio->status === 'ready') {
-                $this->info("   ✓ Done in {$elapsed}s → storage/app/public/{$audio->file_path}");
-                $this->line("   URL: " . $audio->publicUrl());
+                $this->info("   ✓ Recap done in {$elapsed}s → " . $audio->publicUrl());
             } else {
                 $this->error("   ✗ Failed: " . ($audio->error_message ?? 'Unknown error'));
             }
-
             $this->line('');
         }
 
-        $this->info('Audio generation complete. Refresh the lesson edit page to see the player.');
+        if ($type === 'blocks' || $type === 'all') {
+            $specificBlock = $this->option('block');
+            $blocks = $lesson->blocks->filter(fn ($b) => $b->isAudioEligible());
+
+            if ($specificBlock) {
+                $blocks = $blocks->filter(fn ($b) => $b->id == $specificBlock);
+            }
+
+            if ($blocks->isEmpty()) {
+                $this->warn('No eligible blocks found for AI Coach generation.');
+            } else {
+                $this->line("▶  Generating AI Coach for {$blocks->count()} eligible block(s)…");
+                foreach ($blocks as $block) {
+                    $this->line("   Block #{$block->id} [{$block->block_type}]: {$block->title}");
+
+                    $audio = LessonAudio::updateOrCreate(
+                        ['lesson_id' => $lesson->id, 'block_id' => $block->id, 'audio_type' => 'ai_coach', 'language' => 'en'],
+                        ['status' => 'processing', 'voice' => $voice, 'error_message' => null, 'file_path' => null, 'generated_at' => null]
+                    );
+
+                    $start = microtime(true);
+                    $service->generateBlockCoach($audio);
+                    $audio->refresh();
+                    $elapsed = round(microtime(true) - $start, 1);
+
+                    if ($audio->status === 'ready') {
+                        $this->info("   ✓ Done in {$elapsed}s");
+                    } else {
+                        $this->error("   ✗ Failed: " . ($audio->error_message ?? 'Unknown error'));
+                    }
+                }
+                $this->line('');
+            }
+        }
+
+        $this->info('Done. Refresh the lesson page to see the audio players.');
         return self::SUCCESS;
     }
 }

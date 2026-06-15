@@ -600,8 +600,6 @@
                         </div>
                     </div>
 
-                    @include('participant.partials.audio-player', ['narrationAudio' => $narrationAudio ?? null, 'aiExplanationAudio' => $aiExplanationAudio ?? null])
-
                     @if($lesson->learning_objectives)
                     <div class="lo-obj">
                         <div class="lo-obj-head">
@@ -1197,6 +1195,17 @@
                     @break
 
                 @endswitch
+
+                    @if($block->isAudioEligible())
+                    @include('participant.partials.block-audio-player', [
+                        'block'       => $block,
+                        'blockAudio'  => ($blockAudioMap ?? collect())[$block->id] ?? null,
+                        'lesson'      => $lesson,
+                        'enrollment'  => $enrollment ?? null,
+                        'previewMode' => $previewMode ?? false,
+                    ])
+                    @endif
+
                 </div>
             </div>
             @endforeach
@@ -1205,6 +1214,13 @@
             @if($hasActivities)
             <div class="lf-panel" data-step="{{ $blockCount + 1 }}">
                 <div class="lf-inner">
+
+                    @include('participant.partials.lesson-recap-card', [
+                        'lessonRecapAudio' => $lessonRecapAudio ?? null,
+                        'lesson'           => $lesson,
+                        'enrollment'       => $enrollment ?? null,
+                        'previewMode'      => $previewMode ?? false,
+                    ])
 
                     @if($hasResources)
                     <div class="lb">
@@ -1872,6 +1888,201 @@ renderUI();
             p.parentNode.replaceChild(card, p);
         });
 
+    });
+})();
+
+// ── Block & Recap Audio Player ────────────────────────────────
+(function() {
+    const audioMap  = {};
+    const speedMap  = {};
+    const speeds    = [0.75, 1, 1.25, 1.5, 2];
+    const lessonKey = 'lfAudioPos_{{ $lesson->id }}_';
+
+    function fmt(s) {
+        s = Math.floor(s || 0);
+        return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    }
+
+    function playIcon() {
+        return '<svg width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+    }
+    function pauseIcon() {
+        return '<svg width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+    }
+
+    function resetPlayerUI(audioId) {
+        const playBtn = document.getElementById('lfPlay_' + audioId);
+        const seek    = document.getElementById('lfSeek_' + audioId);
+        const curEl   = document.getElementById('lfCur_' + audioId);
+        const dot     = document.getElementById('lfDot_' + audioId);
+        if (playBtn) playBtn.innerHTML = playIcon();
+        if (seek)    { seek.value = 0; seek.style.background = 'rgba(255,255,255,.2)'; }
+        if (curEl)   curEl.textContent = '0:00';
+        if (dot)     dot.classList.add('paused');
+    }
+
+    window.bapInitPlayer = function(audioId) {
+        const audio = document.getElementById('lfAudio_' + audioId);
+        if (!audio || audioMap[audioId]) return;
+        audioMap[audioId] = audio;
+        speedMap[audioId] = 1;
+
+        const seek    = document.getElementById('lfSeek_' + audioId);
+        const curEl   = document.getElementById('lfCur_' + audioId);
+        const durEl   = document.getElementById('lfDur_' + audioId);
+        const playBtn = document.getElementById('lfPlay_' + audioId);
+
+        audio.addEventListener('loadedmetadata', () => {
+            if (seek)  seek.max = audio.duration;
+            if (durEl) durEl.textContent = fmt(audio.duration);
+        });
+        audio.addEventListener('timeupdate', () => {
+            if (!audio.duration) return;
+            const pct = (audio.currentTime / audio.duration) * 100;
+            if (seek) {
+                seek.value = audio.currentTime;
+                seek.style.background = `linear-gradient(to right,#7c3aed ${pct}%,rgba(255,255,255,.2) 0)`;
+            }
+            if (curEl) curEl.textContent = fmt(audio.currentTime);
+        });
+        audio.addEventListener('play', () => {
+            if (playBtn) playBtn.innerHTML = pauseIcon();
+            const dot = document.getElementById('lfDot_' + audioId);
+            if (dot) dot.classList.remove('paused');
+        });
+        audio.addEventListener('pause', () => {
+            if (playBtn) playBtn.innerHTML = playIcon();
+            const dot = document.getElementById('lfDot_' + audioId);
+            if (dot) dot.classList.add('paused');
+        });
+        audio.addEventListener('ended', () => {
+            resetPlayerUI(audioId);
+            sessionStorage.removeItem(lessonKey + audioId);
+        });
+    };
+
+    window.lfAudioStopAll = function() {
+        document.querySelectorAll('audio[id^="lfAudio_"]').forEach(audio => {
+            if (!audio.paused) audio.pause();
+            audio.currentTime = 0;
+            const audioId = audio.id.replace('lfAudio_', '');
+            resetPlayerUI(audioId);
+            sessionStorage.removeItem(lessonKey + audioId);
+        });
+    };
+
+    window.lfAudioPlay = function(audioId) {
+        window.bapInitPlayer(audioId);
+        const audio = audioMap[audioId];
+        if (!audio) return;
+        if (audio.paused) {
+            Object.entries(audioMap).forEach(([id, a]) => {
+                if (id !== audioId && !a.paused) { a.pause(); resetPlayerUI(id); }
+            });
+            audio.play().catch(() => {});
+        } else {
+            audio.pause();
+        }
+    };
+
+    window.lfAudioStop = function(audioId) {
+        const audio = audioMap[audioId];
+        if (!audio) return;
+        audio.pause();
+        audio.currentTime = 0;
+        resetPlayerUI(audioId);
+        sessionStorage.removeItem(lessonKey + audioId);
+    };
+
+    window.lfAudioSeek = function(audioId, el) {
+        if (audioMap[audioId]) audioMap[audioId].currentTime = parseFloat(el.value);
+    };
+
+    window.lfAudioSpeed = function(audioId, btn) {
+        speedMap[audioId] = ((speedMap[audioId] ?? 1) + 1) % speeds.length;
+        const sp = speeds[speedMap[audioId]];
+        if (audioMap[audioId]) audioMap[audioId].playbackRate = sp;
+        if (btn) btn.textContent = sp + 'x';
+    };
+
+    window.buildAudioPlayerHtml = function(audioId, label, audioUrl) {
+        const pi = '<svg width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+        const si = '<svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
+        return `<div class="bap-player-wrap">
+            <div class="lf-aw-label">
+                <span class="lf-aw-label-dot paused" id="lfDot_${audioId}"></span>
+                ${label}
+            </div>
+            <div class="lf-aw-controls">
+                <button class="lf-aw-play-btn" id="lfPlay_${audioId}" onclick="lfAudioPlay('${audioId}')" title="Play / Pause">${pi}</button>
+                <div class="lf-aw-timeline">
+                    <input type="range" class="lf-aw-seek" id="lfSeek_${audioId}" min="0" max="100" value="0" oninput="lfAudioSeek('${audioId}', this)">
+                    <div class="lf-aw-time">
+                        <span id="lfCur_${audioId}">0:00</span>
+                        <span id="lfDur_${audioId}">0:00</span>
+                    </div>
+                </div>
+                <button class="lf-aw-stop-btn" onclick="lfAudioStop('${audioId}')" title="Stop and reset">${si} Stop</button>
+                <button class="lf-aw-speed-btn" id="lfSpeed_${audioId}" onclick="lfAudioSpeed('${audioId}', this)" title="Playback speed">1x</button>
+            </div>
+            <audio id="lfAudio_${audioId}" preload="none" src="${audioUrl}"></audio>
+        </div>`;
+    };
+
+    window.bapGenerate = function(blockId, url, csrfToken) {
+        const audioId   = 'block_' + blockId;
+        const triggerId = 'bap_' + blockId + '_trigger';
+        const loadingId = 'bap_' + blockId + '_loading';
+        const playerId  = 'bap_' + blockId + '_player';
+        document.getElementById(triggerId).style.display = 'none';
+        document.getElementById(loadingId).style.display = 'flex';
+        fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' } })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById(loadingId).style.display = 'none';
+            if (data.status === 'ready' && data.url) {
+                document.getElementById(playerId).innerHTML = window.buildAudioPlayerHtml(audioId, 'AI Coach', data.url);
+                window.bapInitPlayer(audioId);
+            } else {
+                document.getElementById(triggerId).style.display = '';
+                const errEl = document.getElementById(triggerId).querySelector('.bap-error-msg');
+                if (errEl) errEl.textContent = data.error || 'Generation failed — try again.';
+            }
+        })
+        .catch(() => {
+            document.getElementById(loadingId).style.display = 'none';
+            document.getElementById(triggerId).style.display = '';
+        });
+    };
+
+    window.rcpGenerate = function(url, csrfToken) {
+        document.getElementById('rcp-trigger').style.display = 'none';
+        document.getElementById('rcp-loading').style.display = 'flex';
+        fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' } })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('rcp-loading').style.display = 'none';
+            if (data.status === 'ready' && data.url) {
+                document.getElementById('rcp-player').innerHTML =
+                    window.buildAudioPlayerHtml('lesson_recap', 'AI Lesson Recap', data.url);
+                window.bapInitPlayer('lesson_recap');
+            } else {
+                document.getElementById('rcp-trigger').style.display = '';
+                const msg = document.createElement('p');
+                msg.style.cssText = 'font-size:12px;color:#dc2626;margin:8px 0 0;';
+                msg.textContent = data.error || 'Generation failed. Please try again.';
+                document.getElementById('rcp-trigger').insertAdjacentElement('afterend', msg);
+            }
+        })
+        .catch(() => {
+            document.getElementById('rcp-loading').style.display = 'none';
+            document.getElementById('rcp-trigger').style.display = '';
+        });
+    };
+
+    // Init all server-rendered audio players on page load
+    document.querySelectorAll('audio[id^="lfAudio_"]').forEach(audio => {
+        window.bapInitPlayer(audio.id.replace('lfAudio_', ''));
     });
 })();
 </script>

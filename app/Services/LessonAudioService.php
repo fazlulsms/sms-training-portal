@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\AiUsageLog;
 use App\Models\ElearningLesson;
 use App\Models\LessonAudio;
+use App\Models\LessonBlock;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -54,6 +55,46 @@ class LessonAudioService
         }
 
         $this->runTts($audio, $teachingScript);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // AI Coach — per-block explanation (synchronous, no queue)
+    // ──────────────────────────────────────────────────────────
+
+    public function generateBlockCoach(LessonAudio $audio): void
+    {
+        $block = $audio->block ?? LessonBlock::find($audio->block_id);
+        if (!$block) {
+            $this->markFailed($audio, 'Block not found.');
+            return;
+        }
+
+        $lesson = $audio->lesson;
+        $script = $this->buildBlockCoachScript($lesson, $block);
+
+        if (!$script || empty(trim($script))) {
+            $this->markFailed($audio, 'Failed to build AI Coach script for this block.');
+            return;
+        }
+
+        $this->runTts($audio, $script);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // AI Lesson Recap — end-of-lesson summary (synchronous)
+    // ──────────────────────────────────────────────────────────
+
+    public function generateLessonRecap(LessonAudio $audio): void
+    {
+        $lesson = $audio->lesson;
+        $script = $this->buildLessonRecapScript($lesson);
+
+        if (!$script || empty(trim($script))) {
+            $this->markFailed($audio, 'Failed to build lesson recap script.');
+            return;
+        }
+
+        $this->runTts($audio, $script);
     }
 
     // ──────────────────────────────────────────────────────────
@@ -210,6 +251,159 @@ PROMPT;
     }
 
     // ──────────────────────────────────────────────────────────
+    // AI Coach script builder (90-150 words, block-type-aware)
+    // ──────────────────────────────────────────────────────────
+
+    private function buildBlockCoachScript(ElearningLesson $lesson, LessonBlock $block): ?string
+    {
+        if (!config('ai.enabled') || empty(config('ai.api_key'))) {
+            return null;
+        }
+
+        $blockContent = $this->extractBlockText($block);
+        $courseName   = $lesson->course?->name ?? 'this course';
+
+        $typeInstruction = match ($block->block_type) {
+            'case_study'        => 'Approach this from an audit and compliance perspective. Highlight what practitioners should watch for and what real-world implications the case has.',
+            'scenario'          => 'Guide the learner through the thinking process. Explain the key factors, what the right approach would be, and why.',
+            'rich_text'         => 'Explain the concepts in an engaging, conversational way. Connect the theory to real workplace situations the learner would encounter.',
+            'workplace_example' => 'Bring this real-world example to life. Explain why this situation matters and what the learner should take away from it.',
+            'fun_fact'          => 'Share this fact with enthusiasm, then briefly explain why it matters in professional practice.',
+            'myth_fact'         => 'Address the common misconception clearly and directly. Reinforce the correct understanding with a practical reason why it matters.',
+            default             => 'Explain the content in a clear, engaging way that connects to real workplace situations.',
+        };
+
+        $blockTitle = $block->title ? "Block title: {$block->title}" : '';
+
+        $prompt = <<<PROMPT
+You are an AI Learning Coach at SMS Training Academy, a specialist in ISO standards, HSE, and professional development.
+
+Lesson: "{$lesson->title}" (Course: "{$courseName}")
+{$blockTitle}
+Content: {$blockContent}
+
+Your task: Write a short spoken coaching explanation (90-150 words) about this content for the learner. This will be converted to speech — write in natural spoken prose only, no bullet points or markdown.
+
+Coaching approach: {$typeInstruction}
+
+Rules:
+- Speak warmly and directly to the learner using "you".
+- 90-150 words maximum. Do not exceed this.
+- Natural prose paragraphs only.
+- Do NOT reference "this block" or the structural format — just teach naturally.
+
+Write the coaching explanation now:
+PROMPT;
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . config('ai.api_key'),
+                'Content-Type'  => 'application/json',
+            ])
+            ->timeout(config('ai.timeout', 60))
+            ->post(self::CHAT_ENDPOINT, [
+                'model'       => self::AI_TEACHER_MODEL,
+                'messages'    => [['role' => 'user', 'content' => $prompt]],
+                'max_tokens'  => 250,
+                'temperature' => 0.7,
+            ]);
+
+            if ($response->failed()) {
+                Log::error('LessonAudioService: block coach script failed', [
+                    'block_id' => $block->id,
+                    'status'   => $response->status(),
+                    'body'     => $response->body(),
+                ]);
+                return null;
+            }
+
+            $script = $response->json('choices.0.message.content', '');
+            $this->logUsage($response->json('usage', []), $lesson->id, 'ai_coach_script');
+
+            return trim($script);
+
+        } catch (\Throwable $e) {
+            Log::error('LessonAudioService: block coach script exception', [
+                'block_id' => $block->id,
+                'error'    => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // Lesson recap script builder (200-300 words)
+    // ──────────────────────────────────────────────────────────
+
+    private function buildLessonRecapScript(ElearningLesson $lesson): ?string
+    {
+        if (!config('ai.enabled') || empty(config('ai.api_key'))) {
+            return null;
+        }
+
+        $lessonContent = $this->extractNarrationScript($lesson);
+        $courseName    = $lesson->course?->name ?? 'this course';
+
+        $prompt = <<<PROMPT
+You are an expert trainer at SMS Training Academy. You've just finished teaching a lesson called "{$lesson->title}" in the course "{$courseName}".
+
+Your task: Record a closing lesson recap (200-300 words) covering:
+1. What the learner has covered in this lesson
+2. The most important concepts to remember
+3. Common mistakes or misunderstandings to avoid
+4. Practical tips for applying this knowledge in the workplace
+5. A brief motivational closing
+
+This will be converted to speech. Write in natural spoken prose only — no bullet points, no markdown, no lists.
+
+Lesson content covered:
+{$lessonContent}
+
+Rules:
+- Speak directly to the learner: "You've now learned...", "Remember that...", "When you apply this at work..."
+- 200-300 words. Natural, warm, and motivational.
+- End with an encouraging closing line.
+
+Write the lesson recap now:
+PROMPT;
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . config('ai.api_key'),
+                'Content-Type'  => 'application/json',
+            ])
+            ->timeout(config('ai.timeout', 60))
+            ->post(self::CHAT_ENDPOINT, [
+                'model'       => self::AI_TEACHER_MODEL,
+                'messages'    => [['role' => 'user', 'content' => $prompt]],
+                'max_tokens'  => 600,
+                'temperature' => 0.7,
+            ]);
+
+            if ($response->failed()) {
+                Log::error('LessonAudioService: lesson recap script failed', [
+                    'lesson_id' => $lesson->id,
+                    'status'    => $response->status(),
+                    'body'      => $response->body(),
+                ]);
+                return null;
+            }
+
+            $script = $response->json('choices.0.message.content', '');
+            $this->logUsage($response->json('usage', []), $lesson->id, 'lesson_recap_script');
+
+            return trim($script);
+
+        } catch (\Throwable $e) {
+            Log::error('LessonAudioService: lesson recap script exception', [
+                'lesson_id' => $lesson->id,
+                'error'     => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────
     // TTS API call
     // ──────────────────────────────────────────────────────────
 
@@ -281,7 +475,11 @@ PROMPT;
 
     private function saveMp3(LessonAudio $audio, string $mp3Bytes): string
     {
-        $path = 'lesson-audio/' . $audio->lesson_id . '/' . $audio->audio_type . '.mp3';
+        $filename = ($audio->audio_type === 'ai_coach' && $audio->block_id)
+            ? 'block_' . $audio->block_id . '.mp3'
+            : $audio->audio_type . '.mp3';
+
+        $path = 'lesson-audio/' . $audio->lesson_id . '/' . $filename;
         Storage::disk('public')->put($path, $mp3Bytes);
         return $path;
     }
