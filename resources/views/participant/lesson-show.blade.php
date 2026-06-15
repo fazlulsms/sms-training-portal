@@ -18,7 +18,9 @@
 
     $hasQuizzes    = $lesson->quizzes->isNotEmpty();
     $hasResources  = $lesson->resources->isNotEmpty();
-    $hasActivities = $hasQuizzes || $hasResources;
+    // Always show the last panel for enrolled learners so they can access AI Lesson Recap
+    $hasRecap      = !$previewMode && isset($enrollment) && $enrollment !== null;
+    $hasActivities = $hasQuizzes || $hasResources || $hasRecap;
     $lastPanel     = $blockCount + ($hasActivities ? 1 : 0);
 
     $blockTypeIcons = [

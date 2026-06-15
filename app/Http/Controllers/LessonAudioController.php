@@ -90,10 +90,19 @@ class LessonAudioController extends Controller
             return response()->json(['status' => 'processing']);
         }
 
-        $audio = LessonAudio::updateOrCreate(
-            ['lesson_id' => $lesson->id, 'block_id' => null, 'audio_type' => 'lesson_recap', 'language' => 'en'],
-            ['status' => 'processing', 'voice' => 'nova', 'error_message' => null, 'file_path' => null, 'generated_at' => null]
-        );
+        // Use update-or-insert with whereNull (MySQL can't match NULL via = operator)
+        if ($audio) {
+            $audio->update(['status' => 'processing', 'voice' => 'nova', 'error_message' => null, 'file_path' => null, 'generated_at' => null]);
+        } else {
+            $audio = LessonAudio::create([
+                'lesson_id'  => $lesson->id,
+                'block_id'   => null,
+                'audio_type' => 'lesson_recap',
+                'language'   => 'en',
+                'status'     => 'processing',
+                'voice'      => 'nova',
+            ]);
+        }
 
         $service->generateLessonRecap($audio);
         $audio->refresh();
@@ -124,10 +133,20 @@ class LessonAudioController extends Controller
             return response()->json(['error' => 'Recap generation is already in progress.'], 409);
         }
 
-        $audio = LessonAudio::updateOrCreate(
-            ['lesson_id' => $lesson->id, 'block_id' => null, 'audio_type' => 'lesson_recap', 'language' => 'en'],
-            ['status' => 'processing', 'voice' => 'nova', 'error_message' => null, 'file_path' => null, 'generated_at' => null]
-        );
+        // Use update-or-insert with whereNull (MySQL can't match NULL via = operator)
+        if ($existing) {
+            $existing->update(['status' => 'processing', 'voice' => 'nova', 'error_message' => null, 'file_path' => null, 'generated_at' => null]);
+            $audio = $existing;
+        } else {
+            $audio = LessonAudio::create([
+                'lesson_id'  => $lesson->id,
+                'block_id'   => null,
+                'audio_type' => 'lesson_recap',
+                'language'   => 'en',
+                'status'     => 'processing',
+                'voice'      => 'nova',
+            ]);
+        }
 
         $service->generateLessonRecap($audio);
         $audio->refresh();
