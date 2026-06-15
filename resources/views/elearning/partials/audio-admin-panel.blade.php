@@ -133,7 +133,7 @@
 
 <script>
 (function () {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    const csrfToken = '{{ csrf_token() }}';
     const generateUrl  = '{{ route("elearning.audio.generate",  [$course, $lesson]) }}';
     const statusUrl    = '{{ route("elearning.audio.status",    [$course, $lesson]) }}';
     const regenBase    = '{{ url("elearning/courses/" . $course->id . "/lessons/" . $lesson->id . "/audio") }}';
