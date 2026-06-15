@@ -469,6 +469,13 @@ textarea.fi { resize: vertical; }
                                     <option value="inactive" {{ $editBlock->status === 'inactive' ? 'selected' : '' }}>Inactive</option>
                                 </select>
                             </div>
+                            <div>
+                                <label class="fl">Audio</label>
+                                <select name="audio_enabled" class="fi">
+                                    <option value="0" {{ !$editBlock->audio_enabled ? 'selected' : '' }}>Disabled — no audio</option>
+                                    <option value="1" {{ $editBlock->audio_enabled  ? 'selected' : '' }}>Enabled — generate in Audio panel</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="bform-footer">
@@ -490,6 +497,15 @@ textarea.fi { resize: vertical; }
                     </span>
                     @if($block->status !== 'active')
                         <span class="block-inactive-pill">Inactive</span>
+                    @endif
+                    @if($block->audio_enabled)
+                        @php $bAud = ($blockAudioMap ?? collect())->get($block->id); @endphp
+                        <span title="Audio enabled{{ $bAud && $bAud->isReady() ? ' — ready' : ' — not generated' }}"
+                              style="font-size:11px;padding:2px 7px;border-radius:5px;font-weight:700;flex-shrink:0;
+                              background:{{ $bAud && $bAud->isReady() ? '#dcfce7' : '#fef3c7' }};
+                              color:{{ $bAud && $bAud->isReady() ? '#16a34a' : '#92400e' }};">
+                            🔊 {{ $bAud && $bAud->isReady() ? 'Audio ready' : 'Audio pending' }}
+                        </span>
                     @endif
                     <span class="block-title">{{ $block->title ?: '(no title)' }}</span>
 

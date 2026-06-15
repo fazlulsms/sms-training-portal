@@ -18,9 +18,9 @@
 
     $hasQuizzes    = $lesson->quizzes->isNotEmpty();
     $hasResources  = $lesson->resources->isNotEmpty();
-    // Always show the last panel for enrolled learners so they can access AI Lesson Recap
-    $hasRecap      = !$previewMode && isset($enrollment) && $enrollment !== null;
-    $hasActivities = $hasQuizzes || $hasResources || $hasRecap;
+    // Show activities panel when there is a ready recap audio, or quizzes/resources
+    $hasRecap      = isset($lessonRecapAudio) && $lessonRecapAudio && $lessonRecapAudio->isReady();
+    $hasActivities = $hasQuizzes || $hasResources || $hasRecap || ($previewMode ?? false);
     $lastPanel     = $blockCount + ($hasActivities ? 1 : 0);
 
     $blockTypeIcons = [
@@ -2029,57 +2029,6 @@ renderUI();
             </div>
             <audio id="lfAudio_${audioId}" preload="none" src="${audioUrl}"></audio>
         </div>`;
-    };
-
-    window.bapGenerate = function(blockId, url, csrfToken) {
-        const audioId   = 'block_' + blockId;
-        const triggerId = 'bap_' + blockId + '_trigger';
-        const loadingId = 'bap_' + blockId + '_loading';
-        const playerId  = 'bap_' + blockId + '_player';
-        document.getElementById(triggerId).style.display = 'none';
-        document.getElementById(loadingId).style.display = 'flex';
-        fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' } })
-        .then(r => r.json())
-        .then(data => {
-            document.getElementById(loadingId).style.display = 'none';
-            if (data.status === 'ready' && data.url) {
-                document.getElementById(playerId).innerHTML = window.buildAudioPlayerHtml(audioId, 'AI Coach', data.url);
-                window.bapInitPlayer(audioId);
-            } else {
-                document.getElementById(triggerId).style.display = '';
-                const errEl = document.getElementById(triggerId).querySelector('.bap-error-msg');
-                if (errEl) errEl.textContent = data.error || 'Generation failed — try again.';
-            }
-        })
-        .catch(() => {
-            document.getElementById(loadingId).style.display = 'none';
-            document.getElementById(triggerId).style.display = '';
-        });
-    };
-
-    window.rcpGenerate = function(url, csrfToken) {
-        document.getElementById('rcp-trigger').style.display = 'none';
-        document.getElementById('rcp-loading').style.display = 'flex';
-        fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' } })
-        .then(r => r.json())
-        .then(data => {
-            document.getElementById('rcp-loading').style.display = 'none';
-            if (data.status === 'ready' && data.url) {
-                document.getElementById('rcp-player').innerHTML =
-                    window.buildAudioPlayerHtml('lesson_recap', 'AI Lesson Recap', data.url);
-                window.bapInitPlayer('lesson_recap');
-            } else {
-                document.getElementById('rcp-trigger').style.display = '';
-                const msg = document.createElement('p');
-                msg.style.cssText = 'font-size:12px;color:#dc2626;margin:8px 0 0;';
-                msg.textContent = data.error || 'Generation failed. Please try again.';
-                document.getElementById('rcp-trigger').insertAdjacentElement('afterend', msg);
-            }
-        })
-        .catch(() => {
-            document.getElementById('rcp-loading').style.display = 'none';
-            document.getElementById('rcp-trigger').style.display = '';
-        });
     };
 
     // Init all server-rendered audio players on page load

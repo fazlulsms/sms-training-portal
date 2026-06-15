@@ -70,10 +70,11 @@ class ElearningLessonController extends Controller
             ? $lesson->allBlocks()->find(request('edit_block'))
             : null;
 
-        $audioRecords = LessonAudio::where('lesson_id', $lesson->id)->get();
+        $audioRecords  = LessonAudio::where('lesson_id', $lesson->id)->get();
+        $blockAudioMap = $audioRecords->where('audio_type', 'ai_coach')->keyBy('block_id');
 
         return view('elearning.lessons.edit', compact(
-            'course', 'lesson', 'blocks', 'types', 'rules', 'lessonTypes', 'addType', 'editBlock', 'audioRecords'
+            'course', 'lesson', 'blocks', 'types', 'rules', 'lessonTypes', 'addType', 'editBlock', 'audioRecords', 'blockAudioMap'
         ));
     }
 

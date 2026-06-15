@@ -1,17 +1,15 @@
 @php
-    $bapIsPreview = $previewMode ?? false;
-    $bapIsReady   = $blockAudio && $blockAudio->isReady();
-    $bapIsFailed  = $blockAudio && $blockAudio->status === 'failed';
-    $audioId      = 'block_' . $block->id;
-
-    $bapGenerateUrl = (!$bapIsPreview && isset($enrollment) && $enrollment)
-        ? route('participant.block.audio.generate', [$enrollment->id, $lesson->id, $block->id])
-        : null;
+    // Only render this partial when block has audio enabled AND audio is ready.
+    // Administrators generate and review audio before publishing — learners never trigger generation.
+    $bapIsReady = $block->audio_enabled && $blockAudio && $blockAudio->isReady();
+    $audioId    = 'block_' . $block->id;
 @endphp
+
+@if($bapIsReady)
 
 @once
 <style>
-/* ── Shared audio player controls (used by all block + recap players) ── */
+/* ── Shared audio player controls ── */
 .lf-aw-label {
     font-size:11px; font-weight:700; color:rgba(255,255,255,.5);
     text-transform:uppercase; letter-spacing:.05em; margin-bottom:12px;
@@ -60,49 +58,12 @@
 }
 .lf-aw-speed-btn:hover { background:rgba(167,139,250,.15); }
 
-/* ── AI Coach block player wrapper ── */
+/* ── Block player wrapper ── */
 .bap {
     margin-top: 16px;
     padding-top: 14px;
-    border-top: 1px solid rgba(124,58,237,.15);
+    border-top: 1px solid rgba(124,58,237,.12);
 }
-.bap-trigger {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-.bap-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 13px;
-    border-radius: 20px;
-    border: 1px solid rgba(124,58,237,.4);
-    background: rgba(124,58,237,.06);
-    color: #7c3aed;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: .15s;
-    letter-spacing: .01em;
-}
-.bap-btn:hover { background:rgba(124,58,237,.12); border-color:#7c3aed; }
-.bap-error-msg { font-size:11.5px; color:#dc2626; }
-.bap-loading {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    font-size: 12.5px;
-    color: #7c3aed;
-    font-weight: 600;
-}
-.bap-spinner {
-    width:14px; height:14px; border-radius:50%;
-    border:2px solid rgba(124,58,237,.25); border-top-color:#7c3aed;
-    animation:bap-spin .7s linear infinite; flex-shrink:0;
-}
-@keyframes bap-spin { to { transform:rotate(360deg); } }
 .bap-player-wrap {
     background: linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);
     border-radius: 12px;
@@ -114,31 +75,13 @@
 @endonce
 
 <div class="bap" id="bap_{{ $block->id }}">
-
-@if($bapIsReady)
     <div class="bap-player-wrap">
         @include('participant.partials.audio-player-controls', [
             'audioId' => $audioId,
-            'label'   => 'AI Coach',
+            'label'   => '&#9654; Play Audio',
         ])
         <audio id="lfAudio_{{ $audioId }}" preload="none" src="{{ $blockAudio->publicUrl() }}"></audio>
     </div>
-
-@elseif($bapGenerateUrl)
-    <div class="bap-trigger" id="bap_{{ $block->id }}_trigger">
-        <button class="bap-btn" onclick="bapGenerate('{{ $block->id }}', '{{ $bapGenerateUrl }}', '{{ csrf_token() }}')">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-            AI Coach
-        </button>
-        @if($bapIsFailed)
-        <span class="bap-error-msg">Generation failed — try again.</span>
-        @endif
-    </div>
-    <div class="bap-loading" id="bap_{{ $block->id }}_loading">
-        <div class="bap-spinner"></div>
-        Generating AI Coach&hellip;
-    </div>
-    <div id="bap_{{ $block->id }}_player"></div>
-@endif
-
 </div>
+
+@endif

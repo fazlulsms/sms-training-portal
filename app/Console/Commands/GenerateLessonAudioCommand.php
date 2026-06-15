@@ -35,11 +35,20 @@ class GenerateLessonAudioCommand extends Command
         $voice = $this->option('voice');
 
         if ($type === 'recap' || $type === 'all') {
-            $this->line('▶  Generating AI Lesson Recap…');
-            $audio = LessonAudio::updateOrCreate(
-                ['lesson_id' => $lesson->id, 'block_id' => null, 'audio_type' => 'lesson_recap', 'language' => 'en'],
-                ['status' => 'processing', 'voice' => $voice, 'error_message' => null, 'file_path' => null, 'generated_at' => null]
-            );
+            $this->line('▶  Generating Lesson Audio Summary…');
+            // Use whereNull — MySQL cannot match NULL via = operator in updateOrCreate
+            $existing = LessonAudio::where('lesson_id', $lesson->id)
+                ->whereNull('block_id')
+                ->where('audio_type', 'lesson_recap')
+                ->where('language', 'en')
+                ->first();
+
+            if ($existing) {
+                $existing->update(['status' => 'processing', 'voice' => $voice, 'error_message' => null, 'file_path' => null, 'duration_seconds' => null, 'generated_at' => null]);
+                $audio = $existing;
+            } else {
+                $audio = LessonAudio::create(['lesson_id' => $lesson->id, 'block_id' => null, 'audio_type' => 'lesson_recap', 'language' => 'en', 'status' => 'processing', 'voice' => $voice]);
+            }
 
             $start = microtime(true);
             $service->generateLessonRecap($audio);
@@ -56,14 +65,14 @@ class GenerateLessonAudioCommand extends Command
 
         if ($type === 'blocks' || $type === 'all') {
             $specificBlock = $this->option('block');
-            $blocks = $lesson->blocks->filter(fn ($b) => $b->isAudioEligible());
+            $blocks = $lesson->blocks->filter(fn ($b) => $b->audio_enabled);
 
             if ($specificBlock) {
                 $blocks = $blocks->filter(fn ($b) => $b->id == $specificBlock);
             }
 
             if ($blocks->isEmpty()) {
-                $this->warn('No eligible blocks found for AI Coach generation.');
+                $this->warn('No blocks have audio enabled. Edit blocks and set Audio: Enabled first.');
             } else {
                 $this->line("▶  Generating AI Coach for {$blocks->count()} eligible block(s)…");
                 foreach ($blocks as $block) {

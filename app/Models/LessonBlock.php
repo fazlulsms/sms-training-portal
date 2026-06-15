@@ -16,12 +16,14 @@ class LessonBlock extends Model
         'settings_json',
         'sort_order',
         'status',
+        'audio_enabled',
     ];
 
     protected $casts = [
-        'settings_json' => 'array',
-        'sort_order'    => 'integer',
+        'settings_json'        => 'array',
+        'sort_order'           => 'integer',
         'certificate_eligible' => 'boolean',
+        'audio_enabled'        => 'boolean',
     ];
 
     // ── Types ──────────────────────────────────────────────
@@ -50,18 +52,15 @@ class LessonBlock extends Model
         'download'           => ['label' => 'Download Resources',  'icon' => 'download',  'color' => '#92400e'],
     ];
 
-    public const AUDIO_ELIGIBLE_TYPES = [
-        'rich_text', 'case_study', 'scenario', 'workplace_example', 'fun_fact', 'myth_fact',
+    // Types typically suitable for audio — used as a hint in the admin UI only.
+    // Actual audio delivery is controlled by the per-block audio_enabled flag.
+    public const AUDIO_SUITABLE_TYPES = [
+        'rich_text', 'case_study', 'scenario', 'workplace_example', 'fun_fact',
     ];
-
-    public static function audioEligibleTypes(): array
-    {
-        return self::AUDIO_ELIGIBLE_TYPES;
-    }
 
     public function isAudioEligible(): bool
     {
-        return in_array($this->block_type, self::AUDIO_ELIGIBLE_TYPES);
+        return (bool) $this->audio_enabled;
     }
 
     public function getTypeLabel(): string

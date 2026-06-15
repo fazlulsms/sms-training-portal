@@ -22,11 +22,12 @@ class LessonBlockController extends Controller
         $maxOrder = $lesson->allBlocks()->max('sort_order') ?? -1;
 
         $block = new LessonBlock([
-            'lesson_id'  => $lesson->id,
-            'block_type' => $request->block_type,
-            'title'      => $request->title,
-            'status'     => 'active',   // always active on creation — no user input needed
-            'sort_order' => $maxOrder + 1,
+            'lesson_id'     => $lesson->id,
+            'block_type'    => $request->block_type,
+            'title'         => $request->title,
+            'status'        => 'active',
+            'sort_order'    => $maxOrder + 1,
+            'audio_enabled' => false,
         ]);
 
         $block->content      = $this->processContent($request);
@@ -50,6 +51,7 @@ class LessonBlockController extends Controller
 
         $block->title         = $request->title;
         $block->status        = $request->input('status', $block->status);
+        $block->audio_enabled = $request->boolean('audio_enabled', false);
         $block->content       = $this->processContent($request);
         $block->media_path    = $request->media_path ?? $block->media_path;
         $block->settings_json = $this->processSettings($request);
