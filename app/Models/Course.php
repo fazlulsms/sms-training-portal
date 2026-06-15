@@ -9,6 +9,7 @@ class Course extends Model
 {
     protected $fillable = [
         'name', 'code', 'slug', 'category', 'category_id', 'status',
+        'ltf_course_type_id', 'ltf_learning_framework_id',
         'delivery_type', 'language', 'duration', 'cpd_hours',
         'course_type', 'description', 'short_description', 'full_description',
         'learning_objectives', 'course_outline', 'who_should_attend', 'prerequisites',
@@ -46,6 +47,35 @@ class Course extends Model
             }
         });
     }
+
+    // ── LTF Taxonomy Relationships ─────────────────────────────
+
+    public function ltfCourseType()
+    {
+        return $this->belongsTo(LtfCourseType::class, 'ltf_course_type_id');
+    }
+
+    public function ltfLearningFramework()
+    {
+        return $this->belongsTo(LtfLearningFramework::class, 'ltf_learning_framework_id');
+    }
+
+    public function ltfStandards()
+    {
+        return $this->belongsToMany(LtfStandard::class, 'course_ltf_standards');
+    }
+
+    public function ltfIndustries()
+    {
+        return $this->belongsToMany(LtfIndustry::class, 'course_ltf_industries');
+    }
+
+    public function ltfAudiences()
+    {
+        return $this->belongsToMany(LtfAudienceType::class, 'course_ltf_audiences');
+    }
+
+    // ── Existing Relationships ──────────────────────────────────
 
     public function courseCategory()
     {
