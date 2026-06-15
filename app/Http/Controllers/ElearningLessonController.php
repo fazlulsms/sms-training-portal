@@ -132,17 +132,23 @@ class ElearningLessonController extends Controller
         $previousLesson = ($currentIndex !== false && $currentIndex > 0) ? $lessons[$currentIndex - 1] : null;
         $nextLesson     = ($currentIndex !== false && $currentIndex < $lessons->count() - 1) ? $lessons[$currentIndex + 1] : null;
 
+        $audioRecords       = LessonAudio::where('lesson_id', $lesson->id)->where('status', 'ready')->get();
+        $narrationAudio     = $audioRecords->firstWhere('audio_type', 'narration');
+        $aiExplanationAudio = $audioRecords->firstWhere('audio_type', 'ai_explanation');
+
         return view('participant.lesson-show', [
-            'enrollment'     => null,
-            'lesson'         => $lesson,
-            'lessonProgress' => null,
-            'quizzesPassed'  => false,
-            'previousLesson' => $previousLesson,
-            'nextLesson'     => $nextLesson,
-            'lessons'        => $lessons,
-            'currentIndex'   => $currentIndex,
-            'previewMode'    => true,
-            'previewCourse'  => $course,
+            'enrollment'         => null,
+            'lesson'             => $lesson,
+            'lessonProgress'     => null,
+            'quizzesPassed'      => false,
+            'previousLesson'     => $previousLesson,
+            'nextLesson'         => $nextLesson,
+            'lessons'            => $lessons,
+            'currentIndex'       => $currentIndex,
+            'previewMode'        => true,
+            'previewCourse'      => $course,
+            'narrationAudio'     => $narrationAudio,
+            'aiExplanationAudio' => $aiExplanationAudio,
         ]);
     }
 
