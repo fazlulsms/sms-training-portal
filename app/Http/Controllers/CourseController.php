@@ -15,22 +15,29 @@ class CourseController extends Controller
 {
     public function index(Request $request)
     {
-        $q           = $request->input('q', $request->input('search'));
-        $courseType  = $request->input('course_type');
-        $status      = $request->input('status');
+        $q             = $request->input('q', $request->input('search'));
+        $courseType    = $request->input('course_type');
+        $status        = $request->input('status');
+        $ltfTypeId     = $request->input('ltf_type');
+        $ltfClassified = $request->input('ltf_classified');
 
-        $courses = Course::query()
+        $courses = Course::with(['ltfCourseType', 'ltfLearningFramework', 'courseCategory'])
             ->when($q, fn($query) => $query->where(fn($sub) =>
                 $sub->where('name', 'like', "%$q%")
                     ->orWhere('code', 'like', "%$q%")
             ))
             ->when($courseType, fn($query) => $query->where('course_type', $courseType))
             ->when($status !== null && $status !== '', fn($query) => $query->where('status', $status === 'active' ? 1 : 0))
+            ->when($ltfTypeId, fn($query) => $query->where('ltf_course_type_id', $ltfTypeId))
+            ->when($ltfClassified === '0', fn($query) => $query->whereNull('ltf_course_type_id'))
+            ->when($ltfClassified === '1', fn($query) => $query->whereNotNull('ltf_course_type_id'))
             ->orderBy('id', 'desc')
             ->paginate(20)
             ->withQueryString();
 
-        return view('courses.index', compact('courses'));
+        $ltfCourseTypes = LtfCourseType::active()->orderBy('display_order')->get(['id', 'name', 'group']);
+
+        return view('courses.index', compact('courses', 'ltfCourseTypes'));
     }
 
     public function exportCsv(Request $request)

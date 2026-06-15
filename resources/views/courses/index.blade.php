@@ -30,13 +30,43 @@
                 <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Active</option>
                 <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
             </select>
+            <select class="fi" name="ltf_type" style="min-width:170px;">
+                <option value="">All LTF Types</option>
+                @foreach($ltfCourseTypes as $lt)
+                <option value="{{ $lt->id }}" {{ request('ltf_type') == $lt->id ? 'selected' : '' }}>{{ $lt->name }}</option>
+                @endforeach
+            </select>
+            <select class="fi" name="ltf_classified" style="min-width:150px;">
+                <option value="">Any Classification</option>
+                <option value="1" {{ request('ltf_classified') === '1' ? 'selected' : '' }}>Classified</option>
+                <option value="0" {{ request('ltf_classified') === '0' ? 'selected' : '' }}>Unclassified</option>
+            </select>
             <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-            @if(request()->hasAny(['q','course_type','status']))
+            @if(request()->hasAny(['q','course_type','status','ltf_type','ltf_classified']))
             <a href="/admin/courses" class="btn btn-ghost btn-sm">✕ Clear</a>
             @endif
             <a href="/admin/courses/export?{{ http_build_query(request()->only(['q','course_type','status'])) }}" class="btn btn-secondary btn-sm">⬇ CSV</a>
         </div>
     </form>
+</div>
+
+{{-- LTF classification summary bar --}}
+@php
+    $total      = $courses->total();
+    $classified = \App\Models\Course::whereNotNull('ltf_course_type_id')->count();
+    $pct        = $total > 0 ? round(($classified / max(\App\Models\Course::count(), 1)) * 100) : 0;
+@endphp
+<div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px 18px; margin-bottom:16px; display:flex; align-items:center; gap:20px; font-size:13px; flex-wrap:wrap;">
+    <span style="font-weight:700; color:#374151;">LTF Classification</span>
+    <div style="flex:1; min-width:160px; background:#e5e7eb; border-radius:20px; height:6px;">
+        <div style="background:#1e3a8a; width:{{ $pct }}%; height:100%; border-radius:20px; transition:.3s;"></div>
+    </div>
+    <span style="color:#6b7280;"><strong style="color:#111827;">{{ $classified }}</strong> of <strong style="color:#111827;">{{ \App\Models\Course::count() }}</strong> courses classified ({{ $pct }}%)</span>
+    @if($classified < \App\Models\Course::count())
+    <a href="/admin/courses?ltf_classified=0" style="color:#dc2626; font-weight:600; text-decoration:none; font-size:12px;">
+        {{ \App\Models\Course::count() - $classified }} unclassified →
+    </a>
+    @endif
 </div>
 
 <div class="dt-wrap">
@@ -48,6 +78,8 @@
                     <th>Course</th>
                     <th>Code</th>
                     <th class="c">Type</th>
+                    <th>Category</th>
+                    <th>LTF Classification</th>
                     <th class="c">Status</th>
                     <th class="c">Actions</th>
                 </tr>
@@ -56,13 +88,50 @@
                 @forelse($courses as $i => $course)
                 <tr>
                     <td class="text-muted text-small">{{ $courses->firstItem() + $loop->index }}</td>
-                    <td class="td-main">{{ $course->name }}</td>
+                    <td class="td-main">
+                        <div style="font-weight:600; color:#111827;">{{ $course->name }}</div>
+                        @if($course->ltfLearningFramework)
+                        <div style="margin-top:3px;">
+                            <span style="font-size:11px; background:#eff6ff; color:#1e40af; padding:1px 7px; border-radius:10px; font-weight:600;">
+                                {{ $course->ltfLearningFramework->name }}
+                            </span>
+                        </div>
+                        @endif
+                    </td>
                     <td><span class="td-mono">{{ $course->code }}</span></td>
                     <td class="c">
                         @if($course->course_type === 'elearning')
                             <span class="badge badge-info">eLearning</span>
                         @else
                             <span class="badge badge-secondary">Manual</span>
+                        @endif
+                    </td>
+                    <td style="font-size:13px; color:#6b7280;">
+                        @if($course->courseCategory)
+                            <span style="font-size:12px; background:#f3f4f6; color:#374151; padding:2px 8px; border-radius:10px; font-weight:600;">
+                                {{ $course->courseCategory->icon ? $course->courseCategory->icon . ' ' : '' }}{{ $course->courseCategory->name }}
+                            </span>
+                        @else
+                            <span style="color:#d1d5db; font-size:12px;">—</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($course->ltfCourseType)
+                            @php
+                                $groupColors = [
+                                    'elearning'  => ['#dbeafe','#1e40af'],
+                                    'ilt'        => ['#fef3c7','#92400e'],
+                                    'assessment' => ['#f3e8ff','#6b21a8'],
+                                ];
+                                $gc = $groupColors[$course->ltfCourseType->group] ?? ['#f3f4f6','#6b7280'];
+                            @endphp
+                            <span style="font-size:11px; background:{{ $gc[0] }}; color:{{ $gc[1] }}; padding:2px 8px; border-radius:10px; font-weight:700; white-space:nowrap;">
+                                {{ $course->ltfCourseType->name }}
+                            </span>
+                        @else
+                            <span style="font-size:11px; background:#fff7ed; color:#c2410c; padding:2px 8px; border-radius:10px; font-weight:600;">
+                                ⚠ Unclassified
+                            </span>
                         @endif
                     </td>
                     <td class="c">
@@ -83,7 +152,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6">
+                    <td colspan="8">
                         <div class="empty-state">
                             <div class="empty-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
