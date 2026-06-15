@@ -600,6 +600,8 @@
                         </div>
                     </div>
 
+                    @include('participant.partials.audio-player', ['narrationAudio' => $narrationAudio ?? null, 'aiExplanationAudio' => $aiExplanationAudio ?? null])
+
                     @if($lesson->learning_objectives)
                     <div class="lo-obj">
                         <div class="lo-obj-head">

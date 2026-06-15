@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Enrollment;
 use App\Models\ElearningEnrollment;
 use App\Models\ElearningLesson;
+use App\Models\LessonAudio;
 use App\Models\LessonProgress;
 use App\Services\LessonProgressService;
 use Illuminate\Support\Facades\Auth;
@@ -155,6 +156,10 @@ class ParticipantDashboardController extends Controller
         $previousLesson = $currentIndex > 0 ? $lessons[$currentIndex - 1] : null;
         $nextLesson     = $currentIndex < $lessons->count() - 1 ? $lessons[$currentIndex + 1] : null;
 
+        $audioRecords    = LessonAudio::where('lesson_id', $lesson->id)->where('status', 'ready')->get();
+        $narrationAudio  = $audioRecords->firstWhere('audio_type', 'narration');
+        $aiExplanationAudio = $audioRecords->firstWhere('audio_type', 'ai_explanation');
+
         return view('participant.lesson-show', compact(
             'enrollment',
             'lesson',
@@ -163,7 +168,9 @@ class ParticipantDashboardController extends Controller
             'previousLesson',
             'nextLesson',
             'lessons',
-            'currentIndex'
+            'currentIndex',
+            'narrationAudio',
+            'aiExplanationAudio'
         ));
     }
 

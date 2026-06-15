@@ -298,6 +298,8 @@ textarea.fi { resize: vertical; }
         </div>
         @endif
 
+        @include('elearning.partials.audio-admin-panel', ['audioRecords' => $audioRecords])
+
     </div>{{-- /left --}}
 
     {{-- ═══ RIGHT: Block Builder ════════════════════════════════════════ --}}

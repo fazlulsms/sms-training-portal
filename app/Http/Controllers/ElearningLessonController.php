@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\ElearningLesson;
+use App\Models\LessonAudio;
 use App\Models\LessonBlock;
 use Illuminate\Http\Request;
 
@@ -69,8 +70,10 @@ class ElearningLessonController extends Controller
             ? $lesson->allBlocks()->find(request('edit_block'))
             : null;
 
+        $audioRecords = LessonAudio::where('lesson_id', $lesson->id)->get();
+
         return view('elearning.lessons.edit', compact(
-            'course', 'lesson', 'blocks', 'types', 'rules', 'lessonTypes', 'addType', 'editBlock'
+            'course', 'lesson', 'blocks', 'types', 'rules', 'lessonTypes', 'addType', 'editBlock', 'audioRecords'
         ));
     }
 
