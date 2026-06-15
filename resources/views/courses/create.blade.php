@@ -50,6 +50,7 @@
     <div class="tab-nav">
         <button class="tab-btn active" onclick="showTab('basic',this)" type="button">Basic Info</button>
         <button class="tab-btn" onclick="showTab('content',this)" type="button">Public Content</button>
+        <button class="tab-btn" onclick="showTab('classification',this)" type="button">Classification</button>
         <button class="tab-btn" onclick="showTab('seo',this)" type="button">Visibility &amp; SEO</button>
     </div>
 
@@ -188,7 +189,83 @@
             </div>
         </div>
 
-        {{-- ── TAB 3: Visibility & SEO ─────────────────────────── --}}
+        {{-- ── TAB 3: Classification ──────────────────────────── --}}
+        <div id="tab-classification" class="tab-panel">
+            <p style="font-size:13px; color:#6b7280; margin:-4px 0 20px; padding:10px 14px; background:#f0f9ff; border-radius:8px; border-left:3px solid #0ea5e9;">
+                LTF (Learning Taxonomy Framework) — classify this course for smart search, AI generation, reporting, and accreditation mapping.
+            </p>
+
+            <div class="frow" style="margin-bottom:20px;">
+                <div class="fg">
+                    <label>Layer 1 — Course Type</label>
+                    <select name="ltf_course_type_id">
+                        <option value="">— Not classified —</option>
+                        @foreach($ltfCourseTypes as $grp)
+                        <optgroup label="{{ $grp['label'] }}">
+                            @foreach($grp['options'] as $id => $name)
+                            <option value="{{ $id }}" {{ old('ltf_course_type_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
+                            @endforeach
+                        </optgroup>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="fg">
+                    <label>Layer 2 — Learning Framework</label>
+                    <select name="ltf_learning_framework_id">
+                        <option value="">— Not classified —</option>
+                        @foreach($ltfFrameworks as $id => $name)
+                        <option value="{{ $id }}" {{ old('ltf_learning_framework_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            {{-- Layer 3: Standards (grouped checkboxes) --}}
+            <div style="margin-bottom:20px;">
+                <label style="display:block; font-weight:600; font-size:13.5px; color:#374151; margin-bottom:10px;">Layer 3 — Standards &amp; Frameworks <span style="font-weight:400; color:#9ca3af;">(select all that apply)</span></label>
+                @foreach($ltfStandards as $domainGroup)
+                <div style="margin-bottom:12px;">
+                    <div style="font-size:11px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px;">{{ $domainGroup['label'] }}</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                        @foreach($domainGroup['options'] as $id => $name)
+                        <label style="display:flex; align-items:center; gap:6px; padding:5px 12px; border:1.5px solid {{ in_array($id, old('ltf_standard_ids', [])) ? '#1e3a8a' : '#e5e7eb' }}; border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; background:{{ in_array($id, old('ltf_standard_ids', [])) ? '#eff6ff' : '#fff' }};">
+                            <input type="checkbox" name="ltf_standard_ids[]" value="{{ $id }}" {{ in_array($id, old('ltf_standard_ids', [])) ? 'checked' : '' }} style="width:auto; accent-color:#1e3a8a;">
+                            {{ $name }}
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
+            {{-- Layer 4: Industries --}}
+            <div style="margin-bottom:20px;">
+                <label style="display:block; font-weight:600; font-size:13.5px; color:#374151; margin-bottom:10px;">Layer 4 — Industries <span style="font-weight:400; color:#9ca3af;">(select all that apply)</span></label>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    @foreach($ltfIndustries as $id => $name)
+                    <label style="display:flex; align-items:center; gap:6px; padding:5px 12px; border:1.5px solid {{ in_array($id, old('ltf_industry_ids', [])) ? '#1e3a8a' : '#e5e7eb' }}; border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; background:{{ in_array($id, old('ltf_industry_ids', [])) ? '#eff6ff' : '#fff' }};">
+                        <input type="checkbox" name="ltf_industry_ids[]" value="{{ $id }}" {{ in_array($id, old('ltf_industry_ids', [])) ? 'checked' : '' }} style="width:auto; accent-color:#1e3a8a;">
+                        {{ $name }}
+                    </label>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Layer 5: Audience Types --}}
+            <div style="margin-bottom:20px;">
+                <label style="display:block; font-weight:600; font-size:13.5px; color:#374151; margin-bottom:10px;">Layer 5 — Audience Types <span style="font-weight:400; color:#9ca3af;">(select all that apply)</span></label>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    @foreach($ltfAudiences as $id => $name)
+                    <label style="display:flex; align-items:center; gap:6px; padding:5px 12px; border:1.5px solid {{ in_array($id, old('ltf_audience_ids', [])) ? '#1e3a8a' : '#e5e7eb' }}; border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; background:{{ in_array($id, old('ltf_audience_ids', [])) ? '#eff6ff' : '#fff' }};">
+                        <input type="checkbox" name="ltf_audience_ids[]" value="{{ $id }}" {{ in_array($id, old('ltf_audience_ids', [])) ? 'checked' : '' }} style="width:auto; accent-color:#1e3a8a;">
+                        {{ $name }}
+                    </label>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        {{-- ── TAB 4: Visibility & SEO ─────────────────────────── --}}
         <div id="tab-seo" class="tab-panel">
             <div class="fg">
                 <label>URL Slug (auto-generated if blank)</label>
@@ -255,5 +332,13 @@ function showTab(name, btn) {
     document.getElementById('tab-' + name).classList.add('active');
     btn.classList.add('active');
 }
+document.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', function() {
+        const lbl = this.closest('label');
+        if (!lbl) return;
+        lbl.style.borderColor = this.checked ? '#1e3a8a' : '#e5e7eb';
+        lbl.style.background  = this.checked ? '#eff6ff' : '#fff';
+    });
+});
 </script>
 @endsection
