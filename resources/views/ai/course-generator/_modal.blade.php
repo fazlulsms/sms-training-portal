@@ -128,6 +128,43 @@
                            onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
                 </div>
 
+                {{-- LTF — Learning Framework + Competency Level --}}
+                @php
+                    use App\Models\LtfLearningFramework;
+                    $aiModalFrameworks = LtfLearningFramework::active()->orderBy('display_order')->get(['id','name']);
+                @endphp
+                <div>
+                    <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
+                        Learning Framework
+                        <span style="font-size:10px; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-weight:700; margin-left:4px; letter-spacing:.2px;">LTF</span>
+                        <span style="font-size:11.5px; font-weight:400; color:#9ca3af;">(optional)</span>
+                    </label>
+                    <select id="ai_ltf_framework" style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:13.5px; box-sizing:border-box;"
+                            onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
+                        <option value="">— Auto-detect from content —</option>
+                        @foreach($aiModalFrameworks as $fw)
+                        <option value="{{ $fw->id }}">{{ $fw->name }}</option>
+                        @endforeach
+                    </select>
+                    <div style="font-size:11px; color:#6b7280; margin-top:3px;">Shapes lesson block types, depth, and module structure.</div>
+                </div>
+                <div>
+                    <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
+                        Competency Level
+                        <span style="font-size:10px; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-weight:700; margin-left:4px; letter-spacing:.2px;">LTF</span>
+                        <span style="font-size:11.5px; font-weight:400; color:#9ca3af;">(optional)</span>
+                    </label>
+                    <select id="ai_ltf_competency" style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:13.5px; box-sizing:border-box;"
+                            onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
+                        <option value="">— Match Learning Level above —</option>
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                        <option value="expert">Expert</option>
+                    </select>
+                    <div style="font-size:11px; color:#6b7280; margin-top:3px;">Adjusts word count, question difficulty, and case-study complexity.</div>
+                </div>
+
                 {{-- Additional Instructions (optional) --}}
                 <div style="grid-column:1/-1;">
                     <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
@@ -244,6 +281,8 @@ async function submitAiGenerate() {
     const level         = document.getElementById('ai_learning_level').value;
     const standard      = document.getElementById('ai_standard').value.trim();
     const instructions  = document.getElementById('ai_instructions').value.trim();
+    const ltfFramework  = document.getElementById('ai_ltf_framework').value;
+    const ltfCompetency = document.getElementById('ai_ltf_competency').value;
     const modeBEl       = document.getElementById('modeB');
     const generationMode = (modeBEl && modeBEl.checked) ? 'complete' : 'structure';
 
@@ -260,21 +299,25 @@ async function submitAiGenerate() {
     }
 
     try {
+        const payload = {
+            course_name:      courseName,
+            duration:         duration,
+            language:         language,
+            target_audience:  targetAud,
+            industry:         industry,
+            learning_level:   level,
+            standard:         standard,
+            instructions:     instructions,
+            course_type:      AI_COURSE_TYPE,
+            generation_mode:  generationMode,
+        };
+        if (ltfFramework)  payload.ltf_learning_framework_id = parseInt(ltfFramework);
+        if (ltfCompetency) payload.ltf_competency_level      = ltfCompetency;
+
         const res  = await fetch(AI_GENERATE_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': AI_CSRF, 'Accept': 'application/json' },
-            body: JSON.stringify({
-                course_name:      courseName,
-                duration:         duration,
-                language:         language,
-                target_audience:  targetAud,
-                industry:         industry,
-                learning_level:   level,
-                standard:         standard,
-                instructions:     instructions,
-                course_type:      AI_COURSE_TYPE,
-                generation_mode:  generationMode,
-            }),
+            body: JSON.stringify(payload),
         });
 
         // Always try to read JSON body first so we can show real error detail

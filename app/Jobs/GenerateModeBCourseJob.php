@@ -8,6 +8,8 @@ use App\Models\ElearningLesson;
 use App\Models\ElearningQuiz;
 use App\Models\ElearningQuizQuestion;
 use App\Services\OpenAIService;
+use App\Support\LtfContextBuilder;
+use App\Support\LtfGenerationContext;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -77,6 +79,9 @@ class GenerateModeBCourseJob implements ShouldQueue
     // ─────────────────────────────────────────────────────────────────
     private function run(Course $course): void
     {
+        // Build LTF context once — all generation phases share it
+        $ltfContext = LtfContextBuilder::fromCourse($course);
+
         $aiStructure  = $course->ai_course_structure ?? [];
         $aiModules    = $aiStructure['modules'] ?? [];
         $totalModules = count($aiModules);
@@ -126,7 +131,7 @@ class GenerateModeBCourseJob implements ShouldQueue
                         "Generating Lesson {$lessonsDone} of {$totalLessons}: {$lesson->title}",
                         $this->prog($lessonsDone, $totalLessons, $blocksDone, $quizzesDone, $totalModules, 'lessons'));
 
-                    $count = $this->generateOneLessonContent($course, $lesson, $lessonType, $lessonsDone, $totalLessons);
+                    $count = $this->generateOneLessonContent($course, $lesson, $lessonType, $lessonsDone, $totalLessons, $ltfContext);
 
                     $lessonsAttempted++;
                     $blocksDone    += $count;
@@ -154,7 +159,7 @@ class GenerateModeBCourseJob implements ShouldQueue
                         "Generating Module Quiz {$quizzesDone} of {$totalModules}: {$moduleTitle}",
                         $this->prog($lessonsDone, $totalLessons, $blocksDone, $quizzesDone, $totalModules, 'module_quiz'));
 
-                    $this->generateModuleQuiz($course, $modIdx + 1, $moduleTitle, $modLessonIds);
+                    $this->generateModuleQuiz($course, $modIdx + 1, $moduleTitle, $modLessonIds, $ltfContext);
                 }
             }
 
@@ -163,7 +168,7 @@ class GenerateModeBCourseJob implements ShouldQueue
                 $lesson = $lessonsArr->get($lessonPtr++);
                 $lessonsDone++;
                 if (!$lesson->allBlocks()->exists()) {
-                    $count            = $this->generateOneLessonContent($course, $lesson, 'concept', $lessonsDone, $totalLessons);
+                    $count            = $this->generateOneLessonContent($course, $lesson, 'concept', $lessonsDone, $totalLessons, $ltfContext);
                     $lessonsAttempted++;
                     $blocksDone      += $count;
                     if ($count > 0) {
@@ -182,7 +187,7 @@ class GenerateModeBCourseJob implements ShouldQueue
                     "Generating Lesson {$lessonsDone} of {$totalLessons}: {$lesson->title}",
                     $this->prog($lessonsDone, $totalLessons, $blocksDone, $quizzesDone, $totalModules, 'lessons'));
 
-                $count            = $this->generateOneLessonContent($course, $lesson, 'concept', $lessonsDone, $totalLessons);
+                $count            = $this->generateOneLessonContent($course, $lesson, 'concept', $lessonsDone, $totalLessons, $ltfContext);
                 $lessonsAttempted++;
                 $blocksDone      += $count;
 
@@ -211,7 +216,7 @@ class GenerateModeBCourseJob implements ShouldQueue
         $this->snap($course, 'running', 'Generating Final Course Assessment…',
             $this->prog($lessonsDone, $totalLessons, $blocksDone, $quizzesDone, $totalModules, 'final_assessment'));
 
-        $finalQs = $this->generateFinalAssessment($course);
+        $finalQs = $this->generateFinalAssessment($course, $ltfContext);
 
         // ── Done ─────────────────────────────────────────────────────
         $doneProgress = json_encode([
@@ -242,7 +247,8 @@ class GenerateModeBCourseJob implements ShouldQueue
         ElearningLesson $lesson,
         string $lessonType,
         int $num,
-        int $total
+        int $total,
+        ?LtfGenerationContext $ltfContext = null,
     ): int {
         if (str_starts_with($lesson->title, 'Course Introduction:')) {
             return $this->generateSpecialLesson($course, $lesson, 'course_intro');
@@ -252,7 +258,7 @@ class GenerateModeBCourseJob implements ShouldQueue
         }
 
         return AiLessonContentController::generateAndSaveBlocks(
-            $course, $lesson, $this->level, $lessonType, $num, $total
+            $course, $lesson, $this->level, $lessonType, $num, $total, $ltfContext
         );
     }
 
@@ -330,8 +336,13 @@ PROMPT;
     // ─────────────────────────────────────────────────────────────────
     // Module Quiz
     // ─────────────────────────────────────────────────────────────────
-    private function generateModuleQuiz(Course $course, int $modIndex, string $moduleTitle, array $lessonIds): void
-    {
+    private function generateModuleQuiz(
+        Course $course,
+        int $modIndex,
+        string $moduleTitle,
+        array $lessonIds,
+        ?LtfGenerationContext $ltfContext = null,
+    ): void {
         // Skip if quiz already generated for this module (resumability guard)
         $alreadyExists = ElearningLesson::where('course_id', $course->id)
             ->where('lesson_type', 'assessment')
@@ -349,11 +360,15 @@ PROMPT;
 
             $qCount = match ($this->level) { 'Awareness' => 3, 'Advanced' => 5, default => 4 };
 
+            $ltfAssessment = ($ltfContext && $ltfContext->hasContext())
+                ? "\n\n" . $ltfContext->toAssessmentInstructions()
+                : '';
+
             $result = app(OpenAIService::class)->generateText(
                 "ROLE: eLearning assessment designer. Output ONLY valid JSON (no markdown fences).\n\n" .
                 "Generate {$qCount} MCQ quiz questions for Module {$modIndex}: {$moduleTitle}.\n" .
                 "Course: {$course->name} | Level: {$this->level}\n" .
-                "Lessons:\n{$summaries}\n\n" .
+                "Lessons:\n{$summaries}{$ltfAssessment}\n\n" .
                 "Return: {\"questions\":[{\"question_text\":\"...\",\"options\":{\"a\":\"...\",\"b\":\"...\",\"c\":\"...\",\"d\":\"...\"},\"correct_answer\":\"a\",\"explanation\":\"...\"}]}\n" .
                 "Include 1 true/false (a=True, b=False, c=Sometimes, d=Not applicable).",
                 'module_quiz', null, 2000
@@ -411,7 +426,7 @@ PROMPT;
     // ─────────────────────────────────────────────────────────────────
     // Final Assessment
     // ─────────────────────────────────────────────────────────────────
-    private function generateFinalAssessment(Course $course): int
+    private function generateFinalAssessment(Course $course, ?LtfGenerationContext $ltfContext = null): int
     {
         // Skip if final assessment already exists (resumability guard)
         $exists = ElearningLesson::where('course_id', $course->id)
@@ -439,11 +454,15 @@ PROMPT;
             $tf       = (int) round($qCount * 0.25);
             $scenario = $qCount - $mcq - $tf;
 
+            $ltfFinalExam = ($ltfContext && $ltfContext->hasContext())
+                ? "\n" . $ltfContext->toFinalExamInstructions()
+                : '';
+
             $result = app(OpenAIService::class)->generateText(
                 "ROLE: Expert eLearning assessment designer. Output ONLY valid JSON (no markdown).\n\n" .
                 "Generate a final assessment with EXACTLY {$qCount} questions for: {$course->name}\n" .
                 "Level: {$this->level} | Objectives: {$objectives}\n" .
-                "Modules:\n{$modulesText}\n\n" .
+                "Modules:\n{$modulesText}{$ltfFinalExam}\n\n" .
                 "Distribution: {$mcq} MCQ | {$tf} True/False (a=True, b=False) | {$scenario} Scenario MCQ\n" .
                 "Difficulty: ~30% easy, ~50% medium, ~20% hard. Cover ALL modules proportionally.\n\n" .
                 "Return: {\"questions\":[{\"question_text\":\"...\",\"question_type\":\"mcq|truefalse|scenario\",\"difficulty\":\"easy|medium|hard\",\"module_index\":1,\"options\":{\"a\":\"...\",\"b\":\"...\",\"c\":\"...\",\"d\":\"...\"},\"correct_answer\":\"a\",\"explanation\":\"...\"}]}",

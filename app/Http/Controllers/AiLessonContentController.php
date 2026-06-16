@@ -7,6 +7,8 @@ use App\Models\Course;
 use App\Models\ElearningLesson;
 use App\Models\LessonBlock;
 use App\Services\OpenAIService;
+use App\Support\LtfContextBuilder;
+use App\Support\LtfGenerationContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -34,11 +36,17 @@ class AiLessonContentController extends Controller
             return back()->with('error', 'AI template not found. Run: php artisan db:seed --class=AiLessonContentTemplateSeeder');
         }
 
-        $level       = $request->learning_level;
-        $targetWords = match ($level) {
-            'Awareness' => '500–800',
-            'Advanced'  => '1000–2000',
-            default     => '800–1500',
+        $level      = $request->learning_level;
+        $ltfContext = LtfContextBuilder::fromCourse($course);
+
+        $targetWords = match (true) {
+            $ltfContext->competencyLevel === 'beginner'     => '400–700',
+            $ltfContext->competencyLevel === 'intermediate' => '700–1200',
+            $ltfContext->competencyLevel === 'advanced'     => '1000–1800',
+            $ltfContext->competencyLevel === 'expert'       => '1500–2500',
+            $level === 'Awareness'                          => '500–800',
+            $level === 'Advanced'                           => '1000–2000',
+            default                                         => '800–1500',
         };
 
         $rawObjectives = $lesson->learning_objectives ?? '';
@@ -47,7 +55,11 @@ class AiLessonContentController extends Controller
             ->filter()
             ->implode('; ') ?: 'Not specified';
 
-        $input = collect([
+        $ltfInstructions = $ltfContext->hasContext()
+            ? $ltfContext->toLessonInstructions() . "\n"
+            : '';
+
+        $input = $ltfInstructions . collect([
             "Course Title: {$course->name}",
             "Lesson Title: {$lesson->title}",
             "Lesson Description: " . ($lesson->short_description ?: 'Not provided'),
@@ -197,6 +209,7 @@ class AiLessonContentController extends Controller
     /**
      * Generate AI content and save blocks for a lesson — used by course generator Mode B.
      * Returns number of blocks created, or 0 on failure.
+     * $ltfContext is optional; when null the method behaves identically to the pre-LTF version.
      */
     public static function generateAndSaveBlocks(
         Course $course,
@@ -204,7 +217,8 @@ class AiLessonContentController extends Controller
         string $level,
         string $lessonType = 'concept',
         int $lessonNumber = 1,
-        int $totalLessons = 1
+        int $totalLessons = 1,
+        ?LtfGenerationContext $ltfContext = null,
     ): int {
         try {
             $template = AiPromptTemplate::where('template_code', 'lesson_content_generator_json_v3')
@@ -213,10 +227,14 @@ class AiLessonContentController extends Controller
 
             if (!$template) return 0;
 
-            $targetWords = match ($level) {
-                'Awareness' => '500–800',
-                'Advanced'  => '1000–2000',
-                default     => '800–1500',
+            $targetWords = match (true) {
+                $ltfContext?->competencyLevel === 'beginner'     => '400–700',
+                $ltfContext?->competencyLevel === 'intermediate' => '700–1200',
+                $ltfContext?->competencyLevel === 'advanced'     => '1000–1800',
+                $ltfContext?->competencyLevel === 'expert'       => '1500–2500',
+                $level === 'Awareness'                           => '500–800',
+                $level === 'Advanced'                            => '1000–2000',
+                default                                          => '800–1500',
             };
 
             $rawObjectives = $lesson->learning_objectives ?? '';
@@ -225,7 +243,11 @@ class AiLessonContentController extends Controller
                 ->filter()
                 ->implode('; ') ?: 'Not specified';
 
-            $input = collect([
+            $ltfInstructions = ($ltfContext && $ltfContext->hasContext())
+                ? $ltfContext->toLessonInstructions() . "\n"
+                : '';
+
+            $input = $ltfInstructions . collect([
                 "Course Title: {$course->name}",
                 "Lesson Title: {$lesson->title}",
                 "Lesson Description: " . ($lesson->short_description ?: 'Not provided'),

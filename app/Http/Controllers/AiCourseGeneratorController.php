@@ -11,6 +11,8 @@ use App\Models\ElearningQuiz;
 use App\Models\ElearningQuizQuestion;
 use App\Models\LessonBlock;
 use App\Services\OpenAIService;
+use App\Support\LtfContextBuilder;
+use App\Support\LtfGenerationContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -38,16 +40,22 @@ class AiCourseGeneratorController extends Controller
         $this->guardSuperAdmin();
 
         $data = $request->validate([
-            'course_name'     => 'required|string|max:255',
-            'duration'        => 'required|string|max:100',
-            'language'        => 'required|string|max:50',
-            'target_audience' => 'required|string|max:500',
-            'industry'        => 'required|string|max:100',
-            'learning_level'  => 'required|in:Beginner,Intermediate,Advanced,Expert',
-            'standard'        => 'nullable|string|max:200',
-            'instructions'    => 'nullable|string|max:1000',
-            'course_type'     => 'required|in:ilt,elearning',
-            'generation_mode' => 'nullable|in:structure,complete',
+            'course_name'                 => 'required|string|max:255',
+            'duration'                    => 'required|string|max:100',
+            'language'                    => 'required|string|max:50',
+            'target_audience'             => 'required|string|max:500',
+            'industry'                    => 'required|string|max:100',
+            'learning_level'              => 'required|in:Beginner,Intermediate,Advanced,Expert',
+            'standard'                    => 'nullable|string|max:200',
+            'instructions'                => 'nullable|string|max:1000',
+            'course_type'                 => 'required|in:ilt,elearning',
+            'generation_mode'             => 'nullable|in:structure,complete',
+            // LTF taxonomy (all optional — existing courses work without them)
+            'ltf_learning_framework_id'   => 'nullable|integer|exists:ltf_learning_frameworks,id',
+            'ltf_program_purpose_id'      => 'nullable|integer|exists:ltf_program_purposes,id',
+            'ltf_delivery_method_id'      => 'nullable|integer|exists:ltf_delivery_methods,id',
+            'ltf_training_model_id'       => 'nullable|integer|exists:ltf_training_models,id',
+            'ltf_competency_level'        => 'nullable|in:beginner,intermediate,advanced,expert',
         ]);
 
         $data['generation_mode'] = $data['generation_mode'] ?? 'structure';
@@ -67,7 +75,16 @@ class AiCourseGeneratorController extends Controller
             ? 'eLearning (self-paced online)'
             : 'Instructor-Led Training (ILT)';
 
-        $input  = "Course Name: {$data['course_name']}\n";
+        // ── LTF context injection ─────────────────────────────────
+        $ltfContext = LtfContextBuilder::fromFormData($data);
+
+        $input = '';
+        if ($ltfContext->hasContext()) {
+            $input .= $ltfContext->toHeaderBlock() . "\n\n";
+            $input .= $ltfContext->toStructureInstructions() . "\n\n";
+        }
+
+        $input .= "Course Name: {$data['course_name']}\n";
         $input .= "Course Type: {$courseTypeLabel}\n";
         $input .= "Duration: {$data['duration']}\n";
         $input .= "Language: {$data['language']}\n";
@@ -251,39 +268,45 @@ class AiCourseGeneratorController extends Controller
             ) {
                 $course = Course::create([
                     // ── Identity ──────────────────────────────────
-                    'name'                => $formData['course_name'],
-                    'code'                => $editedCourseCode ?: null,
-                    'status'              => 0,
-                    'course_type'         => $courseType === 'elearning' ? 'elearning' : 'manual',
-                    'delivery_type'       => $courseType === 'elearning' ? 'eLearning' : 'Instructor-Led',
-                    'language'            => $formData['language'] ?? 'English',
-                    'duration'            => $formData['duration'],
+                    'name'                        => $formData['course_name'],
+                    'code'                        => $editedCourseCode ?: null,
+                    'status'                      => 0,
+                    'course_type'                 => $courseType === 'elearning' ? 'elearning' : 'manual',
+                    'delivery_type'               => $courseType === 'elearning' ? 'eLearning' : 'Instructor-Led',
+                    'language'                    => $formData['language'] ?? 'English',
+                    'duration'                    => $formData['duration'],
                     // ── Category ──────────────────────────────────
-                    'category'            => $editedCategoryText ?: null,
-                    'category_id'         => $matchedCategoryId,
-                    'cpd_hours'           => $editedCpdHours ? (int) $editedCpdHours : null,
+                    'category'                    => $editedCategoryText ?: null,
+                    'category_id'                 => $matchedCategoryId,
+                    'cpd_hours'                   => $editedCpdHours ? (int) $editedCpdHours : null,
                     // ── Descriptions ──────────────────────────────
-                    'full_description'    => $editedDescription,
-                    'short_description'   => Str::limit(strip_tags($editedDescription), 200),
-                    'description'         => $editedSummary,
-                    'learning_objectives' => $editedObjectives,
+                    'full_description'            => $editedDescription,
+                    'short_description'           => Str::limit(strip_tags($editedDescription), 200),
+                    'description'                 => $editedSummary,
+                    'learning_objectives'         => $editedObjectives,
                     // ── Audience ──────────────────────────────────
-                    'who_should_attend'   => $editedTargetMarket ?: $editedAudience,
-                    'prerequisites'       => $editedPrereqs,
+                    'who_should_attend'           => $editedTargetMarket ?: $editedAudience,
+                    'prerequisites'               => $editedPrereqs,
                     // ── Structure ─────────────────────────────────
-                    'course_outline'      => $courseOutline,
+                    'course_outline'              => $courseOutline,
                     // ── Assessment & Certification ─────────────────
-                    'certification_info'  => $editedCertInfo ?: $editedCertCriteria,
+                    'certification_info'          => $editedCertInfo ?: $editedCertCriteria,
                     // ── Public / SEO ──────────────────────────────
-                    'faq'                 => $editedFaqJson ?: null,
-                    'seo_title'           => $editedSeoTitle,
-                    'seo_description'     => $editedSeoDesc,
-                    'seo_keywords'        => $editedSeoKeywords ?: null,
+                    'faq'                         => $editedFaqJson ?: null,
+                    'seo_title'                   => $editedSeoTitle,
+                    'seo_description'             => $editedSeoDesc,
+                    'seo_keywords'                => $editedSeoKeywords ?: null,
                     // ── Flags ─────────────────────────────────────
-                    'is_public'           => false,
-                    'is_featured'         => false,
-                    'ai_generated'        => true,
-                    'ai_course_structure' => $aiOutput,
+                    'is_public'                   => false,
+                    'is_featured'                 => false,
+                    'ai_generated'                => true,
+                    'ai_course_structure'         => $aiOutput,
+                    // ── LTF Taxonomy ──────────────────────────────
+                    'ltf_learning_framework_id'   => $formData['ltf_learning_framework_id']  ?? null,
+                    'ltf_delivery_method_id'      => $formData['ltf_delivery_method_id']     ?? null,
+                    'ltf_training_model_id'       => $formData['ltf_training_model_id']      ?? null,
+                    'ltf_program_purpose_id'      => $formData['ltf_program_purpose_id']     ?? null,
+                    'ltf_competency_level'        => $formData['ltf_competency_level']       ?? null,
                 ]);
 
                 if ($courseType === 'elearning') {
@@ -496,6 +519,9 @@ class AiCourseGeneratorController extends Controller
             default     => 4,
         };
 
+        $ltfContext     = LtfContextBuilder::fromCourse($course);
+        $ltfAssessment  = $ltfContext->hasContext() ? "\n\n" . $ltfContext->toAssessmentInstructions() : '';
+
         $userPrompt = <<<USR
 Generate {$questionCount} multiple-choice quiz questions for this eLearning module.
 
@@ -504,7 +530,7 @@ Module {$moduleIndex}: {$moduleTitle}
 Level: {$level}
 
 Lessons covered:
-{$lessonSummaries}
+{$lessonSummaries}{$ltfAssessment}
 
 Return a JSON object:
 {
@@ -650,6 +676,9 @@ USR;
         $tfCount       = (int) round($questionCount * 0.25);
         $scenarioCount = $questionCount - $mcqCount - $tfCount;
 
+        $ltfContext    = LtfContextBuilder::fromCourse($course);
+        $ltfFinalExam  = $ltfContext->hasContext() ? "\n\n" . $ltfContext->toFinalExamInstructions() : '';
+
         $userPrompt = <<<USR
 Generate a comprehensive final course assessment with EXACTLY {$questionCount} questions.
 
@@ -658,7 +687,7 @@ Level: {$level}
 Course Learning Objectives: {$objectives}
 
 Modules Covered:
-{$modulesText}
+{$modulesText}{$ltfFinalExam}
 
 Question Distribution (EXACTLY):
 - {$mcqCount} Multiple Choice (MCQ) — 4 options (a, b, c, d), one correct
