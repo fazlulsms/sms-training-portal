@@ -334,7 +334,7 @@ PROMPT;
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // Module Quiz — Phase 3: mixed question types, framework-aware
+    // Module Quiz — mixed question types, framework-aware, placement-aware
     // ─────────────────────────────────────────────────────────────────
     private function generateModuleQuiz(
         Course $course,
@@ -351,10 +351,13 @@ PROMPT;
         if ($alreadyExists) return;
 
         try {
-            $summaries = ElearningLesson::where('course_id', $course->id)
+            $moduleLessons = ElearningLesson::where('course_id', $course->id)
                 ->whereIn('id', $lessonIds)
                 ->orderBy('lesson_order')
-                ->get(['title', 'learning_objectives'])
+                ->get(['id', 'title', 'learning_objectives']);
+
+            // Build lesson summaries for the AI prompt
+            $summaries = $moduleLessons
                 ->map(fn($l) => "- {$l->title}" . ($l->learning_objectives ? ": {$l->learning_objectives}" : ''))
                 ->implode("\n");
 
@@ -388,6 +391,10 @@ PROMPT;
                 "Generate {$qCount} quiz questions for Module {$modIndex}: {$moduleTitle}.\n" .
                 "Course: {$course->name} | Level: {$this->level}\n" .
                 "Lessons covered:\n{$summaries}{$ltfAssessment}\n\n" .
+                "CONTENT INTEGRITY RULE (mandatory): Generate questions ONLY from concepts explicitly taught " .
+                "within the lesson content listed above. Do not introduce concepts, clauses, requirements, " .
+                "terminology, or facts that were not covered in these specific lessons. Every question must " .
+                "be answerable from the lesson content — not from prior knowledge or external sources.\n\n" .
                 "QUESTION DISTRIBUTION:\n{$distLine}\n{$auditorGuidance}\n\n" .
                 "Each question MUST include 'question_type': 'mcq' | 'truefalse' | 'scenario'.\n" .
                 "For True/False: options c and d must be null. Correct answer is 'a' (True) or 'b' (False).\n\n" .
@@ -401,11 +408,23 @@ PROMPT;
             $decoded = json_decode($raw, true);
             if (!is_array($decoded) || empty($decoded['questions'])) return;
 
+            // ── Placement fix: insert check immediately after this module's last lesson ──
+            $maxModuleOrder = ElearningLesson::whereIn('id', $lessonIds)->max('lesson_order') ?? 0;
+            $checkOrder     = $maxModuleOrder + 1;
+
+            // Shift everything that comes after this module up by 1 to create a gap
+            ElearningLesson::where('course_id', $course->id)
+                ->where('lesson_order', '>', $maxModuleOrder)
+                ->increment('lesson_order');
+
+            // Course assessment policy for attempt limit
+            $maxAttempts = $course->module_check_max_attempts ?? 3;
+
             $quizLesson = ElearningLesson::create([
                 'course_id'         => $course->id,
                 'title'             => "Module {$modIndex} Knowledge Check: {$moduleTitle}",
                 'short_description' => "Test your understanding of {$moduleTitle}.",
-                'lesson_order'      => ElearningLesson::where('course_id', $course->id)->max('lesson_order') + 1,
+                'lesson_order'      => $checkOrder,
                 'status'            => 'draft',
                 'lesson_type'       => 'assessment',
                 'completion_rule'   => 'pass_quiz',
@@ -416,28 +435,35 @@ PROMPT;
                 'title'       => "Module {$modIndex} Knowledge Check",
                 'description' => "Key concepts from {$moduleTitle}.",
                 'pass_mark'   => 70,
-                'max_attempt' => 2,
+                'max_attempt' => $maxAttempts,
                 'status'      => 'active',
             ]);
 
-            foreach ($decoded['questions'] as $q) {
+            // Map lesson index to actual lesson ID for source tracking
+            $lessonIdByIndex = $moduleLessons->values()->mapWithKeys(fn($l, $i) => [$i => $l->id]);
+
+            foreach ($decoded['questions'] as $idx => $q) {
                 if (empty($q['question_text']) || empty($q['options'])) continue;
                 $qType = in_array($q['question_type'] ?? '', ['truefalse', 'scenario']) ? $q['question_type'] : 'mcq';
                 $isTF  = ($qType === 'truefalse');
+                // Best-effort source: distribute questions across module lessons proportionally
+                $srcIdx      = count($lessonIds) > 0 ? (int) floor($idx / max(1, $qCount / count($lessonIds))) : 0;
+                $sourceLsnId = $lessonIdByIndex->get(min($srcIdx, count($lessonIds) - 1));
                 ElearningQuizQuestion::create([
-                    'quiz_id'        => $quiz->id,
-                    'question_text'  => $q['question_text'],
-                    'question_type'  => $qType,
-                    'option_a'       => $q['options']['a'] ?? '',
-                    'option_b'       => $q['options']['b'] ?? '',
-                    'option_c'       => $isTF ? null : ($q['options']['c'] ?? ''),
-                    'option_d'       => $isTF ? null : ($q['options']['d'] ?? ''),
-                    'correct_answer' => strtolower($q['correct_answer'] ?? 'a'),
-                    'explanation'    => $q['explanation'] ?? null,
-                    'difficulty'     => 'medium',
-                    'module_index'   => $modIndex,
-                    'marks'          => 1,
-                    'status'         => 'active',
+                    'quiz_id'          => $quiz->id,
+                    'question_text'    => $q['question_text'],
+                    'question_type'    => $qType,
+                    'option_a'         => $q['options']['a'] ?? '',
+                    'option_b'         => $q['options']['b'] ?? '',
+                    'option_c'         => $isTF ? null : ($q['options']['c'] ?? ''),
+                    'option_d'         => $isTF ? null : ($q['options']['d'] ?? ''),
+                    'correct_answer'   => strtolower($q['correct_answer'] ?? 'a'),
+                    'explanation'      => $q['explanation'] ?? null,
+                    'difficulty'       => 'medium',
+                    'module_index'     => $modIndex,
+                    'source_lesson_id' => $sourceLsnId,
+                    'marks'            => 1,
+                    'status'           => 'active',
                 ]);
             }
 
@@ -513,6 +539,10 @@ PROMPT;
                 "Difficulty: ~30% easy, ~50% medium, ~20% hard. Cover ALL modules proportionally.\n" .
                 "{$styleGuidance}\n" .
                 "{$dedupContext}\n\n" .
+                "CONTENT INTEGRITY RULE (mandatory): Generate questions ONLY from concepts, examples, scenarios, " .
+                "and explanations explicitly taught within the course modules listed above. Do not introduce " .
+                "standard clauses, requirements, terminology, or facts that were not covered in the course content. " .
+                "Every correct answer must be traceable to the course lessons.\n\n" .
                 "Return: {\"questions\":[{\"question_text\":\"...\",\"question_type\":\"mcq|truefalse|scenario\",\"difficulty\":\"easy|medium|hard\",\"module_index\":1,\"options\":{\"a\":\"...\",\"b\":\"...\",\"c\":\"...\",\"d\":\"...\"},\"correct_answer\":\"a\",\"explanation\":\"...\"}]}",
                 'final_assessment', null, 6000
             );
@@ -526,7 +556,7 @@ PROMPT;
             $finalLesson = ElearningLesson::create([
                 'course_id'              => $course->id,
                 'title'                  => 'Final Course Assessment: ' . $course->name,
-                'short_description'      => "Comprehensive final assessment. Pass mark: 70%. Maximum 2 attempts.",
+                'short_description'      => "Comprehensive final assessment. Pass mark: 70%.",
                 'lesson_order'           => ElearningLesson::where('course_id', $course->id)->max('lesson_order') + 1,
                 'status'                 => 'draft',
                 'lesson_type'            => 'assessment',
@@ -534,12 +564,14 @@ PROMPT;
                 'required_passing_score' => 70,
             ]);
 
+            $finalMaxAttempts = $course->final_exam_max_attempts ?? 3;
+
             $quiz = ElearningQuiz::create([
                 'lesson_id'   => $finalLesson->id,
                 'title'       => 'Final Assessment — ' . $course->name,
-                'description' => "{$qCount}-question assessment covering all modules. Pass mark 70%, 2 attempts.",
+                'description' => "{$qCount}-question assessment covering all modules. Pass mark 70%, {$finalMaxAttempts} attempts.",
                 'pass_mark'   => 70,
-                'max_attempt' => 2,
+                'max_attempt' => $finalMaxAttempts,
                 'status'      => 'active',
             ]);
 

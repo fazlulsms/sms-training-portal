@@ -7,6 +7,8 @@ use App\Models\ElearningEnrollment;
 use App\Models\ElearningLesson;
 use App\Models\LessonAudio;
 use App\Models\LessonProgress;
+use App\Models\QuizAttemptOverride;
+use App\Models\QuizReviewGate;
 use App\Services\LessonProgressService;
 use Illuminate\Support\Facades\Auth;
 
@@ -130,6 +132,31 @@ class ParticipantDashboardController extends Controller
 
         // Mark in_progress (safe — never downgrades a completed lesson)
         $this->progressService->markInProgress(Auth::id(), $enrollment, $lesson);
+
+        // Review gate tracking: if this lesson visit satisfies a pending gate, unlock extra attempts
+        $pendingGates = QuizReviewGate::where('enrollment_id', $enrollment->id)
+            ->where('status', 'pending')
+            ->get();
+
+        foreach ($pendingGates as $gate) {
+            if (!in_array($lesson->id, $gate->required_lesson_ids ?? [])) {
+                continue;
+            }
+
+            $gateCompleted = $gate->recordLessonVisit($lesson->id);
+
+            if ($gateCompleted) {
+                // Grant extra attempts by incrementing the override counter
+                $override = QuizAttemptOverride::firstOrNew([
+                    'enrollment_id' => $enrollment->id,
+                    'quiz_id'       => $gate->quiz_id,
+                ]);
+                $override->extra_attempts  = ($override->extra_attempts ?? 0) + $gate->extra_attempts_granted;
+                $override->admin_user_id   = $override->admin_user_id ?? Auth::id(); // system grant
+                $override->reason          = $override->reason ?? 'Auto-granted after module review';
+                $override->save();
+            }
+        }
 
         // Reload enrollment with fresh lesson progress for sidebar display
         $enrollment->load([

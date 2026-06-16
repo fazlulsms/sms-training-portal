@@ -274,6 +274,7 @@
         use App\Models\ElearningLesson;
         use App\Models\QuizAttempt;
         use App\Models\QuizAttemptOverride;
+        use App\Models\QuizReviewGate;
 
         $enrollAssessments = ElearningLesson::where('course_id', $enrollment->course_id)
             ->where('lesson_type', 'assessment')
@@ -294,16 +295,17 @@
             @foreach($enrollAssessments as $al)
                 @foreach($al->quizzes as $quiz)
                 @php
-                    $qAttempts   = QuizAttempt::where('elearning_enrollment_id', $enrollment->id)->where('quiz_id', $quiz->id)->orderByDesc('created_at')->get();
-                    $qOverride   = QuizAttemptOverride::where('enrollment_id', $enrollment->id)->where('quiz_id', $quiz->id)->first();
-                    $effectiveMax= $quiz->max_attempt + ($qOverride?->extra_attempts ?? 0);
-                    $taken       = $qAttempts->count();
-                    $bestScore   = $qAttempts->max('score');
-                    $passed      = $qAttempts->where('score', '>=', $quiz->pass_mark)->isNotEmpty();
-                    $blocked     = !$passed && $effectiveMax > 0 && $taken >= $effectiveMax;
+                    $qAttempts    = QuizAttempt::where('elearning_enrollment_id', $enrollment->id)->where('quiz_id', $quiz->id)->orderByDesc('created_at')->get();
+                    $qOverride    = QuizAttemptOverride::where('enrollment_id', $enrollment->id)->where('quiz_id', $quiz->id)->first();
+                    $effectiveMax = $quiz->max_attempt + ($qOverride?->extra_attempts ?? 0);
+                    $taken        = $qAttempts->count();
+                    $bestScore    = $qAttempts->max('score');
+                    $passed       = $qAttempts->where('score', '>=', $quiz->pass_mark)->isNotEmpty();
+                    $blocked      = !$passed && $effectiveMax > 0 && $taken >= $effectiveMax;
+                    $reviewGate   = QuizReviewGate::where('enrollment_id', $enrollment->id)->where('quiz_id', $quiz->id)->where('status', 'pending')->latest()->first();
                     if ($blocked) $anyBlocked = true;
                 @endphp
-                <div style="border:1.5px solid {{ $blocked ? '#fcd34d' : ($passed ? '#86efac' : '#e2e8f0') }}; border-radius:10px; padding:15px 18px; margin-bottom:12px;">
+                <div style="border:1.5px solid {{ $reviewGate ? '#fde68a' : ($blocked ? '#fca5a5' : ($passed ? '#86efac' : '#e2e8f0')) }}; border-radius:10px; padding:15px 18px; margin-bottom:12px;">
                     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
                         <div>
                             <div style="font-size:13px; font-weight:700; color:#1e293b; margin-bottom:3px;">{{ $al->title }}</div>
@@ -319,8 +321,12 @@
                         <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
                             @if($passed)
                                 <span style="background:#dcfce7;color:#166534;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;">✓ Passed</span>
+                            @elseif($reviewGate)
+                                <span style="background:#fef3c7;color:#92400e;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;">
+                                    📖 Review Required ({{ $reviewGate->reviewedCount() }}/{{ $reviewGate->requiredCount() }})
+                                </span>
                             @elseif($blocked)
-                                <span style="background:#fef3c7;color:#92400e;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;">⚠ Blocked</span>
+                                <span style="background:#fee2e2;color:#991b1b;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;">⚠ Blocked</span>
                             @elseif($taken > 0)
                                 <span style="background:#fee2e2;color:#991b1b;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;">✗ Failed</span>
                             @else
@@ -332,10 +338,16 @@
                             </a>
                         </div>
                     </div>
-                    @if($blocked)
-                    <div style="margin-top:9px;font-size:12px;color:#92400e;background:#fef9c3;border-radius:6px;padding:6px 12px;">
+                    @if($reviewGate)
+                    <div style="margin-top:9px;font-size:12px;color:#78350f;background:#fef9c3;border-radius:6px;padding:6px 12px;">
+                        📖 Learner is reviewing the module. {{ $reviewGate->reviewedCount() }}/{{ $reviewGate->requiredCount() }} lessons re-visited.
+                        Auto-unlocks {{ $reviewGate->extra_attempts_granted }} extra attempts when all lessons reviewed.
+                        Or <a href="{{ route('elearning.quiz-admin.attempts', [$enrollment, $quiz]) }}" style="font-weight:700;color:#78350f;">grant manually →</a>
+                    </div>
+                    @elseif($blocked)
+                    <div style="margin-top:9px;font-size:12px;color:#991b1b;background:#fee2e2;border-radius:6px;padding:6px 12px;">
                         ⚠ All {{ $effectiveMax }} attempt(s) used without passing.
-                        <a href="{{ route('elearning.quiz-admin.attempts', [$enrollment, $quiz]) }}" style="font-weight:700;color:#78350f;">Take recovery action →</a>
+                        <a href="{{ route('elearning.quiz-admin.attempts', [$enrollment, $quiz]) }}" style="font-weight:700;color:#7f1d1d;">Take recovery action →</a>
                     </div>
                     @endif
                 </div>

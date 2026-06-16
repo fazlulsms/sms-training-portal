@@ -1257,23 +1257,54 @@
                                 $bestAttempt  = $quiz->attempts->sortByDesc('score')->first();
                                 $quizPassed   = $bestAttempt && $bestAttempt->score >= $quiz->pass_mark;
                                 $attemptsUsed = $quiz->attempts->count();
-                                $attemptsLeft = $quiz->max_attempt - $attemptsUsed;
+                                $quizOverride  = \App\Models\QuizAttemptOverride::where('enrollment_id', $enrollment->id)->where('quiz_id', $quiz->id)->first();
+                                $effectiveMax  = $quiz->max_attempt + ($quizOverride?->extra_attempts ?? 0);
+                                $attemptsLeft  = $effectiveMax > 0 ? max(0, $effectiveMax - $attemptsUsed) : PHP_INT_MAX;
+                                $pendingGate   = \App\Models\QuizReviewGate::where('enrollment_id', $enrollment->id)
+                                    ->where('quiz_id', $quiz->id)->where('status', 'pending')->latest()->first();
                             @endphp
                             <div class="quiz-row">
                                 <div class="quiz-name">{{ $quiz->title }}</div>
                                 <div class="quiz-meta-line">
                                     Passing score: <strong>{{ $quiz->pass_mark }}%</strong>
-                                    &nbsp;·&nbsp; Max attempts: {{ $quiz->max_attempt }}
+                                    &nbsp;·&nbsp; Max attempts: {{ $effectiveMax ?: '∞' }}
                                     @if($bestAttempt) &nbsp;·&nbsp; Your best: <strong style="color:{{ $bestAttempt->score >= $quiz->pass_mark ? '#16a34a' : '#dc2626' }};">{{ $bestAttempt->score }}%</strong> @endif
-                                    @if(!$quizPassed && $attemptsLeft > 0) &nbsp;·&nbsp; {{ $attemptsLeft }} attempt{{ $attemptsLeft !== 1 ? 's' : '' }} left @endif
+                                    @if(!$quizPassed && $attemptsLeft > 0 && $attemptsLeft !== PHP_INT_MAX) &nbsp;·&nbsp; {{ $attemptsLeft }} attempt{{ $attemptsLeft !== 1 ? 's' : '' }} left @endif
                                 </div>
                                 @if($quizPassed)
                                     <span style="display:inline-flex;align-items:center;gap:7px;background:#dcfce7;color:#166534;padding:9px 16px;border-radius:9px;font-weight:700;font-size:14px;">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
                                         Passed — {{ $bestAttempt->score }}%
                                     </span>
+                                @elseif($pendingGate)
+                                    @php
+                                        $reviewed = $pendingGate->reviewedCount();
+                                        $required = $pendingGate->requiredCount();
+                                        // Find first module lesson to link to
+                                        $firstModLesson = \App\Models\ElearningLesson::whereIn('id', $pendingGate->required_lesson_ids ?? [])
+                                            ->orderBy('lesson_order')->first();
+                                    @endphp
+                                    <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:12px 16px;max-width:420px;">
+                                        <div style="font-weight:700;color:#92400e;font-size:13px;margin-bottom:6px;">
+                                            📖 Module Review Required
+                                        </div>
+                                        <div style="font-size:12.5px;color:#78350f;margin-bottom:10px;">
+                                            You have used all {{ $attemptsUsed }} attempts without passing.
+                                            Review this module again to unlock {{ $pendingGate->extra_attempts_granted }} more attempts.
+                                            @if($required > 0)
+                                                <br><span style="color:#92400e;">Progress: {{ $reviewed }} / {{ $required }} lessons reviewed</span>
+                                            @endif
+                                        </div>
+                                        @if($firstModLesson)
+                                        <a href="{{ route('participant.lesson.show', [$enrollment->id, $firstModLesson->id]) }}"
+                                           style="display:inline-flex;align-items:center;gap:6px;background:#d97706;color:#fff;padding:8px 14px;border-radius:7px;font-weight:700;font-size:12.5px;text-decoration:none;">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+                                            Review Module Now
+                                        </a>
+                                        @endif
+                                    </div>
                                 @elseif($attemptsLeft <= 0)
-                                    <span style="background:#fee2e2;color:#991b1b;padding:9px 16px;border-radius:9px;font-weight:700;font-size:14px;display:inline-block;">No attempts remaining</span>
+                                    <span style="background:#fee2e2;color:#991b1b;padding:9px 16px;border-radius:9px;font-weight:700;font-size:14px;display:inline-block;">No attempts remaining — contact your administrator</span>
                                 @elseif($previewMode)
                                     <span style="display:inline-flex;align-items:center;gap:7px;background:#fef3c7;color:#92400e;padding:10px 20px;border-radius:9px;font-weight:700;font-size:14px;cursor:default;">
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>

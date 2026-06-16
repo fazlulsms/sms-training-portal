@@ -160,6 +160,47 @@
                     <input type="text" name="certificate_type" value="{{ old('certificate_type', $course->certificate_type) }}" placeholder="e.g. Certificate of Completion">
                 </div>
             </div>
+
+            {{-- Assessment Policy ------------------------------------------------- --}}
+            <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:16px 20px;margin-top:4px;">
+                <div style="font-size:12.5px;font-weight:800;color:#1e3a8a;margin-bottom:12px;text-transform:uppercase;letter-spacing:.4px;">Assessment Policy</div>
+                <div class="frow3">
+                    <div class="fg">
+                        <label>Policy Type</label>
+                        <select name="assessment_policy">
+                            <option value="normal"  {{ old('assessment_policy', $course->assessment_policy ?? 'normal') === 'normal'  ? 'selected' : '' }}>Normal eLearning</option>
+                            <option value="auditor" {{ old('assessment_policy', $course->assessment_policy ?? 'normal') === 'auditor' ? 'selected' : '' }}>Auditor / Qualification</option>
+                            <option value="custom"  {{ old('assessment_policy', $course->assessment_policy ?? 'normal') === 'custom'  ? 'selected' : '' }}>Custom</option>
+                        </select>
+                    </div>
+                    <div class="fg">
+                        <label>Module Check Max Attempts</label>
+                        <input type="number" name="module_check_max_attempts" min="1" max="10"
+                               value="{{ old('module_check_max_attempts', $course->module_check_max_attempts ?? 3) }}">
+                    </div>
+                    <div class="fg">
+                        <label>Final Exam Max Attempts</label>
+                        <input type="number" name="final_exam_max_attempts" min="1" max="10"
+                               value="{{ old('final_exam_max_attempts', $course->final_exam_max_attempts ?? 3) }}">
+                    </div>
+                </div>
+                <div class="frow" style="margin-top:10px;gap:24px;">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+                        <input type="hidden" name="require_module_review" value="0">
+                        <input type="checkbox" name="require_module_review" value="1"
+                               {{ old('require_module_review', $course->require_module_review ?? true) ? 'checked' : '' }}
+                               style="width:16px;height:16px;">
+                        Require module review before retry (unlocks 3 extra attempts after re-visiting module)
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+                        <input type="hidden" name="require_admin_approval" value="0">
+                        <input type="checkbox" name="require_admin_approval" value="1"
+                               {{ old('require_admin_approval', $course->require_admin_approval ?? false) ? 'checked' : '' }}
+                               style="width:16px;height:16px;">
+                        Require admin approval after all attempts exhausted (Final Exam)
+                    </label>
+                </div>
+            </div>
             <div class="fg">
                 <label>Banner Image</label>
                 @if($course->banner_image)
