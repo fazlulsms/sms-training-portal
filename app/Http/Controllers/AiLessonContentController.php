@@ -374,6 +374,24 @@ class AiLessonContentController extends Controller
                 'expected_response' => $block['expected_response']  ?? '',
             ]),
 
+            'slides' => (function () use ($block): ?string {
+                if (empty($block['slides'])) return null;
+                return json_encode(['slides' => $block['slides']]);
+            })(),
+
+            'accordion' => (function () use ($block): ?string {
+                if (empty($block['items'])) return null;
+                return json_encode(['items' => $block['items']]);
+            })(),
+
+            'matching' => (function () use ($block): ?string {
+                if (empty($block['pairs'])) return null;
+                return json_encode([
+                    'instruction' => $block['instruction'] ?? 'Match each item on the left with its corresponding item on the right.',
+                    'pairs'       => $block['pairs'],
+                ]);
+            })(),
+
             default => null,
         };
     }

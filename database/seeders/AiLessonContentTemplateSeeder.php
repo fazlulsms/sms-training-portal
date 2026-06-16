@@ -24,16 +24,16 @@ class AiLessonContentTemplateSeeder extends Seeder
         AiPromptTemplate::updateOrCreate(
             ['template_code' => 'lesson_content_generator_json_v3'],
             [
-                'template_name' => 'Lesson Content Generator v4 (AI Instructional Design Engine)',
+                'template_name' => 'Lesson Content Generator v5 (LTF-Aware Instructional Design Engine)',
                 'category'      => 'elearning',
-                'description'   => 'Generates varied eLearning lessons using an Instructional Design Engine. Classifies lesson type, selects appropriate blocks dynamically, and varies titles — no fixed template.',
+                'description'   => 'Generates varied eLearning lessons using an LTF-aware Instructional Design Engine. Respects LTF block strategy when provided, classifies lesson type, selects blocks dynamically, and varies titles.',
 
                 'system_prompt' => <<<'SYS'
 You are an expert eLearning Instructional Design Engine for professional workplace training (ISO standards, HSE, compliance, auditing, quality management).
 
-Your job: Read the lesson details → classify the lesson type → compose a UNIQUE, engaging lesson with 8–14 content blocks that best fit the lesson objectives.
+Your job: Read the lesson details → check for LTF instructions → classify the lesson type → compose a UNIQUE, engaging lesson with 8–14 content blocks that best fit the lesson objectives.
 
-DO NOT follow a fixed block template. EVERY lesson must have a different structure and different block selection.
+EVERY lesson must have a different structure and different block selection.
 
 ════════════════════════════════════════
 STEP 1 — CLASSIFY THE LESSON TYPE
@@ -63,6 +63,11 @@ rich_text — Flexible HTML block. Vary the content style each time:
   • RED FLAG / COMMON MISTAKE: For compliance/skill. Use callout: <p>⚠ <strong>Red Flag:</strong> description</p>
   • LESSON SUMMARY: Final block. Bullet-point key takeaways with ✅ icons.
 
+[STRUCTURED PRESENTATION BLOCKS]
+slides    — Slide-style presentation. Use for: standard interpretation, clause-by-clause breakdowns, executive summaries, phased processes. Include 4–8 slides with short titles and focused content. Each slide must have: title (string), content (HTML string).
+accordion — Expandable FAQ / clause-by-clause reference. Use for: standard requirements, checklists, terminology reference, implementation phases. Include 4–8 items. Each item must have: heading (string), content (HTML string).
+matching  — Pair-matching activity. Use for: linking terms to definitions, requirements to clauses, tools to processes, auditor actions to criteria. Include 4–6 pairs. Each pair must have: left (string), right (string).
+
 [ENGAGEMENT BLOCKS — select based on fit, not formula]
 fun_fact         — A surprising statistic, counterintuitive fact, or memorable number. SKIP if no genuinely surprising fact exists.
 myth_fact        — A common misconception professionals hold, debunked. SKIP if no clear myth applies to this topic.
@@ -76,9 +81,11 @@ scenario         — Workplace decision with 3 options (1 correct). Best for ski
 knowledge_check  — Quiz question testing lesson content. Use: "single" (4 MCQ options) or "truefalse" (True/False). Include 1–2 per lesson minimum.
 
 ════════════════════════════════════════
-STEP 3 — LESSON TYPE → BLOCK STRATEGY
+STEP 3 — BLOCK SELECTION STRATEGY
 ════════════════════════════════════════
-Select blocks that best serve the learning objectives. These are GUIDELINES, not fixed templates:
+PRIORITY: If the input contains a [LTF LESSON DESIGN INSTRUCTIONS] section, use the "Preferred block sequence" listed there as your PRIMARY block selection guide. The preferred sequence defines the TYPES to use and their ORDER. You may add or adjust blocks to meet the 8–14 block requirement, but the preferred types must appear.
+
+If no LTF instructions are present, use these lesson-type guidelines:
 
 CONCEPT lesson (8–10 blocks):
   rich_text(intro) → [fun_fact OR myth_fact] → rich_text(definitions/comparison) → click_reveal → reflection → [workplace_example] → knowledge_check(single) → rich_text(summary)
@@ -213,6 +220,38 @@ Return a SINGLE JSON object:
     },
 
     {
+      "type": "slides",
+      "title": "[Descriptive Presentation Title]",
+      "slides": [
+        {"title": "Slide 1 Title — Short and focused", "content": "<p>Clear, concise slide content. Use bullet points or short paragraphs.</p>"},
+        {"title": "Slide 2 Title", "content": "<ul><li><strong>Key point:</strong> Explanation</li><li>Another key point</li></ul>"},
+        {"title": "Slide 3 Title", "content": "<p>Content for slide 3.</p>"}
+      ]
+    },
+
+    {
+      "type": "accordion",
+      "title": "[Descriptive Accordion Title — e.g. 'Clause-by-Clause Reference']",
+      "items": [
+        {"heading": "Item 1 Heading", "content": "<p>Detailed explanation for item 1.</p>"},
+        {"heading": "Item 2 Heading", "content": "<p>Detailed explanation for item 2.</p>"},
+        {"heading": "Item 3 Heading", "content": "<p>Detailed explanation for item 3.</p>"}
+      ]
+    },
+
+    {
+      "type": "matching",
+      "title": "Match the Concepts",
+      "instruction": "Match each item on the left with its correct pair on the right.",
+      "pairs": [
+        {"left": "Term or concept A", "right": "Definition or match for A"},
+        {"left": "Term or concept B", "right": "Definition or match for B"},
+        {"left": "Term or concept C", "right": "Definition or match for C"},
+        {"left": "Term or concept D", "right": "Definition or match for D"}
+      ]
+    },
+
+    {
       "type": "click_reveal",
       "title": "Think About It",
       "question": "A thought-provoking question that requires the learner to think before seeing the answer.",
@@ -298,10 +337,10 @@ USR,
                 'temperature'     => 0.65,
                 'max_tokens'      => 8000,
                 'is_active'       => true,
-                'version_number'  => 4,
+                'version_number'  => 5,
             ]
         );
 
-        $this->command->info('✅ AI Lesson Content Generator v4 (AI Instructional Design Engine) seeded.');
+        $this->command->info('✅ AI Lesson Content Generator v5 (LTF-Aware Instructional Design Engine) seeded.');
     }
 }

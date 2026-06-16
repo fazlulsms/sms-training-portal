@@ -18,9 +18,9 @@ class LtfBlockStrategy
 
         // ── Awareness Training (1 day) ────────────────────────────────────────
         'awareness' => [
-            'sequence'         => ['rich_text','video','myth_fact','workplace_example','fun_fact','reflection','knowledge_check'],
-            'optional'         => ['case_study','image'],
-            'avoid'            => ['pdf','gallery','download','accordion'],
+            'sequence'         => ['rich_text','myth_fact','workplace_example','fun_fact','reflection','knowledge_check'],
+            'optional'         => ['case_study','click_reveal'],
+            'avoid'            => ['accordion','matching','slides'],
             'rationale'        => 'Myth-first approach builds curiosity; workplace examples anchor abstract concepts for a mixed-level audience.',
             'lesson_depth'     => 'short',
             'assessment_style' => 'Awareness — 3 questions per module quiz; focus on recall and basic understanding only. Avoid trick questions.',
@@ -54,8 +54,8 @@ class LtfBlockStrategy
 
         // ── Lead Auditor Training (5 days) ────────────────────────────────────
         'lead_auditor' => [
-            'sequence'         => ['slides','rich_text','case_study','scenario','accordion','workplace_example','matching','reflection','knowledge_check','download'],
-            'optional'         => ['pdf','gallery','click_reveal'],
+            'sequence'         => ['slides','rich_text','case_study','scenario','accordion','workplace_example','matching','reflection','knowledge_check','click_reveal'],
+            'optional'         => ['fun_fact','case_study'],
             'avoid'            => ['myth_fact','fun_fact'],
             'rationale'        => 'Full toolkit for a 5-day certification program; download blocks deliver audit checklists and NCR templates.',
             'lesson_depth'     => 'deep',
@@ -66,8 +66,8 @@ class LtfBlockStrategy
 
         // ── Management Systems Implementation (3 days) ────────────────────────
         'implementation' => [
-            'sequence'         => ['rich_text','slides','accordion','workplace_example','case_study','download','knowledge_check'],
-            'optional'         => ['matching','click_reveal','reflection'],
+            'sequence'         => ['rich_text','slides','accordion','workplace_example','case_study','click_reveal','knowledge_check'],
+            'optional'         => ['matching','reflection','scenario'],
             'avoid'            => ['myth_fact','fun_fact'],
             'rationale'        => 'Accordion blocks map each implementation phase; download blocks provide gap-analysis templates.',
             'lesson_depth'     => 'medium',
@@ -78,9 +78,9 @@ class LtfBlockStrategy
 
         // ── Social Compliance Auditing (3 days) ───────────────────────────────
         'social_compliance_audit' => [
-            'sequence'         => ['rich_text','scenario','case_study','myth_fact','workplace_example','matching','knowledge_check','download'],
-            'optional'         => ['slides','reflection','click_reveal'],
-            'avoid'            => ['fun_fact','gallery'],
+            'sequence'         => ['rich_text','scenario','case_study','myth_fact','workplace_example','matching','click_reveal','knowledge_check'],
+            'optional'         => ['slides','reflection','accordion'],
+            'avoid'            => ['fun_fact','slides'],
             'rationale'        => 'Scenario blocks simulate worker interviews; myth_fact corrects common misconceptions in social auditing.',
             'lesson_depth'     => 'medium',
             'assessment_style' => 'Social Compliance Audit — 4 questions per module quiz; test auditor neutrality, worker interview techniques, and finding classification.',
@@ -102,9 +102,9 @@ class LtfBlockStrategy
 
         // ── Executive / Management Training (1 day) ───────────────────────────
         'executive' => [
-            'sequence'         => ['video','rich_text','case_study','slides','reflection','knowledge_check'],
-            'optional'         => ['fun_fact','workplace_example','download'],
-            'avoid'            => ['matching','click_reveal','myth_fact','accordion'],
+            'sequence'         => ['rich_text','case_study','slides','reflection','knowledge_check'],
+            'optional'         => ['fun_fact','workplace_example','click_reveal'],
+            'avoid'            => ['matching','myth_fact','accordion'],
             'rationale'        => 'Video sets strategic context; case studies replace drill exercises; reflection suits leadership development.',
             'lesson_depth'     => 'concise',
             'assessment_style' => 'Executive Development — 3 questions per module quiz; test strategic understanding and governance decisions only. Avoid operational-level questions.',
@@ -114,9 +114,9 @@ class LtfBlockStrategy
 
         // ── Train the Trainer (2 days) ────────────────────────────────────────
         'train_the_trainer' => [
-            'sequence'         => ['rich_text','scenario','reflection','workplace_example','slides','click_reveal','knowledge_check','download'],
-            'optional'         => ['case_study','video','matching'],
-            'avoid'            => ['myth_fact','fun_fact','accordion'],
+            'sequence'         => ['rich_text','scenario','reflection','workplace_example','slides','click_reveal','case_study','knowledge_check'],
+            'optional'         => ['matching','accordion','fun_fact'],
+            'avoid'            => ['myth_fact','fun_fact'],
             'rationale'        => 'Reflection is central to trainer development; scenario blocks simulate facilitation situations.',
             'lesson_depth'     => 'medium',
             'assessment_style' => 'Train the Trainer — 4 questions per module quiz; test facilitation principles, learning design choices, and participant management techniques.',
@@ -126,10 +126,10 @@ class LtfBlockStrategy
 
         // ── Qualification Program (multi-module) ──────────────────────────────
         'qualification' => [
-            'sequence'         => ['slides','rich_text','accordion','case_study','scenario','matching','reflection','pdf','gallery','knowledge_check','download'],
-            'optional'         => ['click_reveal','video','workplace_example'],
+            'sequence'         => ['slides','rich_text','accordion','case_study','scenario','matching','reflection','click_reveal','workplace_example','knowledge_check'],
+            'optional'         => ['fun_fact','myth_fact'],
             'avoid'            => ['myth_fact','fun_fact'],
-            'rationale'        => 'Assessment-heavy sequence for credential programs; portfolio blocks (pdf, gallery) support evidence submission.',
+            'rationale'        => 'Assessment-heavy sequence for credential programs; structured block progression supports evidence-based learning.',
             'lesson_depth'     => 'deep',
             'assessment_style' => 'Qualification Program — 5 questions per module quiz; test theoretical mastery and application; include portfolio evidence requirement questions.',
             'final_exam_style' => 'Qualification Program — 25 questions; 50% MCQ, 25% scenario, 25% application-level case study style; minimum 20% hard difficulty questions required.',

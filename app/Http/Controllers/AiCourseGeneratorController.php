@@ -10,6 +10,9 @@ use App\Models\ElearningLesson;
 use App\Models\ElearningQuiz;
 use App\Models\ElearningQuizQuestion;
 use App\Models\LessonBlock;
+use App\Models\LtfAudienceType;
+use App\Models\LtfIndustry;
+use App\Models\LtfStandard;
 use App\Services\OpenAIService;
 use App\Support\LtfContextBuilder;
 use App\Support\LtfGenerationContext;
@@ -43,22 +46,49 @@ class AiCourseGeneratorController extends Controller
             'course_name'                 => 'required|string|max:255',
             'duration'                    => 'required|string|max:100',
             'language'                    => 'required|string|max:50',
-            'target_audience'             => 'required|string|max:500',
-            'industry'                    => 'required|string|max:100',
-            'learning_level'              => 'required|in:Beginner,Intermediate,Advanced,Expert',
+            'target_audience'             => 'nullable|string|max:500',
+            'industry'                    => 'nullable|string|max:100',
+            'learning_level'              => 'nullable|in:Beginner,Intermediate,Advanced,Expert',
             'standard'                    => 'nullable|string|max:200',
             'instructions'                => 'nullable|string|max:1000',
             'course_type'                 => 'required|in:ilt,elearning',
             'generation_mode'             => 'nullable|in:structure,complete',
-            // LTF taxonomy (all optional — existing courses work without them)
+            // LTF taxonomy — all optional; existing courses work without them
             'ltf_learning_framework_id'   => 'nullable|integer|exists:ltf_learning_frameworks,id',
             'ltf_program_purpose_id'      => 'nullable|integer|exists:ltf_program_purposes,id',
             'ltf_delivery_method_id'      => 'nullable|integer|exists:ltf_delivery_methods,id',
             'ltf_training_model_id'       => 'nullable|integer|exists:ltf_training_models,id',
             'ltf_competency_level'        => 'nullable|in:beginner,intermediate,advanced,expert',
+            'ltf_standard_ids'            => 'nullable|array',
+            'ltf_standard_ids.*'          => 'integer|exists:ltf_standards,id',
+            'ltf_industry_ids'            => 'nullable|array',
+            'ltf_industry_ids.*'          => 'integer|exists:ltf_industries,id',
+            'ltf_audience_ids'            => 'nullable|array',
+            'ltf_audience_ids.*'          => 'integer|exists:ltf_audience_types,id',
         ]);
 
         $data['generation_mode'] = $data['generation_mode'] ?? 'structure';
+        $data['learning_level']  = $data['learning_level']  ?? 'Intermediate';
+
+        // Derive industry from LTF Industries if not supplied directly
+        if (empty($data['industry'])) {
+            if (!empty($data['ltf_industry_ids'])) {
+                $data['industry'] = LtfIndustry::whereIn('id', $data['ltf_industry_ids'])
+                    ->orderBy('display_order')->pluck('name')->implode(', ');
+            } else {
+                $data['industry'] = 'Cross Industry';
+            }
+        }
+
+        // Derive target_audience from LTF Audiences if not supplied directly
+        if (empty($data['target_audience'])) {
+            if (!empty($data['ltf_audience_ids'])) {
+                $data['target_audience'] = LtfAudienceType::whereIn('id', $data['ltf_audience_ids'])
+                    ->orderBy('display_order')->pluck('name')->implode(', ');
+            } else {
+                $data['target_audience'] = 'Training Participants';
+            }
+        }
 
         $template = AiPromptTemplate::where('template_code', self::TEMPLATE_CODE)
             ->where('is_active', true)
@@ -256,6 +286,10 @@ class AiCourseGeneratorController extends Controller
         }
         $courseOutline = implode("\n", $outlineLines);
 
+        $ltfStandardIds  = $formData['ltf_standard_ids']  ?? [];
+        $ltfIndustryIds  = $formData['ltf_industry_ids']  ?? [];
+        $ltfAudienceIds  = $formData['ltf_audience_ids']  ?? [];
+
         try {
             DB::transaction(function () use (
                 $formData, $aiOutput, $courseType,
@@ -264,6 +298,7 @@ class AiCourseGeneratorController extends Controller
                 $editedSeoTitle, $editedSeoDesc, $courseOutline,
                 $editedCourseCode, $editedCategoryText, $editedCpdHours, $matchedCategoryId,
                 $editedCertInfo, $editedSeoKeywords, $editedFaqJson, $editedTargetMarket,
+                $ltfStandardIds, $ltfIndustryIds, $ltfAudienceIds,
                 &$course
             ) {
                 $course = Course::create([
@@ -308,6 +343,17 @@ class AiCourseGeneratorController extends Controller
                     'ltf_program_purpose_id'      => $formData['ltf_program_purpose_id']     ?? null,
                     'ltf_competency_level'        => $formData['ltf_competency_level']       ?? null,
                 ]);
+
+                // Sync LTF pivot tables
+                if (!empty($ltfStandardIds)) {
+                    $course->ltfStandards()->sync($ltfStandardIds);
+                }
+                if (!empty($ltfIndustryIds)) {
+                    $course->ltfIndustries()->sync($ltfIndustryIds);
+                }
+                if (!empty($ltfAudienceIds)) {
+                    $course->ltfAudiences()->sync($ltfAudienceIds);
+                }
 
                 if ($courseType === 'elearning') {
                     $lessonOrder = 1;

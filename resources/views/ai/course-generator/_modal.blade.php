@@ -1,5 +1,5 @@
 {{--
-  AI Course Generator Modal
+  AI Course Generator Modal — LTF v2.0 Full Taxonomy UI
   Include in any course create view.
   Requires: $aiCourseType = 'ilt' | 'elearning'
 --}}
@@ -17,14 +17,14 @@
 </button>
 
 {{-- ── Modal Overlay ───────────────────────────────────────── --}}
-<div id="aiCourseModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55);
-     z-index:9999; align-items:center; justify-content:center; padding:20px;">
-    <div style="background:#fff; border-radius:16px; width:100%; max-width:680px; max-height:90vh;
-                overflow-y:auto; box-shadow:0 24px 80px rgba(0,0,0,.3);">
+<div id="aiCourseModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6);
+     z-index:9999; align-items:flex-start; justify-content:center; padding:20px; overflow-y:auto;">
+    <div style="background:#fff; border-radius:16px; width:100%; max-width:780px;
+                box-shadow:0 24px 80px rgba(0,0,0,.3); margin:auto;">
 
         {{-- Header --}}
         <div style="padding:20px 24px 16px; border-bottom:1px solid #f0f2f5; display:flex; justify-content:space-between; align-items:center;
-                    background:linear-gradient(135deg,#0f1e45,#1e3a8a); border-radius:16px 16px 0 0;">
+                    background:linear-gradient(135deg,#0f1e45,#1e3a8a); border-radius:16px 16px 0 0; position:sticky; top:0; z-index:10;">
             <div>
                 <div style="font-size:17px; font-weight:800; color:#fff;">✨ AI Course Generator</div>
                 <div style="font-size:12.5px; color:#93c5fd; margin-top:2px;">
@@ -36,150 +36,254 @@
                            font-size:18px; color:#fff; cursor:pointer; line-height:1;">×</button>
         </div>
 
+        {{-- PHP: Load all taxonomy data --}}
+        @php
+            use App\Models\LtfLearningFramework;
+            use App\Models\LtfDeliveryMethod;
+            use App\Models\LtfTrainingModel;
+            use App\Models\LtfProgramPurpose;
+            use App\Models\LtfStandard;
+            use App\Models\LtfIndustry;
+            use App\Models\LtfAudienceType;
+
+            $aiFrameworks    = LtfLearningFramework::active()->orderBy('display_order')->get(['id','name','ai_block_hint']);
+            $aiDeliveries    = LtfDeliveryMethod::active()->orderBy('display_order')->get(['id','name']);
+            $aiTrainingModels= LtfTrainingModel::active()->orderBy('display_order')->get(['id','name']);
+            $aiPurposes      = LtfProgramPurpose::active()->orderBy('display_order')->get(['id','name','suggested_framework_id']);
+            $aiStandards     = LtfStandard::active()->orderBy('name')->get(['id','name']);
+            $aiIndustries    = LtfIndustry::active()->orderBy('display_order')->get(['id','name']);
+            $aiAudiences     = LtfAudienceType::active()->orderBy('display_order')->get(['id','name']);
+
+            // Build purpose→framework map for JS
+            $purposeToFramework = $aiPurposes->pluck('suggested_framework_id','id')->filter()->toArray();
+            // Build framework lookup for JS
+            $frameworkData = $aiFrameworks->keyBy('id')->map(fn($f) => ['name'=>$f->name,'hint'=>$f->ai_block_hint])->toArray();
+        @endphp
+
         {{-- Form --}}
         <div style="padding:22px 24px;" id="aiModalForm">
             <div id="aiFormError" style="display:none; background:#fee2e2; border-radius:8px; padding:10px 14px; margin-bottom:16px; font-size:13px; color:#b91c1c;"></div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            {{-- ═══ Section 1: Course Information ══════════════════════════ --}}
+            <div style="margin-bottom:20px;">
+                <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#6b7280;
+                            border-bottom:1px solid #e5e7eb; padding-bottom:6px; margin-bottom:14px;">
+                    1 · Course Information
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
 
-                {{-- Course Name --}}
-                <div style="grid-column:1/-1;">
-                    <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
-                        Course Name <span style="color:#ef4444;">*</span>
-                    </label>
-                    <input type="text" id="ai_course_name" placeholder="e.g. ISO 14001:2015 Internal Auditor Training" maxlength="250"
-                           style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:14px; box-sizing:border-box;"
-                           onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
+                    <div style="grid-column:1/-1;">
+                        <label class="ai-label">Course Name <span style="color:#ef4444;">*</span></label>
+                        <input type="text" id="ai_course_name" placeholder="e.g. ISO 14001:2015 Internal Auditor Training" maxlength="250"
+                               class="ai-input" onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
+                    </div>
+
+                    <div>
+                        <label class="ai-label">Duration <span style="color:#ef4444;">*</span></label>
+                        <input type="text" id="ai_duration" placeholder="e.g. 16 Hours / 2 Days"
+                               class="ai-input" onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
+                    </div>
+
+                    <div>
+                        <label class="ai-label">Language <span style="color:#ef4444;">*</span></label>
+                        <select id="ai_language" class="ai-input">
+                            <option value="English">English</option>
+                            <option value="Bangla">Bangla</option>
+                            <option value="Arabic">Arabic</option>
+                            <option value="Chinese">Chinese (Mandarin)</option>
+                            <option value="French">French</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ═══ Section 2: Learning Taxonomy ═══════════════════════════ --}}
+            <div style="margin-bottom:20px;">
+                <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#6b7280;
+                            border-bottom:1px solid #e5e7eb; padding-bottom:6px; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+                    2 · Learning Taxonomy
+                    <span style="font-size:10px; background:#e0e7ff; color:#3730a3; padding:1px 6px; border-radius:4px; font-weight:700; letter-spacing:.2px; text-transform:none;">LTF v2.0</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+
+                    {{-- Program Purpose (drives framework auto-suggest) --}}
+                    <div>
+                        <label class="ai-label">
+                            Program Purpose
+                            <span class="ltf-badge">LTF</span>
+                            <span class="opt-label">(recommended)</span>
+                        </label>
+                        <select id="ai_ltf_purpose" class="ai-input" onchange="handlePurposeChange(); updateContextPreview();"
+                                onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#d1d5db'">
+                            <option value="">— Select training purpose —</option>
+                            @foreach($aiPurposes as $p)
+                            <option value="{{ $p->id }}">{{ $p->name }}</option>
+                            @endforeach
+                        </select>
+                        <div style="font-size:11px; color:#6b7280; margin-top:3px;">Drives the Learning Framework selection below.</div>
+                    </div>
+
+                    {{-- Delivery Method --}}
+                    <div>
+                        <label class="ai-label">
+                            Delivery Method
+                            <span class="ltf-badge">LTF</span>
+                            <span class="opt-label">(optional)</span>
+                        </label>
+                        <select id="ai_ltf_delivery" class="ai-input" onchange="updateContextPreview()"
+                                onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#d1d5db'">
+                            <option value="">— Select delivery method —</option>
+                            @foreach($aiDeliveries as $d)
+                            <option value="{{ $d->id }}">{{ $d->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Learning Framework (auto-suggested from Purpose) --}}
+                    <div>
+                        <label class="ai-label">
+                            Learning Framework
+                            <span class="ltf-badge">LTF</span>
+                            <span id="aiFrameworkAutoLabel" style="display:none; font-size:10px; background:#dcfce7; color:#166534; padding:1px 5px; border-radius:4px; font-weight:700; margin-left:4px;">auto-suggested</span>
+                        </label>
+                        <select id="ai_ltf_framework" class="ai-input" onchange="updateContextPreview()"
+                                onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#d1d5db'">
+                            <option value="">— Auto-detect from content —</option>
+                            @foreach($aiFrameworks as $fw)
+                            <option value="{{ $fw->id }}">{{ $fw->name }}</option>
+                            @endforeach
+                        </select>
+                        <div style="font-size:11px; color:#6b7280; margin-top:3px;">Shapes lesson structure, block types, and assessment style.</div>
+                    </div>
+
+                    {{-- Competency Level --}}
+                    <div>
+                        <label class="ai-label">
+                            Competency Level
+                            <span class="ltf-badge">LTF</span>
+                            <span class="opt-label">(optional)</span>
+                        </label>
+                        <select id="ai_ltf_competency" class="ai-input" onchange="updateContextPreview()"
+                                onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#d1d5db'">
+                            <option value="">— Match learning level —</option>
+                            <option value="beginner">Beginner — awareness &amp; recall</option>
+                            <option value="intermediate">Intermediate — understanding &amp; application</option>
+                            <option value="advanced">Advanced — analysis &amp; evaluation</option>
+                            <option value="expert">Expert — synthesis &amp; leadership</option>
+                        </select>
+                        <div style="font-size:11px; color:#6b7280; margin-top:3px;">Controls word count, depth, and question difficulty.</div>
+                    </div>
+
+                    {{-- Training Model (full-width, less prominent) --}}
+                    <div style="grid-column:1/-1;">
+                        <label class="ai-label" style="color:#6b7280;">
+                            Training Model
+                            <span class="ltf-badge" style="background:#f3f4f6; color:#6b7280;">LTF</span>
+                            <span class="opt-label">(optional)</span>
+                        </label>
+                        <select id="ai_ltf_training_model" class="ai-input" style="font-size:13px;" onchange="updateContextPreview()"
+                                onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#d1d5db'">
+                            <option value="">— Public / Corporate / Internal / etc. —</option>
+                            @foreach($aiTrainingModels as $tm)
+                            <option value="{{ $tm->id }}">{{ $tm->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- ═══ Section 3: Domain Context ══════════════════════════════ --}}
+            <div style="margin-bottom:20px;">
+                <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#6b7280;
+                            border-bottom:1px solid #e5e7eb; padding-bottom:6px; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+                    3 · Domain Context
+                    <span style="font-size:10px; background:#e0e7ff; color:#3730a3; padding:1px 6px; border-radius:4px; font-weight:700; letter-spacing:.2px; text-transform:none;">LTF v2.0</span>
                 </div>
 
-                {{-- Duration --}}
-                <div>
-                    <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
-                        Duration <span style="color:#ef4444;">*</span>
+                {{-- Standards multi-select --}}
+                <div style="margin-bottom:14px;">
+                    <label class="ai-label">
+                        Standards &amp; Frameworks
+                        <span class="ltf-badge">LTF</span>
+                        <span class="opt-label">(optional — select all that apply)</span>
                     </label>
-                    <input type="text" id="ai_duration" placeholder="e.g. 16 Hours / 2 Days"
-                           style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:14px; box-sizing:border-box;"
-                           onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
-                </div>
-
-                {{-- Language --}}
-                <div>
-                    <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
-                        Language <span style="color:#ef4444;">*</span>
-                    </label>
-                    <select id="ai_language" style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:14px; box-sizing:border-box;">
-                        <option value="English">English</option>
-                        <option value="Bangla">Bangla</option>
-                        <option value="Arabic">Arabic</option>
-                        <option value="Chinese">Chinese (Mandarin)</option>
-                        <option value="French">French</option>
-                    </select>
-                </div>
-
-                {{-- Target Audience --}}
-                <div style="grid-column:1/-1;">
-                    <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
-                        Target Audience <span style="color:#ef4444;">*</span>
-                    </label>
-                    <input type="text" id="ai_target_audience" placeholder="e.g. Internal Auditors, EMS Coordinators, Compliance Managers" maxlength="490"
-                           style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:14px; box-sizing:border-box;"
-                           onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
-                </div>
-
-                {{-- Industry --}}
-                <div>
-                    <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
-                        Industry <span style="color:#ef4444;">*</span>
-                    </label>
-                    <select id="ai_industry" style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:14px; box-sizing:border-box;">
-                        <option value="General">General / Cross-Industry</option>
-                        <option value="Manufacturing">Manufacturing</option>
-                        <option value="Garments & Apparel">Garments & Apparel</option>
-                        <option value="Food & Beverage">Food & Beverage</option>
-                        <option value="Construction">Construction</option>
-                        <option value="Healthcare">Healthcare</option>
-                        <option value="Chemical">Chemical</option>
-                        <option value="Logistics & Supply Chain">Logistics & Supply Chain</option>
-                        <option value="Energy">Energy</option>
-                        <option value="Financial Services">Financial Services</option>
-                    </select>
-                </div>
-
-                {{-- Learning Level --}}
-                <div>
-                    <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
-                        Learning Level <span style="color:#ef4444;">*</span>
-                    </label>
-                    <select id="ai_learning_level" style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:14px; box-sizing:border-box;">
-                        <option value="Beginner">Beginner</option>
-                        <option value="Intermediate" selected>Intermediate</option>
-                        <option value="Advanced">Advanced</option>
-                        <option value="Expert">Expert / Lead Auditor</option>
-                    </select>
-                </div>
-
-                {{-- Standard / Framework (optional) --}}
-                <div style="grid-column:1/-1;">
-                    <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
-                        Standard / Framework <span style="font-size:11.5px; font-weight:400; color:#9ca3af;">(optional)</span>
-                    </label>
-                    <input type="text" id="ai_standard" placeholder="e.g. ISO 14001:2015, SLCP, Higg FEM, GRI Standards" maxlength="190"
-                           style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:14px; box-sizing:border-box;"
-                           onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
-                </div>
-
-                {{-- LTF — Learning Framework + Competency Level --}}
-                @php
-                    use App\Models\LtfLearningFramework;
-                    $aiModalFrameworks = LtfLearningFramework::active()->orderBy('display_order')->get(['id','name']);
-                @endphp
-                <div>
-                    <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
-                        Learning Framework
-                        <span style="font-size:10px; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-weight:700; margin-left:4px; letter-spacing:.2px;">LTF</span>
-                        <span style="font-size:11.5px; font-weight:400; color:#9ca3af;">(optional)</span>
-                    </label>
-                    <select id="ai_ltf_framework" style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:13.5px; box-sizing:border-box;"
-                            onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
-                        <option value="">— Auto-detect from content —</option>
-                        @foreach($aiModalFrameworks as $fw)
-                        <option value="{{ $fw->id }}">{{ $fw->name }}</option>
+                    <div class="chip-container" id="chips_standards">
+                        @foreach($aiStandards as $s)
+                        <button type="button" class="chip" data-id="{{ $s->id }}" data-type="standards" data-name="{{ $s->name }}"
+                                onclick="toggleChip(this)">{{ $s->name }}</button>
                         @endforeach
-                    </select>
-                    <div style="font-size:11px; color:#6b7280; margin-top:3px;">Shapes lesson block types, depth, and module structure.</div>
-                </div>
-                <div>
-                    <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
-                        Competency Level
-                        <span style="font-size:10px; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-weight:700; margin-left:4px; letter-spacing:.2px;">LTF</span>
-                        <span style="font-size:11.5px; font-weight:400; color:#9ca3af;">(optional)</span>
-                    </label>
-                    <select id="ai_ltf_competency" style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:13.5px; box-sizing:border-box;"
-                            onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
-                        <option value="">— Match Learning Level above —</option>
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced</option>
-                        <option value="expert">Expert</option>
-                    </select>
-                    <div style="font-size:11px; color:#6b7280; margin-top:3px;">Adjusts word count, question difficulty, and case-study complexity.</div>
+                    </div>
                 </div>
 
-                {{-- Additional Instructions (optional) --}}
-                <div style="grid-column:1/-1;">
-                    <label style="font-size:12.5px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">
-                        Additional Instructions <span style="font-size:11.5px; font-weight:400; color:#9ca3af;">(optional)</span>
+                {{-- Industries multi-select --}}
+                <div style="margin-bottom:14px;">
+                    <label class="ai-label">
+                        Industries
+                        <span class="ltf-badge">LTF</span>
+                        <span class="opt-label">(optional — select all that apply)</span>
                     </label>
-                    <textarea id="ai_instructions" rows="3" maxlength="900"
-                              placeholder="e.g. Focus on practical audit techniques. Include real garment factory scenarios."
-                              style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:13.5px; resize:vertical; box-sizing:border-box; line-height:1.5;"
-                              onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'"></textarea>
+                    <div class="chip-container" id="chips_industries">
+                        @foreach($aiIndustries as $ind)
+                        <button type="button" class="chip" data-id="{{ $ind->id }}" data-type="industries" data-name="{{ $ind->name }}"
+                                onclick="toggleChip(this)">{{ $ind->name }}</button>
+                        @endforeach
+                    </div>
                 </div>
+
+                {{-- Audiences multi-select --}}
+                <div style="margin-bottom:14px;">
+                    <label class="ai-label">
+                        Target Audiences
+                        <span class="ltf-badge">LTF</span>
+                        <span class="opt-label">(optional — select all that apply)</span>
+                    </label>
+                    <div class="chip-container" id="chips_audiences">
+                        @foreach($aiAudiences as $aud)
+                        <button type="button" class="chip" data-id="{{ $aud->id }}" data-type="audiences" data-name="{{ $aud->name }}"
+                                onclick="toggleChip(this)">{{ $aud->name }}</button>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Target Audience free text --}}
+                <div>
+                    <label class="ai-label" style="color:#6b7280;">
+                        Who Should Attend <span class="opt-label">(optional description)</span>
+                    </label>
+                    <input type="text" id="ai_target_audience" maxlength="490"
+                           placeholder="e.g. EMS Coordinators, Internal Auditors, Factory Managers"
+                           class="ai-input" style="font-size:13px;"
+                           onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'">
+                </div>
+            </div>
+
+            {{-- ═══ AI Context Preview ═══════════════════════════════════════ --}}
+            <div id="aiContextPreview" style="display:none; margin-bottom:20px; border:1.5px solid #c7d2fe; border-radius:10px; overflow:hidden;">
+                <div style="background:#e0e7ff; padding:7px 14px; font-size:11px; font-weight:800; text-transform:uppercase;
+                            letter-spacing:.5px; color:#3730a3; display:flex; justify-content:space-between; align-items:center;">
+                    <span>🔍 AI Generation Context Preview</span>
+                    <span style="font-size:10px; font-weight:400; text-transform:none; color:#6d28d9;">Updates as you select taxonomy</span>
+                </div>
+                <div id="aiContextPreviewBody" style="padding:12px 14px; display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:12px;"></div>
+            </div>
+
+            {{-- ═══ Additional Instructions ══════════════════════════════════ --}}
+            <div style="margin-bottom:20px;">
+                <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#6b7280;
+                            border-bottom:1px solid #e5e7eb; padding-bottom:6px; margin-bottom:14px;">
+                    4 · Additional Instructions <span style="font-weight:400; text-transform:none; font-size:11px; color:#9ca3af;">(optional)</span>
+                </div>
+                <textarea id="ai_instructions" rows="2" maxlength="900"
+                          placeholder="e.g. Focus on practical audit techniques. Include real garment factory scenarios from Bangladesh."
+                          style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:13.5px;
+                                 resize:vertical; box-sizing:border-box; line-height:1.5;"
+                          onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'"></textarea>
             </div>
 
             {{-- Generation Mode (eLearning only) --}}
             @if(($aiCourseType ?? 'ilt') === 'elearning')
-            <div id="genModeSection" style="margin-top:18px; border:1.5px solid #c7d2fe; border-radius:10px; overflow:hidden;">
+            <div id="genModeSection" style="margin-bottom:20px; border:1.5px solid #c7d2fe; border-radius:10px; overflow:hidden;">
                 <div style="background:#e0e7ff; padding:8px 14px; font-size:12px; font-weight:800; text-transform:uppercase; color:#3730a3; letter-spacing:.5px;">
                     ✨ Generation Mode
                 </div>
@@ -205,7 +309,7 @@
             @endif
 
             {{-- Generate button --}}
-            <div style="margin-top:20px; display:flex; gap:10px; align-items:center;">
+            <div style="display:flex; gap:10px; align-items:center;">
                 <button type="button" id="aiGenerateBtn" onclick="submitAiGenerate()"
                         style="background:linear-gradient(135deg,#1e3a8a,#2563eb); color:#fff; padding:12px 28px;
                                border:none; border-radius:9px; font-weight:800; font-size:14px; cursor:pointer;
@@ -228,7 +332,7 @@
                         animation:aiSpin 1s linear infinite; margin:0 auto 16px;"></div>
             <div id="aiLoadingTitle" style="font-size:16px; font-weight:700; color:#1e3a8a; margin-bottom:6px;">Generating your course…</div>
             <div id="aiLoadingSubtitle" style="font-size:13.5px; color:#6b7280; line-height:1.6;">
-                SMS Training AI is generating a 90–95% complete course structure.<br>
+                SMS Training AI is generating a complete, taxonomy-aligned course structure.<br>
                 This usually takes 20–45 seconds. Please wait…
             </div>
         </div>
@@ -238,6 +342,86 @@
 
 <style>
 @keyframes aiSpin { to { transform: rotate(360deg); } }
+
+.ai-label {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #374151;
+    display: block;
+    margin-bottom: 5px;
+}
+.ai-input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 7px;
+    font-size: 14px;
+    box-sizing: border-box;
+    background: #fff;
+    transition: border-color .15s;
+}
+.ltf-badge {
+    font-size: 10px;
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-weight: 700;
+    margin-left: 4px;
+    letter-spacing: .2px;
+}
+.opt-label {
+    font-size: 11.5px;
+    font-weight: 400;
+    color: #9ca3af;
+}
+.chip-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    max-height: 130px;
+    overflow-y: auto;
+}
+.chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1.5px solid #d1d5db;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+}
+.chip:hover { border-color: #6366f1; color: #4f46e5; }
+.chip.active {
+    border-color: #4f46e5;
+    background: #e0e7ff;
+    color: #3730a3;
+    font-weight: 700;
+}
+.preview-row {
+    display: contents;
+}
+.preview-label {
+    font-size: 11.5px;
+    color: #6b7280;
+    font-weight: 600;
+    padding: 3px 0;
+}
+.preview-value {
+    font-size: 12px;
+    color: #111827;
+    font-weight: 500;
+    padding: 3px 0;
+}
 </style>
 
 <script>
@@ -245,6 +429,122 @@ const AI_GENERATE_URL = '{{ route('ai.course-generator.generate') }}';
 const AI_COURSE_TYPE  = '{{ $aiCourseType ?? 'ilt' }}';
 const AI_CSRF         = '{{ csrf_token() }}';
 
+// Purpose → Framework suggestion map (from DB)
+const purposeToFramework = @json($purposeToFramework);
+
+// Framework data (id → {name, hint})
+const frameworkData = @json($frameworkData);
+
+// Competency labels
+const competencyLabels = {
+    beginner:     'Beginner — awareness & recall',
+    intermediate: 'Intermediate — understanding & application',
+    advanced:     'Advanced — analysis & evaluation',
+    expert:       'Expert — synthesis & leadership',
+};
+
+// Selected multi-select state
+const selectedIds = { standards: [], industries: [], audiences: [] };
+
+// ── Chip toggle ───────────────────────────────────────────────────────
+function toggleChip(el) {
+    const id   = parseInt(el.dataset.id);
+    const type = el.dataset.type;
+    const idx  = selectedIds[type].indexOf(id);
+
+    if (idx === -1) {
+        selectedIds[type].push(id);
+        el.classList.add('active');
+    } else {
+        selectedIds[type].splice(idx, 1);
+        el.classList.remove('active');
+    }
+    updateContextPreview();
+}
+
+// ── Purpose → Framework auto-suggest ─────────────────────────────────
+function handlePurposeChange() {
+    const purposeId  = parseInt(document.getElementById('ai_ltf_purpose').value) || null;
+    const fwSelect   = document.getElementById('ai_ltf_framework');
+    const autoLabel  = document.getElementById('aiFrameworkAutoLabel');
+
+    if (purposeId && purposeToFramework[purposeId]) {
+        const suggestedId = purposeToFramework[purposeId];
+        fwSelect.value    = suggestedId;
+        autoLabel.style.display = 'inline-block';
+    } else {
+        autoLabel.style.display = 'none';
+    }
+}
+
+// ── Context Preview ───────────────────────────────────────────────────
+function updateContextPreview() {
+    const purposeEl   = document.getElementById('ai_ltf_purpose');
+    const frameworkEl = document.getElementById('ai_ltf_framework');
+    const deliveryEl  = document.getElementById('ai_ltf_delivery');
+    const modelEl     = document.getElementById('ai_ltf_training_model');
+    const compEl      = document.getElementById('ai_ltf_competency');
+
+    const purposeText   = purposeEl.options[purposeEl.selectedIndex]?.text || '';
+    const frameworkId   = parseInt(frameworkEl.value) || null;
+    const deliveryText  = deliveryEl.options[deliveryEl.selectedIndex]?.text || '';
+    const modelText     = modelEl.options[modelEl.selectedIndex]?.text || '';
+    const compValue     = compEl.value;
+
+    const fw = frameworkId ? frameworkData[frameworkId] : null;
+
+    // Collect chip names
+    const stdNames  = [...document.querySelectorAll('#chips_standards .chip.active')].map(c => c.dataset.name);
+    const indNames  = [...document.querySelectorAll('#chips_industries .chip.active')].map(c => c.dataset.name);
+    const audNames  = [...document.querySelectorAll('#chips_audiences .chip.active')].map(c => c.dataset.name);
+
+    const hasAny = purposeEl.value || frameworkId || deliveryEl.value || modelEl.value || compValue
+                   || stdNames.length || indNames.length || audNames.length;
+
+    const preview = document.getElementById('aiContextPreview');
+    const body    = document.getElementById('aiContextPreviewBody');
+
+    if (!hasAny) {
+        preview.style.display = 'none';
+        return;
+    }
+
+    preview.style.display = 'block';
+
+    const rows = [];
+
+    if (purposeEl.value) {
+        rows.push(['Program Purpose', purposeText.replace(/^— /, '').replace(/ —$/, '')]);
+    }
+    if (fw) {
+        rows.push(['Learning Framework', fw.name]);
+        rows.push(['Block Strategy', fw.hint || '—']);
+    }
+    if (deliveryEl.value) {
+        rows.push(['Delivery Method', deliveryText.replace(/^— /, '')]);
+    }
+    if (modelEl.value) {
+        rows.push(['Training Model', modelText.replace(/^— /, '')]);
+    }
+    if (compValue) {
+        rows.push(['Competency Level', compValue.charAt(0).toUpperCase() + compValue.slice(1)]);
+    }
+    if (stdNames.length) {
+        rows.push(['Standards', stdNames.join(', ')]);
+    }
+    if (indNames.length) {
+        rows.push(['Industries', indNames.join(', ')]);
+    }
+    if (audNames.length) {
+        rows.push(['Audiences', audNames.join(', ')]);
+    }
+
+    body.innerHTML = rows.map(([label, value]) =>
+        `<div class="preview-label">${label}</div><div class="preview-value">${value}</div>`
+    ).join('');
+}
+
+// ── Modal open/close ─────────────────────────────────────────────────
 function openAiModal() {
     document.getElementById('aiCourseModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -272,30 +572,30 @@ function updateModeUI() {
     }
 }
 
+// ── Submit ───────────────────────────────────────────────────────────
 async function submitAiGenerate() {
     const courseName    = document.getElementById('ai_course_name').value.trim();
     const duration      = document.getElementById('ai_duration').value.trim();
     const language      = document.getElementById('ai_language').value;
     const targetAud     = document.getElementById('ai_target_audience').value.trim();
-    const industry      = document.getElementById('ai_industry').value;
-    const level         = document.getElementById('ai_learning_level').value;
-    const standard      = document.getElementById('ai_standard').value.trim();
     const instructions  = document.getElementById('ai_instructions').value.trim();
+    const ltfPurpose    = document.getElementById('ai_ltf_purpose').value;
+    const ltfDelivery   = document.getElementById('ai_ltf_delivery').value;
+    const ltfModel      = document.getElementById('ai_ltf_training_model').value;
     const ltfFramework  = document.getElementById('ai_ltf_framework').value;
     const ltfCompetency = document.getElementById('ai_ltf_competency').value;
     const modeBEl       = document.getElementById('modeB');
     const generationMode = (modeBEl && modeBEl.checked) ? 'complete' : 'structure';
 
-    if (!courseName)    { showAiError('Course Name is required.'); return; }
-    if (!duration)      { showAiError('Duration is required.'); return; }
-    if (!targetAud)     { showAiError('Target Audience is required.'); return; }
+    if (!courseName) { showAiError('Course Name is required.'); return; }
+    if (!duration)   { showAiError('Duration is required.'); return; }
 
-    // Show loading with mode-appropriate message
+    // Show loading
     document.getElementById('aiModalForm').style.display    = 'none';
     document.getElementById('aiLoadingState').style.display = 'block';
     if (generationMode === 'complete') {
-        document.getElementById('aiLoadingTitle').textContent    = 'Generating complete eLearning course…';
-        document.getElementById('aiLoadingSubtitle').innerHTML   = 'AI is building course structure AND generating full lesson content.<br>This can take 1–3 minutes for a full course. Please wait…';
+        document.getElementById('aiLoadingTitle').textContent   = 'Generating complete eLearning course…';
+        document.getElementById('aiLoadingSubtitle').innerHTML  = 'AI is building a taxonomy-aligned course structure AND full lesson content.<br>This can take 1–3 minutes. Please wait…';
     }
 
     try {
@@ -304,23 +604,29 @@ async function submitAiGenerate() {
             duration:         duration,
             language:         language,
             target_audience:  targetAud,
-            industry:         industry,
-            learning_level:   level,
-            standard:         standard,
             instructions:     instructions,
             course_type:      AI_COURSE_TYPE,
             generation_mode:  generationMode,
         };
-        if (ltfFramework)  payload.ltf_learning_framework_id = parseInt(ltfFramework);
-        if (ltfCompetency) payload.ltf_competency_level      = ltfCompetency;
 
-        const res  = await fetch(AI_GENERATE_URL, {
+        // LTF taxonomy — only include if selected
+        if (ltfPurpose)   payload.ltf_program_purpose_id    = parseInt(ltfPurpose);
+        if (ltfDelivery)  payload.ltf_delivery_method_id    = parseInt(ltfDelivery);
+        if (ltfModel)     payload.ltf_training_model_id     = parseInt(ltfModel);
+        if (ltfFramework) payload.ltf_learning_framework_id = parseInt(ltfFramework);
+        if (ltfCompetency)payload.ltf_competency_level      = ltfCompetency;
+
+        // Multi-select arrays
+        if (selectedIds.standards.length)  payload.ltf_standard_ids  = selectedIds.standards;
+        if (selectedIds.industries.length) payload.ltf_industry_ids  = selectedIds.industries;
+        if (selectedIds.audiences.length)  payload.ltf_audience_ids  = selectedIds.audiences;
+
+        const res = await fetch(AI_GENERATE_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': AI_CSRF, 'Accept': 'application/json' },
             body: JSON.stringify(payload),
         });
 
-        // Always try to read JSON body first so we can show real error detail
         let data = null;
         try { data = await res.json(); } catch {}
 
@@ -329,13 +635,12 @@ async function submitAiGenerate() {
             if (res.status === 419) {
                 showAiError('Your session expired. Please refresh the page and try again.');
             } else if (res.status === 422 && data) {
-                // Laravel validation error — surface the actual field messages
                 const msgs = data.errors
                     ? Object.values(data.errors).flat().join(' ')
-                    : (data.message || 'Validation failed. Please check your input and try again.');
+                    : (data.message || 'Validation failed. Please check your input.');
                 showAiError('⚠ ' + msgs);
             } else {
-                showAiError(data?.error || data?.message || 'Server error (' + res.status + '). Please refresh the page and try again.');
+                showAiError(data?.error || data?.message || 'Server error (' + res.status + '). Please refresh and try again.');
             }
             return;
         }

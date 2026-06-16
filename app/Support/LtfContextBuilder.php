@@ -3,9 +3,12 @@
 namespace App\Support;
 
 use App\Models\Course;
+use App\Models\LtfAudienceType;
 use App\Models\LtfDeliveryMethod;
+use App\Models\LtfIndustry;
 use App\Models\LtfLearningFramework;
 use App\Models\LtfProgramPurpose;
+use App\Models\LtfStandard;
 use App\Models\LtfTrainingModel;
 
 class LtfContextBuilder
@@ -56,6 +59,14 @@ class LtfContextBuilder
         $model     = $trainingModelId ? LtfTrainingModel::find($trainingModelId) : null;
         $purpose   = $programPurposeId? LtfProgramPurpose::find($programPurposeId): null;
 
+        $standardIds  = array_filter((array) ($data['ltf_standard_ids']  ?? []), 'is_numeric');
+        $industryIds  = array_filter((array) ($data['ltf_industry_ids']  ?? []), 'is_numeric');
+        $audienceIds  = array_filter((array) ($data['ltf_audience_ids']  ?? []), 'is_numeric');
+
+        $standards  = $standardIds ? LtfStandard::whereIn('id', $standardIds)->pluck('name')->toArray()     : [];
+        $industries = $industryIds ? LtfIndustry::whereIn('id', $industryIds)->pluck('name')->toArray()     : [];
+        $audiences  = $audienceIds ? LtfAudienceType::whereIn('id', $audienceIds)->pluck('name')->toArray() : [];
+
         return new LtfGenerationContext(
             frameworkHint:   $framework?->ai_block_hint,
             frameworkName:   $framework?->name,
@@ -63,9 +74,9 @@ class LtfContextBuilder
             trainingModel:   $model?->name,
             programPurpose:  $purpose?->name,
             competencyLevel: $competencyLevel ?: null,
-            standards:       [],
-            industries:      [],
-            audiences:       [],
+            standards:       $standards,
+            industries:      $industries,
+            audiences:       $audiences,
         );
     }
 
