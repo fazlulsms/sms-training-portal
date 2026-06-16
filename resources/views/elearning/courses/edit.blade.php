@@ -309,4 +309,8 @@ function submitCourse(action) {
     }
 })();
 </script>
+
+{{-- Assessment Summary (Phase 6) --}}
+@include('elearning.courses.partials.assessment-summary')
+
 @endsection

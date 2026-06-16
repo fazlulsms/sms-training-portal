@@ -79,4 +79,11 @@ class ElearningQuizController extends Controller
 
         return back()->with('success', 'Quiz deleted successfully.');
     }
+
+    // ── Admin preview — reads questions without creating any attempt ────
+    public function preview(Course $course, ElearningLesson $lesson, ElearningQuiz $quiz)
+    {
+        $quiz->load('questions');
+        return view('elearning.quizzes.preview', compact('course', 'lesson', 'quiz'));
+    }
 }

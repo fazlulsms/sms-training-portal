@@ -28,6 +28,7 @@ use App\Http\Controllers\ElearningLessonController;
 use App\Http\Controllers\LessonBlockController;
 use App\Http\Controllers\ElearningEnrollmentController;
 use App\Http\Controllers\ElearningLessonResourceController;
+use App\Http\Controllers\ElearningQuizAdminController;
 use App\Http\Controllers\ElearningQuizController;
 use App\Http\Controllers\ElearningQuizQuestionController;
 use App\Http\Controllers\ElearningQuizAttemptController;
@@ -616,6 +617,13 @@ Route::middleware(['auth', 'admin'])->prefix('elearning')->name('elearning.')->g
     Route::get('courses/{course}/lessons/{lesson}/quizzes/{quiz}/edit', [ElearningQuizController::class, 'edit'])->name('quizzes.edit');
     Route::put('courses/{course}/lessons/{lesson}/quizzes/{quiz}', [ElearningQuizController::class, 'update'])->name('quizzes.update');
     Route::delete('courses/{course}/lessons/{lesson}/quizzes/{quiz}', [ElearningQuizController::class, 'destroy'])->name('quizzes.destroy');
+    Route::get('courses/{course}/lessons/{lesson}/quizzes/{quiz}/preview', [ElearningQuizController::class, 'preview'])->name('quizzes.preview');
+
+    // ── Quiz Admin Recovery (Phase 1) ─────────────────────────────────
+    Route::get('enrollments/{enrollment}/quizzes/{quiz}/attempts', [ElearningQuizAdminController::class, 'attempts'])->name('quiz-admin.attempts');
+    Route::post('enrollments/{enrollment}/quizzes/{quiz}/reset-attempts', [ElearningQuizAdminController::class, 'resetAttempts'])->name('quiz-admin.reset-attempts');
+    Route::post('enrollments/{enrollment}/quizzes/{quiz}/add-extra-attempt', [ElearningQuizAdminController::class, 'addExtraAttempt'])->name('quiz-admin.add-extra-attempt');
+    Route::post('enrollments/{enrollment}/quizzes/{quiz}/mark-passed', [ElearningQuizAdminController::class, 'markPassed'])->name('quiz-admin.mark-passed');
 
     Route::get('courses/{course}/lessons/{lesson}/quizzes/{quiz}/questions', [ElearningQuizQuestionController::class, 'index'])->name('quiz-questions.index');
     Route::get('courses/{course}/lessons/{lesson}/quizzes/{quiz}/questions/create', [ElearningQuizQuestionController::class, 'create'])->name('quiz-questions.create');

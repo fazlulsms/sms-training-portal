@@ -334,7 +334,7 @@ PROMPT;
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // Module Quiz
+    // Module Quiz — Phase 3: mixed question types, framework-aware
     // ─────────────────────────────────────────────────────────────────
     private function generateModuleQuiz(
         Course $course,
@@ -360,17 +360,38 @@ PROMPT;
 
             $qCount = match ($this->level) { 'Awareness' => 3, 'Advanced' => 5, default => 4 };
 
+            // Question distribution by level (Phase 3)
+            $tfCount       = 1;
+            $scenarioCount = match ($this->level) { 'Awareness' => 0, 'Advanced' => 2, default => 1 };
+            $mcqCount      = $qCount - $tfCount - $scenarioCount;
+
+            $frameworkHint  = $ltfContext?->frameworkHint ?? null;
+            $isAuditor      = in_array($frameworkHint, ['lead_auditor', 'internal_auditor', 'auditor_conversion', 'experienced_auditor']);
+            $isAwareness    = in_array($frameworkHint, ['awareness', 'foundation', 'community_awareness']);
+
+            $auditorGuidance = $isAuditor
+                ? "\nFor auditor questions: include evidence identification, finding classification, scenario decision-making, and practical audit application. Use realistic audit scenario narratives."
+                : ($isAwareness
+                    ? "\nFor awareness questions: focus on recognising concepts, understanding why something matters, and simple workplace scenarios. Avoid auditor-level terminology."
+                    : '');
+
             $ltfAssessment = ($ltfContext && $ltfContext->hasContext())
                 ? "\n\n" . $ltfContext->toAssessmentInstructions()
                 : '';
 
+            $distLine = ($scenarioCount > 0)
+                ? "- {$mcqCount} MCQ (4 options: a, b, c, d)\n- {$tfCount} True/False (a=True, b=False; set options c and d to null)\n- {$scenarioCount} Scenario MCQ (workplace or audit scenario with 4 options)"
+                : "- {$mcqCount} MCQ (4 options: a, b, c, d)\n- {$tfCount} True/False (a=True, b=False; set options c and d to null)";
+
             $result = app(OpenAIService::class)->generateText(
                 "ROLE: eLearning assessment designer. Output ONLY valid JSON (no markdown fences).\n\n" .
-                "Generate {$qCount} MCQ quiz questions for Module {$modIndex}: {$moduleTitle}.\n" .
+                "Generate {$qCount} quiz questions for Module {$modIndex}: {$moduleTitle}.\n" .
                 "Course: {$course->name} | Level: {$this->level}\n" .
-                "Lessons:\n{$summaries}{$ltfAssessment}\n\n" .
-                "Return: {\"questions\":[{\"question_text\":\"...\",\"options\":{\"a\":\"...\",\"b\":\"...\",\"c\":\"...\",\"d\":\"...\"},\"correct_answer\":\"a\",\"explanation\":\"...\"}]}\n" .
-                "Include 1 true/false (a=True, b=False, c=Sometimes, d=Not applicable).",
+                "Lessons covered:\n{$summaries}{$ltfAssessment}\n\n" .
+                "QUESTION DISTRIBUTION:\n{$distLine}\n{$auditorGuidance}\n\n" .
+                "Each question MUST include 'question_type': 'mcq' | 'truefalse' | 'scenario'.\n" .
+                "For True/False: options c and d must be null. Correct answer is 'a' (True) or 'b' (False).\n\n" .
+                "Return ONLY: {\"questions\":[{\"question_text\":\"...\",\"question_type\":\"mcq\",\"options\":{\"a\":\"...\",\"b\":\"...\",\"c\":\"...\",\"d\":\"...\"},\"correct_answer\":\"a\",\"explanation\":\"...\"}]}",
                 'module_quiz', null, 2000
             );
 
@@ -401,14 +422,16 @@ PROMPT;
 
             foreach ($decoded['questions'] as $q) {
                 if (empty($q['question_text']) || empty($q['options'])) continue;
+                $qType = in_array($q['question_type'] ?? '', ['truefalse', 'scenario']) ? $q['question_type'] : 'mcq';
+                $isTF  = ($qType === 'truefalse');
                 ElearningQuizQuestion::create([
                     'quiz_id'        => $quiz->id,
                     'question_text'  => $q['question_text'],
-                    'question_type'  => 'mcq',
+                    'question_type'  => $qType,
                     'option_a'       => $q['options']['a'] ?? '',
                     'option_b'       => $q['options']['b'] ?? '',
-                    'option_c'       => $q['options']['c'] ?? '',
-                    'option_d'       => $q['options']['d'] ?? '',
+                    'option_c'       => $isTF ? null : ($q['options']['c'] ?? ''),
+                    'option_d'       => $isTF ? null : ($q['options']['d'] ?? ''),
                     'correct_answer' => strtolower($q['correct_answer'] ?? 'a'),
                     'explanation'    => $q['explanation'] ?? null,
                     'difficulty'     => 'medium',
@@ -424,7 +447,7 @@ PROMPT;
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // Final Assessment
+    // Final Assessment — Phase 4: dedup-aware, framework-styled
     // ─────────────────────────────────────────────────────────────────
     private function generateFinalAssessment(Course $course, ?LtfGenerationContext $ltfContext = null): int
     {
@@ -451,8 +474,31 @@ PROMPT;
                 ->map(fn($s) => trim($s))->filter()->implode('; ') ?: 'Not specified';
 
             $mcq      = (int) round($qCount * 0.60);
-            $tf       = (int) round($qCount * 0.25);
+            $tf       = (int) round($qCount * 0.20);
             $scenario = $qCount - $mcq - $tf;
+
+            // Phase 4: Pull module quiz question texts as deduplication context
+            $moduleQuizTopics = ElearningQuizQuestion::whereHas('quiz.lesson', function ($q) use ($course) {
+                $q->where('course_id', $course->id)
+                  ->where('lesson_type', 'assessment')
+                  ->where('title', 'like', 'Module%Knowledge Check%');
+            })->pluck('question_text')->take(40);
+
+            $dedupContext = $moduleQuizTopics->isNotEmpty()
+                ? "\nMODULE QUIZ TOPICS (do NOT repeat these verbatim — create new questions that assess the same learning outcomes at a final-exam level with greater depth and integration):\n" .
+                  $moduleQuizTopics->map(fn($t) => '- ' . $t)->implode("\n")
+                : '';
+
+            // Phase 4: Framework-aware question style guidance
+            $frameworkHint = $ltfContext?->frameworkHint ?? null;
+            $isAuditor     = in_array($frameworkHint, ['lead_auditor', 'internal_auditor', 'auditor_conversion', 'experienced_auditor']);
+            $isAwareness   = in_array($frameworkHint, ['awareness', 'foundation', 'community_awareness']);
+
+            $styleGuidance = $isAuditor
+                ? "\nAUDITOR COURSE STYLE: Prioritise scenario-based questions, evidence evaluation, finding classification, conformity/nonconformity determination, and audit decision-making at professional-practitioner level."
+                : ($isAwareness
+                    ? "\nAWARENESS COURSE STYLE: Use simple workplace scenario questions. Focus on recognition, understanding, and practical relevance. Avoid auditor-level terminology or technical specifications."
+                    : "\nInclude applied scenario questions that test practical application and integration of concepts across modules.");
 
             $ltfFinalExam = ($ltfContext && $ltfContext->hasContext())
                 ? "\n" . $ltfContext->toFinalExamInstructions()
@@ -463,8 +509,10 @@ PROMPT;
                 "Generate a final assessment with EXACTLY {$qCount} questions for: {$course->name}\n" .
                 "Level: {$this->level} | Objectives: {$objectives}\n" .
                 "Modules:\n{$modulesText}{$ltfFinalExam}\n\n" .
-                "Distribution: {$mcq} MCQ | {$tf} True/False (a=True, b=False) | {$scenario} Scenario MCQ\n" .
-                "Difficulty: ~30% easy, ~50% medium, ~20% hard. Cover ALL modules proportionally.\n\n" .
+                "Distribution: {$mcq} MCQ | {$tf} True/False (a=True, b=False; c and d null) | {$scenario} Scenario MCQ\n" .
+                "Difficulty: ~30% easy, ~50% medium, ~20% hard. Cover ALL modules proportionally.\n" .
+                "{$styleGuidance}\n" .
+                "{$dedupContext}\n\n" .
                 "Return: {\"questions\":[{\"question_text\":\"...\",\"question_type\":\"mcq|truefalse|scenario\",\"difficulty\":\"easy|medium|hard\",\"module_index\":1,\"options\":{\"a\":\"...\",\"b\":\"...\",\"c\":\"...\",\"d\":\"...\"},\"correct_answer\":\"a\",\"explanation\":\"...\"}]}",
                 'final_assessment', null, 6000
             );

@@ -50,7 +50,7 @@ class AiCourseGeneratorController extends Controller
             'industry'                    => 'nullable|string|max:100',
             'learning_level'              => 'nullable|in:Beginner,Intermediate,Advanced,Expert',
             'standard'                    => 'nullable|string|max:200',
-            'instructions'                => 'nullable|string|max:1000',
+            'instructions'                => 'nullable|string|max:3000',
             'course_type'                 => 'required|in:ilt,elearning',
             'generation_mode'             => 'nullable|in:structure,complete',
             // LTF taxonomy — all optional; existing courses work without them

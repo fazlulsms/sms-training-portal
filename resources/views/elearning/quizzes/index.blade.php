@@ -41,6 +41,8 @@
                     </td>
                     <td class="c">
                         <div class="dt-actions" style="justify-content:center;">
+                            <a href="{{ route('elearning.quizzes.preview', [$course, $lesson, $quiz]) }}"
+                               class="btn btn-xs" style="background:#f0fdf4;color:#15803d;">Preview</a>
                             <a href="{{ route('elearning.quiz-questions.index', [$course, $lesson, $quiz]) }}"
                                class="btn btn-xs" style="background:#eef2ff;color:#4338ca;">Questions</a>
                             <a href="{{ route('elearning.quizzes.edit', [$course, $lesson, $quiz]) }}" class="btn btn-edit btn-xs">Edit</a>

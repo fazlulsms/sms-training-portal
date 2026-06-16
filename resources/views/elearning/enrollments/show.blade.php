@@ -269,5 +269,88 @@
         @endif
     </div>
 
+    {{-- ── Assessment & Quiz Progress ─────────────────────────────────── --}}
+    @php
+        use App\Models\ElearningLesson;
+        use App\Models\QuizAttempt;
+        use App\Models\QuizAttemptOverride;
+
+        $enrollAssessments = ElearningLesson::where('course_id', $enrollment->course_id)
+            ->where('lesson_type', 'assessment')
+            ->orderBy('lesson_order')
+            ->with('quizzes.questions')
+            ->get();
+    @endphp
+
+    @if($enrollAssessments->isNotEmpty())
+    <div class="bg-white shadow rounded-xl overflow-hidden mt-6">
+        <div style="padding:16px 24px; border-bottom:1px solid #f1f5f9; background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);">
+            <div style="color:#fff; font-size:15px; font-weight:800;">📋 Assessment &amp; Quiz Progress</div>
+            <div style="color:#bfdbfe; font-size:12.5px; margin-top:2px;">Quiz attempt status and admin recovery actions for this learner</div>
+        </div>
+        <div style="padding:20px 24px;">
+
+            @php $anyBlocked = false; @endphp
+            @foreach($enrollAssessments as $al)
+                @foreach($al->quizzes as $quiz)
+                @php
+                    $qAttempts   = QuizAttempt::where('elearning_enrollment_id', $enrollment->id)->where('quiz_id', $quiz->id)->orderByDesc('created_at')->get();
+                    $qOverride   = QuizAttemptOverride::where('enrollment_id', $enrollment->id)->where('quiz_id', $quiz->id)->first();
+                    $effectiveMax= $quiz->max_attempt + ($qOverride?->extra_attempts ?? 0);
+                    $taken       = $qAttempts->count();
+                    $bestScore   = $qAttempts->max('score');
+                    $passed      = $qAttempts->where('score', '>=', $quiz->pass_mark)->isNotEmpty();
+                    $blocked     = !$passed && $effectiveMax > 0 && $taken >= $effectiveMax;
+                    if ($blocked) $anyBlocked = true;
+                @endphp
+                <div style="border:1.5px solid {{ $blocked ? '#fcd34d' : ($passed ? '#86efac' : '#e2e8f0') }}; border-radius:10px; padding:15px 18px; margin-bottom:12px;">
+                    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                        <div>
+                            <div style="font-size:13px; font-weight:700; color:#1e293b; margin-bottom:3px;">{{ $al->title }}</div>
+                            <div style="font-size:11.5px; color:#64748b;">
+                                Pass: {{ $quiz->pass_mark }}% &nbsp;·&nbsp;
+                                Attempts: {{ $taken }}/{{ $effectiveMax ?: '∞' }}
+                                @if($qOverride)
+                                    <span style="color:#2563eb; font-weight:600;">(+{{ $qOverride->extra_attempts }} override)</span>
+                                @endif
+                                &nbsp;·&nbsp; Best: {{ $bestScore !== null ? number_format($bestScore,1).'%' : '—' }}
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                            @if($passed)
+                                <span style="background:#dcfce7;color:#166534;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;">✓ Passed</span>
+                            @elseif($blocked)
+                                <span style="background:#fef3c7;color:#92400e;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;">⚠ Blocked</span>
+                            @elseif($taken > 0)
+                                <span style="background:#fee2e2;color:#991b1b;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;">✗ Failed</span>
+                            @else
+                                <span style="background:#f1f5f9;color:#475569;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;">Not started</span>
+                            @endif
+                            <a href="{{ route('elearning.quiz-admin.attempts', [$enrollment, $quiz]) }}"
+                               style="font-size:12px;font-weight:700;background:#1e3a8a;color:#fff;padding:5px 14px;border-radius:7px;text-decoration:none;">
+                                Manage →
+                            </a>
+                        </div>
+                    </div>
+                    @if($blocked)
+                    <div style="margin-top:9px;font-size:12px;color:#92400e;background:#fef9c3;border-radius:6px;padding:6px 12px;">
+                        ⚠ All {{ $effectiveMax }} attempt(s) used without passing.
+                        <a href="{{ route('elearning.quiz-admin.attempts', [$enrollment, $quiz]) }}" style="font-weight:700;color:#78350f;">Take recovery action →</a>
+                    </div>
+                    @endif
+                </div>
+                @endforeach
+            @endforeach
+
+            @if($anyBlocked)
+            <div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:8px;padding:11px 16px;font-size:12.5px;color:#991b1b;margin-top:4px;">
+                <strong>Action required:</strong> One or more assessments have blocked learners.
+                Use <strong>Manage →</strong> on each blocked assessment to reset attempts, grant an extra attempt, or mark as passed.
+            </div>
+            @endif
+        </div>
+    </div>
+    @endif
+
 </div>
 @endsection

@@ -290,11 +290,18 @@
                             border-bottom:1px solid #e5e7eb; padding-bottom:6px; margin-bottom:14px;">
                     4 · Additional Instructions <span style="font-weight:400; text-transform:none; font-size:11px; color:#9ca3af;">(optional)</span>
                 </div>
-                <textarea id="ai_instructions" rows="2" maxlength="900"
+                <textarea id="ai_instructions" rows="4" maxlength="3000"
                           placeholder="e.g. Focus on practical audit techniques. Include real garment factory scenarios from Bangladesh."
                           style="width:100%; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:7px; font-size:13.5px;
                                  resize:vertical; box-sizing:border-box; line-height:1.5;"
-                          onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'"></textarea>
+                          onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#d1d5db'"
+                          oninput="updateInstrCounter(this)"></textarea>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-top:5px;">
+                    <div style="font-size:11.5px; color:#6b7280; max-width:78%;">
+                        Use this area for standards summaries, implementation notes, internal methodologies, auditor expectations, AI generation guidance, or other course-specific instructions.
+                    </div>
+                    <div id="ai_instr_counter" style="font-size:11.5px; color:#9ca3af; white-space:nowrap; margin-left:8px;">0 / 3000</div>
+                </div>
             </div>
 
             {{-- Generation Mode (eLearning only) --}}
@@ -461,6 +468,27 @@ const competencyLabels = {
 
 // Selected multi-select state
 const selectedIds = { standards: [], industries: [], audiences: [] };
+
+// ── Additional Instructions counter ───────────────────────────────────
+function updateInstrCounter(el) {
+    const len     = el.value.length;
+    const counter = document.getElementById('ai_instr_counter');
+    counter.textContent = len + ' / 3000';
+
+    if (len <= 2500) {
+        counter.style.color = '#9ca3af';
+        el.style.borderColor = '#d1d5db';
+    } else if (len <= 2800) {
+        counter.style.color = '#d97706';
+        el.style.borderColor = '#f59e0b';
+    } else if (len < 3000) {
+        counter.style.color = '#dc2626';
+        el.style.borderColor = '#ef4444';
+    } else {
+        counter.style.color = '#dc2626';
+        el.style.borderColor = '#ef4444';
+    }
+}
 
 // ── Chip toggle ───────────────────────────────────────────────────────
 function toggleChip(el) {

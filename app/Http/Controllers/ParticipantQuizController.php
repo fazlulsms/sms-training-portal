@@ -6,6 +6,7 @@ use App\Models\ElearningEnrollment;
 use App\Models\ElearningLesson;
 use App\Models\ElearningQuiz;
 use App\Models\QuizAttempt;
+use App\Models\QuizAttemptOverride;
 use App\Services\LessonProgressService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -45,10 +46,16 @@ class ParticipantQuizController extends Controller
             ->where('quiz_id', $quiz->id)
             ->count();
 
-        if ($quiz->max_attempt > 0 && $attemptCount >= $quiz->max_attempt) {
+        // Respect per-enrollment override before applying global max_attempt limit
+        $override     = QuizAttemptOverride::where('enrollment_id', $enrollment->id)
+            ->where('quiz_id', $quiz->id)
+            ->first();
+        $effectiveMax = $quiz->max_attempt + ($override?->extra_attempts ?? 0);
+
+        if ($effectiveMax > 0 && $attemptCount >= $effectiveMax) {
             return redirect()
                 ->route('participant.elearning-details', $enrollment->id)
-                ->with('error', 'Maximum quiz attempts reached.');
+                ->with('error', 'Maximum quiz attempts reached. Please contact your administrator.');
         }
 
         $quiz->load('questions');
@@ -108,7 +115,12 @@ class ParticipantQuizController extends Controller
                 ->lockForUpdate()
                 ->count();
 
-            if ($quiz->max_attempt > 0 && $attemptCount >= $quiz->max_attempt) {
+            $override     = QuizAttemptOverride::where('enrollment_id', $enrollment->id)
+                ->where('quiz_id', $quiz->id)
+                ->first();
+            $effectiveMax = $quiz->max_attempt + ($override?->extra_attempts ?? 0);
+
+            if ($effectiveMax > 0 && $attemptCount >= $effectiveMax) {
                 return null; // Signal over-limit
             }
 
@@ -125,7 +137,7 @@ class ParticipantQuizController extends Controller
         if ($attempt === null) {
             return redirect()
                 ->route('participant.elearning-details', $enrollment->id)
-                ->with('error', 'Maximum quiz attempts reached.');
+                ->with('error', 'Maximum quiz attempts reached. Please contact your administrator.');
         }
 
         // If quiz passed → auto-complete the parent lesson via LessonProgressService
