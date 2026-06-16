@@ -295,18 +295,131 @@ class LtfBlockStrategy
     {
         $sequence = self::blockSequence($hint);
         $labels   = self::blockLabels();
+        $seqList  = implode(', ', array_map(fn(string $t) => $labels[$t] ?? $t, $sequence));
 
-        $readableList = implode(', ', array_map(
-            fn(string $t) => $labels[$t] ?? $t,
-            $sequence
-        ));
+        $behavioural = match ($hint) {
 
-        $frameworkName = self::allHints()[$hint] ?? 'General';
+            'awareness' =>
+                "THE LEARNING GOAL IS AWARENESS — not mastery. The learner may know nothing about this topic.\n" .
+                "• Lead every lesson with WHY this topic matters, not HOW to implement it.\n" .
+                "• Open with a Myth vs Fact block to immediately correct the most common misconception.\n" .
+                "• Use Workplace Example blocks with 2–3 industry contexts showing real consequences of ignoring this topic.\n" .
+                "• Use Fun Fact blocks with specific statistics or surprising data points that make the topic memorable.\n" .
+                "• Use Reflection blocks to help learners connect the topic to their own role and daily work.\n" .
+                "• Keep Knowledge Checks to pure recall and recognition — single-concept questions with obvious correct answers.\n" .
+                "• Every lesson must end with ONE single memorable takeaway message.\n" .
+                "• Tone: warm, engaging, non-threatening. Never assume prior knowledge.",
 
-        return "This course follows the \"{$frameworkName}\" learning framework. " .
-               "For each lesson, prefer the following block types in this order: {$readableList}. " .
-               "Not all blocks are required for every lesson — choose the most appropriate subset " .
-               "based on lesson content and depth.";
+            'standard_interpretation' =>
+                "THE LEARNING GOAL IS STANDARD COMPREHENSION — learners must understand what requirements mean and how to apply them.\n" .
+                "• Structure content clause-by-clause or requirement-by-requirement — reference actual clause numbers or section titles.\n" .
+                "• Use Accordion blocks to present each clause as an expandable item: heading = clause title, content = practical meaning.\n" .
+                "• Use Click Reveal blocks to pair each requirement with its practical intent: question = 'What does this clause actually require?', answer = plain-language explanation.\n" .
+                "• Use Slides blocks to present clause relationships, hierarchies, and connections between requirements.\n" .
+                "• Use Workplace Example blocks showing compliant vs non-compliant implementation side by side.\n" .
+                "• Every Knowledge Check must test clause comprehension, not just recall — ask 'which clause covers X?' or 'what does requirement Y mean in practice?'\n" .
+                "• Avoid generic motivational content — assume a professional who needs technical specifics.\n" .
+                "• Tone: precise, technical, authoritative. Reference the standard by name throughout.",
+
+            'internal_auditor' =>
+                "THE LEARNING GOAL IS AUDIT COMPETENCE — learners must be able to plan and conduct internal audits.\n" .
+                "• Every lesson must be grounded in audit practice: what an auditor looks for, what evidence to collect, how to write findings.\n" .
+                "• Use Scenario blocks to simulate audit interviews: present a real audit situation and ask 'What should the auditor do next?'\n" .
+                "• Use Matching blocks to connect: audit criteria ↔ evidence types, clause requirements ↔ audit questions, findings ↔ NCR classifications.\n" .
+                "• Use Case Study blocks presenting real audit scenarios: include the audit context, the finding, and the NCR classification decision.\n" .
+                "• Use Workplace Example blocks showing audit checklists, evidence review, and interview techniques in action.\n" .
+                "• Knowledge Checks must test audit judgment — present a scenario and ask which finding classification applies, or which action is correct.\n" .
+                "• Do NOT write purely theoretical content — every definition must immediately connect to what an auditor does with it.\n" .
+                "• Tone: practical, procedural, audit-focused. Use auditor vocabulary throughout (auditee, objective evidence, NCR, audit trail, corrective action).",
+
+            'lead_auditor' =>
+                "THE LEARNING GOAL IS PROFESSIONAL AUDIT LEADERSHIP — learners are preparing for a professional auditor certification (IRCA-equivalent).\n" .
+                "• Content must be at advanced practitioner level — skip introductory explanations, assume solid prior knowledge.\n" .
+                "• Use Slides blocks for audit frameworks, international standards for auditing, and professional models (PDCA, risk-based thinking).\n" .
+                "• Use Scenario blocks for complex multi-stakeholder audit situations: certification body audits, multi-site programmes, sensitive findings, conflict with auditee management.\n" .
+                "• Use Case Study blocks for: NCR grading decisions (major vs minor), audit programme management, closing meeting challenges, follow-up verification scenarios.\n" .
+                "• Include blocks on audit ethics, impartiality, and conflicts of interest — these are examined topics.\n" .
+                "• Use Accordion blocks for the audit lifecycle: planning phase → opening meeting → audit execution → finding classification → reporting → closing meeting → follow-up.\n" .
+                "• Knowledge Checks must require synthesis and professional judgment — present ambiguous situations with no single obvious answer.\n" .
+                "• Assessment questions must test application in unfamiliar audit contexts, not recall of definitions.\n" .
+                "• Tone: rigorous, professional, certification-examination standard. Reference ISO 19011 principles throughout.",
+
+            'implementation' =>
+                "THE LEARNING GOAL IS IMPLEMENTATION COMPETENCE — learners must be able to build and deploy a management system.\n" .
+                "• Structure every lesson as a sequential implementation guide — each lesson covers a specific phase or set of tasks.\n" .
+                "• Use Accordion blocks to break each ISO clause into actionable implementation steps: heading = what to do, content = how to do it with practical templates and examples.\n" .
+                "• Use Slides blocks to present implementation phases, timelines, and project milestones.\n" .
+                "• Use Workplace Example blocks showing: gap analysis outputs, implementation decisions, document templates in use, before/after comparisons.\n" .
+                "• Use Case Study blocks presenting implementation challenges: resource constraints, management resistance, documentation complexity, integration with existing systems.\n" .
+                "• Click Reveal blocks: question = 'What is the first step when implementing Clause X?', answer = the correct starting point with reasoning.\n" .
+                "• Every lesson must end with ONE concrete, actionable task the learner can perform in their organisation this week.\n" .
+                "• Knowledge Checks must test implementation decisions — present a gap analysis scenario and ask what to do next.\n" .
+                "• Tone: practical, project-management oriented. Use implementation vocabulary (gap analysis, documented information, process owner, corrective action).",
+
+            'social_compliance_audit' =>
+                "THE LEARNING GOAL IS SOCIAL AUDIT COMPETENCE — learners must conduct ethical, rigorous social compliance audits (SMETA, SLCP, APSCA, SA8000).\n" .
+                "• Ground every lesson in worker rights, audit integrity, and social standards — reference SA8000, ILO conventions, local labour law.\n" .
+                "• Use Scenario blocks to simulate sensitive audit situations: worker interviews (migrants, women, young workers), detecting forced labour indicators, responding to management pressure, triangulating conflicting evidence.\n" .
+                "• Use Myth vs Fact blocks to address common misconceptions: 'auditor neutrality means not caring' (myth), 'auditors must verify what workers say against records and observation' (fact).\n" .
+                "• Use Case Study blocks presenting real audit dilemmas: conflicting worker testimony vs. payroll records, suspicious access restriction, signs of coached responses.\n" .
+                "• Emphasise auditor ethics: no gifts, no conflicts of interest, confidentiality of worker interviews, protection of vulnerable workers.\n" .
+                "• Use Matching blocks to connect: social issue ↔ audit evidence type, indicator ↔ root cause, SMETA pillar ↔ relevant requirements.\n" .
+                "• Knowledge Checks must test auditor judgment in ambiguous situations — no single correct answer exists, learner must justify their reasoning.\n" .
+                "• Tone: serious, ethically grounded, rights-focused. Use social audit vocabulary (triangulation, root cause, corrective action plan, CAPR, worker voice).",
+
+            'technical_skills' =>
+                "THE LEARNING GOAL IS PRACTICAL SKILL DEVELOPMENT — learners must be able to perform a specific technical task or apply a technical method.\n" .
+                "• Every lesson must be immediately applicable — the learner should be able to use the skill by the end of the lesson.\n" .
+                "• Use Slides blocks to introduce the technical framework, model, or tool — clear visual structure showing the process or system.\n" .
+                "• Use Click Reveal blocks for step-by-step procedure walkthroughs: question = 'What is Step 3 of this process?', answer = the correct procedure with rationale.\n" .
+                "• Use Matching blocks to connect: tools ↔ applications, techniques ↔ scenarios, inputs ↔ outputs, problem types ↔ appropriate methods.\n" .
+                "• Use Scenario blocks to practice applying the skill: present a realistic technical problem and ask which technique/tool/approach is correct.\n" .
+                "• Use Workplace Example blocks showing the skill in action across different industry contexts with specific, measurable outcomes.\n" .
+                "• Knowledge Checks must test procedural knowledge and skill application — not just definitions.\n" .
+                "• Tone: precise, instructional, task-oriented. Use technical vocabulary specific to the subject (e.g. RCA = Root Cause Analysis, 5-Why, Fishbone for root cause skills).",
+
+            'executive' =>
+                "THE LEARNING GOAL IS STRATEGIC AWARENESS — learners are senior managers and executives making governance and investment decisions.\n" .
+                "• Content must be strategic, not operational — never explain 'how to fill out a form' or 'which clause applies here'.\n" .
+                "• Open every lesson with the BUSINESS CASE: cost of non-compliance, risk exposure, reputational impact, competitive advantage.\n" .
+                "• Use Case Study blocks featuring board-level scenarios: CEO making a certification decision, board reviewing ESG obligations, CFO assessing compliance risk.\n" .
+                "• Use Slides blocks for strategic frameworks: governance models, risk matrices, sustainability reporting frameworks (GRI, TCFD, ESG).\n" .
+                "• Use Reflection blocks asking the learner to assess their organisation's governance maturity and identify one strategic priority.\n" .
+                "• Keep content concise — maximum 3–4 blocks per lesson. Executives do not have time for 12-block lessons.\n" .
+                "• Knowledge Checks must be at strategic governance level: 'Which board action best demonstrates leadership commitment to ISO 14001?' — not operational questions.\n" .
+                "• Do NOT include operational implementation details, clause-by-clause content, or procedural how-to blocks.\n" .
+                "• Tone: peer-level, boardroom-appropriate, data-driven. Reference ESG, governance, risk, and strategic leadership language throughout.",
+
+            'train_the_trainer' =>
+                "THE LEARNING GOAL IS TRAINING FACILITATION COMPETENCE — learners are developing as workplace trainers and facilitators.\n" .
+                "• Content should MODEL good instructional design while teaching it — use the very techniques the learner is learning.\n" .
+                "• Use Reflection blocks as the primary engagement tool: 'Think about the last time you delivered training — what would you do differently?' This is core to trainer development.\n" .
+                "• Use Scenario blocks to simulate facilitation challenges: a disruptive participant, a question the trainer cannot answer, a technical failure mid-session, a learner who is far behind the group.\n" .
+                "• Use Click Reveal blocks for facilitation decisions: question = 'A participant challenges your content in front of the group — what do you do?', answer = the best-practice response.\n" .
+                "• Use Workplace Example blocks showing effective vs ineffective facilitation techniques — present both with specific language and outcomes.\n" .
+                "• Use Case Study blocks presenting real facilitation scenarios requiring the trainer to make design or delivery decisions.\n" .
+                "• Knowledge Checks must test instructional design principles and facilitation judgment — not training theory definitions.\n" .
+                "• Tone: coaching, reflective, practitioner-to-practitioner. Use training vocabulary (learning objectives, facilitation, learner engagement, formative assessment, learning styles).",
+
+            'qualification' =>
+                "THE LEARNING GOAL IS QUALIFICATION READINESS — learners are pursuing a formal credential or certification programme.\n" .
+                "• Content must be thorough, rigorous, and assessment-ready — every lesson directly maps to competency standards.\n" .
+                "• Begin each lesson with an explicit statement of which competency or learning outcome this lesson addresses.\n" .
+                "• Use Slides blocks to present theoretical frameworks, conceptual models, and professional standards that will be examined.\n" .
+                "• Use Accordion blocks for comprehensive reference material: clause breakdowns, terminology glossaries, competency criteria.\n" .
+                "• Use Case Study blocks requiring sustained analysis and written response — these mirror qualification assessment tasks.\n" .
+                "• Use Matching blocks to test terminology mastery and conceptual accuracy — both will be examined.\n" .
+                "• Use Reflection blocks to connect learning to portfolio evidence: 'How does your current role provide evidence for Competency C3?'\n" .
+                "• Knowledge Checks must be at examination difficulty — assume these questions could appear on the final assessment.\n" .
+                "• Every lesson must explicitly state: 'By the end of this lesson, you will be able to demonstrate [specific competency].'\n" .
+                "• Tone: academic, rigorous, examination-standard. Use the qualification framework's vocabulary precisely throughout.",
+
+            default =>
+                "Generate lesson content appropriate to the course topic and learning level.\n" .
+                "Select content blocks that best serve the learning objectives — prioritise practical application over theory.",
+        };
+
+        return "Preferred block sequence: {$seqList}.\n\n{$behavioural}";
     }
 
     public static function competencyFragment(?string $level): string

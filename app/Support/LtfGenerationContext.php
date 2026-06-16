@@ -83,7 +83,7 @@ readonly class LtfGenerationContext
 
         $blockFrag = LtfBlockStrategy::promptFragment($this->frameworkHint);
         if ($blockFrag) {
-            $parts[] = "[LESSON DESIGN INSTRUCTIONS]\n" . $blockFrag;
+            $parts[] = "[LTF LESSON DESIGN INSTRUCTIONS]\n" . $blockFrag;
         }
 
         $compFrag = LtfBlockStrategy::competencyFragment($this->competencyLevel);

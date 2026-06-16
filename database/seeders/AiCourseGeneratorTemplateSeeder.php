@@ -12,9 +12,9 @@ class AiCourseGeneratorTemplateSeeder extends Seeder
         AiPromptTemplate::updateOrCreate(
             ['template_code' => 'course_generator_json_v1'],
             [
-                'template_name' => 'Course Generator (JSON API) v3',
+                'template_name' => 'Course Generator (JSON API) v4 — LTF-Aware',
                 'category'      => 'Training AI',
-                'description'   => 'Generates a complete training course as structured JSON with duration-based module/lesson limits and per-lesson metadata. Used by the AI Course Generator.',
+                'description'   => 'Generates a complete training course as structured JSON. LTF-aware: respects [LTF TAXONOMY CONTEXT] and [COURSE STRUCTURE GUIDANCE] when present. Duration-based module/lesson limits enforced.',
 
                 'system_prompt' => <<<'PROMPT'
 You are an expert curriculum designer and structured JSON generator for SMS Training Academy.
@@ -28,8 +28,28 @@ ABSOLUTE OUTPUT RULES:
 - All content must be directly relevant to the specified course topic, industry, and audience.
 - Do NOT include any pricing information anywhere in the output.
 
-DURATION-BASED COURSE STRUCTURE (CRITICAL — YOU MUST FOLLOW THESE LIMITS):
-Derive the exact module and lesson count from the Duration field provided:
+════════════════════════════════════════
+LTF TAXONOMY COMPLIANCE
+════════════════════════════════════════
+If the input begins with [LTF TAXONOMY CONTEXT], that section defines MANDATORY design requirements.
+YOU MUST treat these as binding constraints that OVERRIDE the defaults below:
+
+1. [COURSE STRUCTURE GUIDANCE] — Follow the specified module count, lesson count, sequence, and structural pattern EXACTLY.
+   Do not default to duration-based limits when this section is present.
+2. Learning Framework — Align ALL lesson_type values, content depth, vocabulary, and module sequencing to the specified framework.
+3. Program Purpose — This defines the learning journey intent (audit training vs awareness vs implementation etc).
+   Every module title and lesson description must clearly serve this purpose.
+4. Competency Level — Scale learning objectives, case study complexity, and assessment plan to match:
+   beginner → recall and recognition | intermediate → understanding and application |
+   advanced → analysis and evaluation | expert → synthesis and professional judgment
+5. Standards / Industries / Audiences — Every example, scenario, case study, and learning objective must
+   be directly grounded in the specified standards, industries, and audience roles.
+   Do not use generic or unrelated examples when specific context is provided.
+
+════════════════════════════════════════
+DURATION-BASED COURSE STRUCTURE (DEFAULT — use only when no [COURSE STRUCTURE GUIDANCE] present)
+════════════════════════════════════════
+Derive the exact module and lesson count from the Duration field:
 - 30 Minutes  → 2–3 Modules, 4–6 Lessons total
 - 1 Hour      → 3–4 Modules, 6–10 Lessons total
 - 2 Hours     → 4–5 Modules, 8–12 Lessons total
@@ -41,7 +61,9 @@ For intermediate durations, interpolate proportionally.
 Modules must be logically sequenced from foundational to advanced.
 The sum of all lesson duration_minutes MUST approximately equal the total course duration in minutes.
 
-LESSON METADATA (REQUIRED FOR EVERY LESSON):
+════════════════════════════════════════
+LESSON METADATA (REQUIRED FOR EVERY LESSON)
+════════════════════════════════════════
 Each lesson object must include:
 - lesson_number: integer (sequential within module)
 - title: "Lesson X.Y: [Specific descriptive title]"
@@ -53,6 +75,9 @@ Each lesson object must include:
   - case_study: Learning from real situations, incident analysis, decision-making
   - awareness: Big-picture context, why it matters, importance and consequences
   - technical: Technical specifications, calculations, data interpretation, engineering details
+  When a Learning Framework is specified, weight lesson_type towards the framework's purpose:
+  awareness framework → 60%+ awareness lessons | auditor frameworks → 40%+ skill + case_study |
+  implementation framework → 40%+ process + skill | standard interpretation → 50%+ concept + compliance
 - duration_minutes: integer — estimated time to complete this lesson (realistic, accounts for reading + activities)
 - description: 1–2 sentence summary of what this lesson covers
 - learning_objectives: array of 2–3 strings using Bloom's Taxonomy verbs
@@ -147,10 +172,10 @@ PROMPT,
                 'temperature'    => 0.5,
                 'max_tokens'     => 6000,
                 'is_active'      => true,
-                'version_number' => 3,
+                'version_number' => 4,
             ]
         );
 
-        $this->command->info('✓ AI Course Generator template updated to v3 (duration-based limits + lesson metadata)');
+        $this->command->info('✓ AI Course Generator template updated to v4 (LTF-aware — respects taxonomy context)');
     }
 }

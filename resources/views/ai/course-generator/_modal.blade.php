@@ -56,8 +56,24 @@
 
             // Build purpose→framework map for JS
             $purposeToFramework = $aiPurposes->pluck('suggested_framework_id','id')->filter()->toArray();
-            // Build framework lookup for JS
-            $frameworkData = $aiFrameworks->keyBy('id')->map(fn($f) => ['name'=>$f->name,'hint'=>$f->ai_block_hint])->toArray();
+
+            // Build framework lookup for JS (includes block sequence and assessment style)
+            $allBlockLabels  = \App\Support\LtfBlockStrategy::blockLabels();
+            $allStrategyData = \App\Support\LtfBlockStrategy::all();
+            $frameworkData   = $aiFrameworks->keyBy('id')->map(function($f) use ($allBlockLabels, $allStrategyData) {
+                $hint     = $f->ai_block_hint;
+                $strategy = $allStrategyData[$hint] ?? null;
+                $sequence = $strategy ? array_map(fn($t) => $allBlockLabels[$t] ?? $t, $strategy['sequence']) : [];
+                return [
+                    'name'            => $f->name,
+                    'hint'            => $hint,
+                    'sequence'        => $sequence,
+                    'assessmentStyle' => $strategy['assessment_style'] ?? '',
+                    'structureHints'  => $strategy['structure_hints']  ?? '',
+                    'lessonDepth'     => $strategy['lesson_depth']     ?? 'medium',
+                    'rationale'       => $strategy['rationale']        ?? '',
+                ];
+            })->toArray();
         @endphp
 
         {{-- Form --}}
@@ -265,7 +281,7 @@
                     <span>🔍 AI Generation Context Preview</span>
                     <span style="font-size:10px; font-weight:400; text-transform:none; color:#6d28d9;">Updates as you select taxonomy</span>
                 </div>
-                <div id="aiContextPreviewBody" style="padding:12px 14px; display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:12px;"></div>
+                <div id="aiContextPreviewBody" style="padding:12px 14px; display:grid; grid-template-columns:140px 1fr; gap:4px 10px; font-size:12px; align-items:start;"></div>
             </div>
 
             {{-- ═══ Additional Instructions ══════════════════════════════════ --}}
@@ -511,37 +527,74 @@ function updateContextPreview() {
 
     preview.style.display = 'block';
 
-    const rows = [];
+    let html = '';
 
+    // ── Row builder ──────────────────────────────────────────────────
+    const row = (label, value, full) =>
+        full
+            ? `<div class="preview-label" style="grid-column:1">${label}</div><div class="preview-value" style="grid-column:2">${value}</div>`
+            : `<div class="preview-label">${label}</div><div class="preview-value">${value}</div>`;
+
+    const divider = () => `<div style="grid-column:1/-1; border-top:1px solid #e0e7ff; margin:4px 0;"></div>`;
+
+    // ── Section 1: Course taxonomy ───────────────────────────────────
     if (purposeEl.value) {
-        rows.push(['Program Purpose', purposeText.replace(/^— /, '').replace(/ —$/, '')]);
+        html += row('Program Purpose', escHtml(purposeText.replace(/^— /, '')));
     }
     if (fw) {
-        rows.push(['Learning Framework', fw.name]);
-        rows.push(['Block Strategy', fw.hint || '—']);
+        html += row('Learning Framework', `<strong>${escHtml(fw.name)}</strong>`);
     }
     if (deliveryEl.value) {
-        rows.push(['Delivery Method', deliveryText.replace(/^— /, '')]);
+        html += row('Delivery Method', escHtml(deliveryText.replace(/^— /, '')));
     }
     if (modelEl.value) {
-        rows.push(['Training Model', modelText.replace(/^— /, '')]);
+        html += row('Training Model', escHtml(modelText.replace(/^— /, '')));
     }
     if (compValue) {
-        rows.push(['Competency Level', compValue.charAt(0).toUpperCase() + compValue.slice(1)]);
-    }
-    if (stdNames.length) {
-        rows.push(['Standards', stdNames.join(', ')]);
-    }
-    if (indNames.length) {
-        rows.push(['Industries', indNames.join(', ')]);
-    }
-    if (audNames.length) {
-        rows.push(['Audiences', audNames.join(', ')]);
+        const compLabels = {beginner:'Beginner',intermediate:'Intermediate',advanced:'Advanced',expert:'Expert'};
+        html += row('Competency Level', `<span style="background:#fef3c7;color:#92400e;padding:1px 6px;border-radius:4px;font-weight:700;">${compLabels[compValue]||compValue}</span>`);
     }
 
-    body.innerHTML = rows.map(([label, value]) =>
-        `<div class="preview-label">${label}</div><div class="preview-value">${value}</div>`
-    ).join('');
+    // ── Section 2: Domain context ────────────────────────────────────
+    if (stdNames.length || indNames.length || audNames.length) {
+        html += divider();
+        if (stdNames.length)  html += row('Standards',  escHtml(stdNames.join(', ')));
+        if (indNames.length)  html += row('Industries', escHtml(indNames.join(', ')));
+        if (audNames.length)  html += row('Audiences',  escHtml(audNames.join(', ')));
+    }
+
+    // ── Section 3: Generation strategy (the key value) ───────────────
+    if (fw) {
+        html += divider();
+        html += `<div style="grid-column:1/-1; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#3730a3; margin-top:2px;">Generation Strategy</div>`;
+
+        if (fw.sequence && fw.sequence.length) {
+            const blockChips = fw.sequence.map(b =>
+                `<span style="display:inline-block;padding:2px 7px;border-radius:10px;background:#e0e7ff;color:#3730a3;font-size:11px;font-weight:600;margin:2px 2px 0 0;">${escHtml(b)}</span>`
+            ).join('');
+            html += `<div class="preview-label">Block Sequence</div><div class="preview-value" style="line-height:1.8;">${blockChips}</div>`;
+        }
+
+        if (fw.lessonDepth) {
+            const depthColors = {short:'#fef3c7;color:#92400e',concise:'#fef3c7;color:#92400e',medium:'#dbeafe;color:#1e40af',deep:'#ede9fe;color:#5b21b6'};
+            const dc = depthColors[fw.lessonDepth] || 'dbeafe;color:#1e40af';
+            html += row('Lesson Depth', `<span style="background:${dc};padding:1px 6px;border-radius:4px;font-weight:700;font-size:11px;">${fw.lessonDepth}</span>`);
+        }
+
+        if (fw.assessmentStyle) {
+            html += `<div class="preview-label">Assessment Style</div><div class="preview-value" style="font-size:11px;color:#374151;line-height:1.5;">${escHtml(fw.assessmentStyle)}</div>`;
+        }
+
+        if (fw.structureHints) {
+            html += `<div class="preview-label">Structure</div><div class="preview-value" style="font-size:11px;color:#374151;line-height:1.5;">${escHtml(fw.structureHints)}</div>`;
+        }
+    }
+
+    body.innerHTML = html;
+}
+
+function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── Modal open/close ─────────────────────────────────────────────────
