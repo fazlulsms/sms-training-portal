@@ -194,7 +194,7 @@
 .vcp-cred-banner {
     background: linear-gradient(135deg, #0F7A43 0%, #18A05E 100%);
     padding: 26px 30px;
-    display: flex; align-items: flex-start; gap: 18px;
+    display: flex; align-items: center; justify-content: space-between;
     position: relative; overflow: hidden;
 }
 /* Large checkmark watermark in banner */
@@ -205,34 +205,26 @@
     background: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='46' fill='none' stroke='rgba(255,255,255,.07)' stroke-width='4'/%3E%3Cpolyline points='28,50 44,66 72,34' fill='none' stroke='rgba(255,255,255,.07)' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
     pointer-events: none;
 }
-.vcp-cred-check {
-    width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;
-    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+.vcp-banner-left { display: flex; align-items: center; gap: 16px; }
+.vcp-banner-seal {
+    width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,.7);
+    background: transparent;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,.15);
 }
 .vcp-cred-banner-text { flex: 1; min-width: 0; }
-.vcp-cred-verified-tag {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-size: 11px; font-weight: 900; color: #86efac;
-    text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 4px;
-}
-.vcp-pulse { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; animation: vcp-pulse 1.8s ease-in-out infinite; }
-@keyframes vcp-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.65)} }
 .vcp-cred-title { font-size: 19px; font-weight: 900; color: #fff; margin: 0 0 2px; }
 .vcp-cred-sub   { font-size: 12.5px; color: rgba(255,255,255,.65); margin: 0; }
 .vcp-cred-seal {
     flex-shrink: 0; text-align: center; position: relative; z-index: 1;
 }
 .vcp-seal-ring {
-    width: 56px; height: 56px; border-radius: 50%;
-    border: 2px solid rgba(255,255,255,.25);
+    width: 64px; height: 64px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.7);
     display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 1px;
-    background: rgba(255,255,255,.08);
+    background: transparent;
 }
-.vcp-seal-ring svg { color: rgba(255,255,255,.8); }
-.vcp-seal-text { font-size: 7.5px; font-weight: 900; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+.vcp-seal-text { font-size: 8px; font-weight: 900; color: rgba(255,255,255,.7); text-transform: uppercase; letter-spacing: .8px; margin-top: 5px; }
 
 /* Certificate detail grid — 3 columns */
 .vcp-cred-body { background: #fff; }
@@ -550,23 +542,23 @@
             <div class="vcp-credential">
 
                 <div class="vcp-cred-banner">
-                    <div class="vcp-cred-check">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                    </div>
-                    <div class="vcp-cred-banner-text">
-                        <div class="vcp-cred-verified-tag">
-                            <div class="vcp-pulse"></div>
-                            ✓ Verified
+                    <div class="vcp-banner-left">
+                        <div class="vcp-banner-seal">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="9" r="6" stroke="rgba(255,255,255,.9)" stroke-width="1.8"/>
+                                <path d="M9 15l-2 7 5-3 5 3-2-7" stroke="rgba(255,255,255,.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </div>
-                        <div class="vcp-cred-title">Authentic Credential Record</div>
-                        <div class="vcp-cred-sub">Registered in Official SMS Training Academy Registry</div>
+                        <div class="vcp-cred-banner-text">
+                            <div class="vcp-cred-title">Authentic Credential Record</div>
+                            <div class="vcp-cred-sub">Registered in Official SMS Training Academy Registry</div>
+                        </div>
                     </div>
                     <div class="vcp-cred-seal">
                         <div class="vcp-seal-ring">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="rgba(255,255,255,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                <polyline points="9 12 11 14 15 10" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </div>
                         <div class="vcp-seal-text">Official</div>
