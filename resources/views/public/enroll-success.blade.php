@@ -21,7 +21,7 @@
 .confirm-ref {
     display: inline-block; background: #f0f4ff; border: 1px solid #bfdbfe;
     border-radius: 10px; padding: 10px 22px; font-size: 14px; font-weight: 700;
-    color: #1e3a8a; letter-spacing: .5px; margin-bottom: 28px;
+    color: #042C53; letter-spacing: .5px; margin-bottom: 28px;
 }
 .detail-grid {
     display: grid; grid-template-columns: 1fr 1fr;
@@ -33,8 +33,8 @@
 .detail-value { font-size: 14.5px; font-weight: 700; color: #111827; }
 @media(max-width:440px){ .detail-grid { grid-template-columns: 1fr; } .detail-cell:last-child { border-bottom: none; } }
 .action-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 22px; }
-.btn-primary  { background: linear-gradient(135deg,#1e3a8a,#2563eb); color: #fff; padding: 13px 24px; border-radius: 10px; font-weight: 800; font-size: 14.5px; text-decoration: none; }
-.btn-secondary{ background: #f0f4ff; color: #1e3a8a; border: 1.5px solid #bfdbfe; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 14.5px; text-decoration: none; }
+.btn-primary  { background: linear-gradient(135deg,#042C53,#378ADD); color: #fff; padding: 13px 24px; border-radius: 10px; font-weight: 800; font-size: 14.5px; text-decoration: none; }
+.btn-secondary{ background: #f0f4ff; color: #042C53; border: 1.5px solid #bfdbfe; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 14.5px; text-decoration: none; }
 .success-note { font-size: 13px; color: #9ca3af; line-height: 1.7; }
 .success-note a { color: #6b7280; }
 .next-steps { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 16px 18px; text-align: left; margin-bottom: 24px; }

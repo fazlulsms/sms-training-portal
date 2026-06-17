@@ -9,7 +9,7 @@
 <style>
 /* ── Hero ─────────────────────────────────────────────── */
 .hero-section {
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #042C53 55%, #1d4ed8 100%);
     padding: 80px 0 90px;
     position: relative; overflow: hidden;
     color: #fff;
@@ -42,7 +42,7 @@
 .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
 .hero-cta-primary {
     display: inline-flex; align-items: center; gap: 8px;
-    background: #fff; color: #1e3a8a;
+    background: #fff; color: #042C53;
     padding: 14px 28px; border-radius: 12px;
     font-weight: 800; font-size: 15px; text-decoration: none;
     box-shadow: 0 6px 20px rgba(0,0,0,.2); transition: all .15s;
@@ -76,7 +76,7 @@
 .hero-search-row input::placeholder { color: rgba(255,255,255,.5); }
 .hero-search-row input:focus { border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.15); }
 .hero-search-btn {
-    padding: 12px 20px; background: #fff; color: #1e3a8a;
+    padding: 12px 20px; background: #fff; color: #042C53;
     border: none; border-radius: 10px; font-weight: 800; cursor: pointer; white-space: nowrap;
     font-family: inherit; font-size: 14px;
 }
@@ -114,13 +114,13 @@
     font-size: 13.5px; font-weight: 600; color: #374151;
     text-decoration: none; transition: all .14s; flex-shrink: 0;
 }
-.cat-pill:hover { border-color: #1e3a8a; color: #1e3a8a; background: #f0f4ff; }
+.cat-pill:hover { border-color: #042C53; color: #042C53; background: #f0f4ff; }
 
 /* ── Section headings ─────────────────────────────────── */
 .section-header { margin-bottom: 36px; }
 .section-header-row { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 .view-all-link {
-    font-size: 14px; font-weight: 700; color: #1e3a8a; text-decoration: none;
+    font-size: 14px; font-weight: 700; color: #042C53; text-decoration: none;
     display: inline-flex; align-items: center; gap: 5px;
 }
 .view-all-link:hover { color: #1d4ed8; }
@@ -140,7 +140,7 @@
 }
 .schedule-card:hover { box-shadow: 0 6px 20px rgba(15,23,42,.1); }
 .schedule-date-block {
-    background: #1e3a8a; color: #fff;
+    background: #042C53; color: #fff;
     border-radius: 10px; padding: 10px 14px; text-align: center;
     flex-shrink: 0; min-width: 56px;
 }
@@ -156,7 +156,7 @@
 .scm-physical { background: #f0fdf4; color: #15803d; }
 .scm-online   { background: #eff6ff; color: #1d4ed8; }
 .scm-hybrid   { background: #fff7ed; color: #c2410c; }
-.sc-fee { font-size: 15px; font-weight: 900; color: #1e3a8a; }
+.sc-fee { font-size: 15px; font-weight: 900; color: #042C53; }
 
 /* ── Testimonial cards ────────────────────────────────── */
 .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -172,7 +172,7 @@
 .testi-avatar {
     width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
     background: #dbeafe; display: flex; align-items: center; justify-content: center;
-    font-size: 16px; font-weight: 800; color: #1e3a8a; flex-shrink: 0;
+    font-size: 16px; font-weight: 800; color: #042C53; flex-shrink: 0;
 }
 .testi-avatar img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
 .testi-name { font-weight: 800; font-size: 14px; color: #111827; }
@@ -191,13 +191,13 @@
 .blog-card-body { padding: 18px; }
 .blog-cat-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #7c3aed; }
 .blog-card-title { font-size: 15px; font-weight: 800; color: #111827; margin: 8px 0 8px; line-height: 1.4; text-decoration: none; display: block; }
-.blog-card-title:hover { color: #1e3a8a; }
+.blog-card-title:hover { color: #042C53; }
 .blog-card-excerpt { font-size: 13.5px; color: #6b7280; line-height: 1.65; margin: 0; }
 .blog-card-meta { padding: 12px 18px; border-top: 1px solid #f0f2f5; font-size: 12.5px; color: #9ca3af; display: flex; align-items: center; justify-content: space-between; }
 
 /* ── CTA section ──────────────────────────────────────── */
 .cta-section {
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #042C53 100%);
     border-radius: 20px; padding: 60px;
     text-align: center; color: #fff;
     margin: 0 24px;

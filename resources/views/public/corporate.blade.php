@@ -7,7 +7,7 @@
 @section('content')
 <style>
 .corp-hero {
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #042C53 55%, #1d4ed8 100%);
     padding: 72px 0 80px; color: #fff;
 }
 .corp-hero-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
@@ -32,10 +32,10 @@
 .fg { margin-bottom:18px; }
 .fg label { display:block; font-weight:600; font-size:13.5px; color:#374151; margin-bottom:6px; }
 .fg input,.fg select,.fg textarea { width:100%; padding:11px 14px; border:1.5px solid #d1d5db; border-radius:9px; font-size:14px; font-family:inherit; outline:none; box-sizing:border-box; }
-.fg input:focus,.fg select:focus,.fg textarea:focus { border-color:#1e3a8a; box-shadow:0 0 0 3px rgba(30,58,138,.08); }
+.fg input:focus,.fg select:focus,.fg textarea:focus { border-color:#042C53; box-shadow:0 0 0 3px rgba(30,58,138,.08); }
 .frow { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 @media (max-width:600px) { .frow { grid-template-columns:1fr; } }
-.submit-btn { width:100%; background:#1e3a8a; color:#fff; padding:15px; border:none; border-radius:10px; font-weight:800; font-size:16px; cursor:pointer; transition:background .15s; }
+.submit-btn { width:100%; background:#042C53; color:#fff; padding:15px; border:none; border-radius:10px; font-weight:800; font-size:16px; cursor:pointer; transition:background .15s; }
 .submit-btn:hover { background:#1e40af; }
 /* Mobile form */
 .mobile-cta { display: none; text-align: center; padding: 40px 24px; background: #f0f4ff; }
@@ -58,7 +58,7 @@
                 <li>Group rates and flexible scheduling</li>
                 <li>Post-training assessment and certificates</li>
             </ul>
-            <a href="#inquiry-form" style="display:inline-flex; align-items:center; gap:8px; background:#fff; color:#1e3a8a; padding:14px 28px; border-radius:12px; font-weight:800; font-size:15px; text-decoration:none; margin-top:8px; box-shadow:0 6px 20px rgba(0,0,0,.2);">
+            <a href="#inquiry-form" style="display:inline-flex; align-items:center; gap:8px; background:#fff; color:#042C53; padding:14px 28px; border-radius:12px; font-weight:800; font-size:15px; text-decoration:none; margin-top:8px; box-shadow:0 6px 20px rgba(0,0,0,.2);">
                 Submit an Inquiry â†“
             </a>
         </div>
@@ -79,7 +79,7 @@
                     <div class="fg" style="margin-bottom:16px;">
                         <textarea name="training_requirement" rows="3" placeholder="Training requirement *" required style="background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.2); color:#fff; resize:vertical;"></textarea>
                     </div>
-                    <button type="submit" style="width:100%; background:#fff; color:#1e3a8a; padding:12px; border:none; border-radius:9px; font-weight:800; font-size:15px; cursor:pointer;">
+                    <button type="submit" style="width:100%; background:#fff; color:#042C53; padding:12px; border:none; border-radius:9px; font-weight:800; font-size:15px; cursor:pointer;">
                         Send Inquiry â†’
                     </button>
                 </form>
@@ -91,7 +91,7 @@
 {{-- Mobile CTA --}}
 <div class="mobile-cta">
     <p style="font-size:16px; color:#374151; margin:0 0 14px;">Ready to upskill your team?</p>
-    <a href="#inquiry-form" style="background:#1e3a8a; color:#fff; padding:13px 28px; border-radius:10px; font-weight:700; text-decoration:none; font-size:15px;">Submit an Inquiry</a>
+    <a href="#inquiry-form" style="background:#042C53; color:#fff; padding:13px 28px; border-radius:10px; font-weight:700; text-decoration:none; font-size:15px;">Submit an Inquiry</a>
 </div>
 
 {{-- Why Choose Us --}}

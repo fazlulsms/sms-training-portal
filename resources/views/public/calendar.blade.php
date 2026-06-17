@@ -9,7 +9,7 @@
 <style>
 /* ── Hero ── */
 .cal-hero {
-    background: linear-gradient(135deg, #060d2e 0%, #0f2470 45%, #1e3a8a 100%);
+    background: linear-gradient(135deg, #060d2e 0%, #042C53 45%, #042C53 100%);
     padding: 40px 0 48px; color: #fff; position: relative; overflow: hidden;
 }
 .cal-hero::after {
@@ -34,13 +34,13 @@
     border-bottom: 2.5px solid transparent; margin-bottom: -2px;
     transition: color .12s, border-color .12s; white-space: nowrap;
 }
-.cal-tab:hover  { color: #1e3a8a; }
-.cal-tab.active { color: #1e3a8a; border-bottom-color: #1e3a8a; }
+.cal-tab:hover  { color: #042C53; }
+.cal-tab.active { color: #042C53; border-bottom-color: #042C53; }
 .cal-tab-badge  {
     background: #f1f5f9; color: #6b7280;
     font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 20px;
 }
-.cal-tab.active .cal-tab-badge { background: #1e3a8a; color: #fff; }
+.cal-tab.active .cal-tab-badge { background: #042C53; color: #fff; }
 
 /* ── Filter bar ── */
 .cal-filter-bar { background: #f8fafc; border-bottom: 1px solid #e9ecf0; padding: 11px 0; }
@@ -50,10 +50,10 @@
     font-size: 13px; font-family: inherit; color: #374151; background: #fff;
     transition: border-color .12s; min-width: 110px;
 }
-.cal-fi:focus { outline: none; border-color: #1e3a8a; }
+.cal-fi:focus { outline: none; border-color: #042C53; }
 .cal-fi-wide  { min-width: 190px; }
 .cal-fi-btn {
-    padding: 7px 15px; background: #1e3a8a; color: #fff; border: none;
+    padding: 7px 15px; background: #042C53; color: #fff; border: none;
     border-radius: 8px; font-weight: 700; font-size: 13px;
     cursor: pointer; font-family: inherit; transition: opacity .12s;
     display: inline-flex; align-items: center; gap: 5px;
@@ -114,7 +114,7 @@
 }
 .schedule-card:hover { box-shadow: 0 6px 20px rgba(15,23,42,.1); }
 .schedule-date-block {
-    background: #1e3a8a; color: #fff;
+    background: #042C53; color: #fff;
     border-radius: 10px; padding: 10px 14px; text-align: center;
     flex-shrink: 0; min-width: 56px;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -126,7 +126,7 @@
     font-size: 14.5px; font-weight: 800; color: #111827; margin: 0 0 6px;
     line-height: 1.35; text-decoration: none; display: block;
 }
-.sc-title:hover { color: #1e3a8a; }
+.sc-title:hover { color: #042C53; }
 .sc-meta {
     font-size: 12.5px; color: #6b7280;
     display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;
@@ -139,7 +139,7 @@
 .scm-physical { background: #f0fdf4; color: #15803d; }
 .scm-online   { background: #eff6ff; color: #1d4ed8; }
 .scm-hybrid   { background: #fff7ed; color: #c2410c; }
-.sc-fee { font-size: 15px; font-weight: 900; color: #1e3a8a; }
+.sc-fee { font-size: 15px; font-weight: 900; color: #042C53; }
 
 /* Archive card variant */
 .schedule-card--arc { opacity: .88; }
@@ -158,7 +158,7 @@
     border-radius: 7px; font-size: 12px; font-weight: 700;
     text-decoration: none; white-space: nowrap; transition: all .12s;
 }
-.arc-view-btn:hover { border-color: #1e3a8a; color: #1e3a8a; background: #f5f8ff; }
+.arc-view-btn:hover { border-color: #042C53; color: #042C53; background: #f5f8ff; }
 
 /* ── Year filter pills ── */
 .arc-pills { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 20px; }
@@ -167,8 +167,8 @@
     text-decoration: none; border: 1.5px solid #e9ecf0; color: #6b7280; background: #fff;
     transition: all .12s;
 }
-.arc-pill:hover  { border-color: #1e3a8a; color: #1e3a8a; }
-.arc-pill.active { background: #1e3a8a; border-color: #1e3a8a; color: #fff; }
+.arc-pill:hover  { border-color: #042C53; color: #042C53; }
+.arc-pill.active { background: #042C53; border-color: #042C53; color: #fff; }
 
 /* ── Empty state ── */
 .cal-empty {
@@ -184,13 +184,13 @@
 .cal-empty p  { font-size: 14px; color: #6b7280; margin: 0 0 20px; line-height: 1.7; }
 .cal-empty-cta {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 10px 22px; background: #1e3a8a; color: #fff;
+    padding: 10px 22px; background: #042C53; color: #fff;
     border-radius: 9px; font-weight: 700; font-size: 14px;
     text-decoration: none; transition: opacity .12s;
 }
 .cal-empty-cta:hover { opacity: .9; }
 .cal-empty-note { font-size: 13px; color: #9ca3af; margin-top: 10px; display: block; }
-.cal-empty-note a { color: #1e3a8a; font-weight: 700; text-decoration: none; }
+.cal-empty-note a { color: #042C53; font-weight: 700; text-decoration: none; }
 
 /* ── Pagination ── */
 .cal-pagination { margin-top: 24px; }
@@ -279,7 +279,7 @@
 @if($upcoming->isEmpty())
 <div class="cal-empty">
     <div class="cal-empty-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
     </div>
     <h3>No upcoming training sessions scheduled</h3>
     <p>Please check the archive or contact us for corporate training enquiries.@if(request()->hasAny(['month','mode','course'])) Try clearing your filters.@endif</p>
@@ -328,7 +328,7 @@
 @if($past->isEmpty())
 <div class="cal-empty">
     <div class="cal-empty-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
     </div>
     <h3>No archive records found</h3>
     <p>No past training sessions match your filters.@if(request()->hasAny(['year','mode','course'])) Try clearing the filters.@endif</p>

@@ -7,7 +7,7 @@
 @section('content')
 <style>
 .catalog-hero {
-    background: linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 100%);
+    background: linear-gradient(135deg,#042C53 0%,#1d4ed8 100%);
     padding: 48px 0 56px; color:#fff;
 }
 .catalog-hero h1 { font-size:34px; font-weight:900; margin:0 0 8px; }
@@ -22,7 +22,7 @@
 .catalog-search-bar input::placeholder { color:rgba(255,255,255,.5); }
 .catalog-search-bar input:focus { border-color:rgba(255,255,255,.6); background:rgba(255,255,255,.18); }
 .catalog-search-btn {
-    padding:12px 22px; background:#fff; color:#1e3a8a; border:none; border-radius:10px;
+    padding:12px 22px; background:#fff; color:#042C53; border:none; border-radius:10px;
     font-weight:800; font-size:14px; cursor:pointer; white-space:nowrap; font-family:inherit;
 }
 
@@ -34,13 +34,13 @@
 .filter-card { background:#fff; border:1px solid #e9ecf0; border-radius:14px; padding:20px; margin-bottom:18px; }
 .filter-title { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:#6b7280; margin-bottom:14px; }
 .filter-group label { display:flex; align-items:center; gap:10px; font-size:14px; color:#374151; cursor:pointer; padding:6px 0; }
-.filter-group input[type=checkbox], .filter-group input[type=radio] { accent-color:#1e3a8a; }
+.filter-group input[type=checkbox], .filter-group input[type=radio] { accent-color:#042C53; }
 .filter-apply-btn {
-    width:100%; background:#1e3a8a; color:#fff; border:none; padding:11px; border-radius:10px;
+    width:100%; background:#042C53; color:#fff; border:none; padding:11px; border-radius:10px;
     font-weight:800; font-size:14px; cursor:pointer; font-family:inherit; margin-top:8px;
 }
 .filter-clear-link { display:block; text-align:center; margin-top:8px; font-size:13px; color:#6b7280; text-decoration:none; }
-.filter-clear-link:hover { color:#1e3a8a; }
+.filter-clear-link:hover { color:#042C53; }
 
 /* Results header */
 .results-header {
@@ -52,7 +52,7 @@
 .active-filter-chips { display:flex; flex-wrap:wrap; gap:8px; }
 .filter-chip {
     display:inline-flex; align-items:center; gap:6px;
-    background:#eff6ff; color:#1e3a8a; border:1px solid #bfdbfe;
+    background:#eff6ff; color:#042C53; border:1px solid #bfdbfe;
     padding:4px 10px; border-radius:20px; font-size:12.5px; font-weight:600; text-decoration:none;
 }
 .filter-chip:hover { background:#dbeafe; }
@@ -97,7 +97,7 @@
             <div class="filter-title">Browse by Category</div>
             <div class="filter-group" style="margin-top:4px;">
                 <a href="{{ route('public.courses') }}{{ request()->only(['q','type','has_schedule']) ? '?' . http_build_query(request()->only(['q','type','has_schedule'])) : '' }}"
-                   style="display:flex; align-items:center; justify-content:space-between; padding:7px 0; text-decoration:none; font-size:14px; font-weight:{{ !request('cat') ? '700' : '400' }}; color:{{ !request('cat') ? '#1e3a8a' : '#374151' }}; border-bottom:1px solid #f3f4f6;">
+                   style="display:flex; align-items:center; justify-content:space-between; padding:7px 0; text-decoration:none; font-size:14px; font-weight:{{ !request('cat') ? '700' : '400' }}; color:{{ !request('cat') ? '#042C53' : '#374151' }}; border-bottom:1px solid #f3f4f6;">
                     <span>🎯 All Categories</span>
                     <span style="font-size:12px; color:#9ca3af;">{{ $navCategories->sum('public_courses_count') }}</span>
                 </a>
@@ -107,9 +107,9 @@
                     $isActive  = request('cat') === $navCat->slug;
                 @endphp
                 <a href="{{ route('public.courses') }}?{{ http_build_query($catParams) }}"
-                   style="display:flex; align-items:center; justify-content:space-between; padding:7px 0; text-decoration:none; font-size:13.5px; font-weight:{{ $isActive ? '700' : '400' }}; color:{{ $isActive ? '#1e3a8a' : '#374151' }}; border-bottom:1px solid #f3f4f6;">
+                   style="display:flex; align-items:center; justify-content:space-between; padding:7px 0; text-decoration:none; font-size:13.5px; font-weight:{{ $isActive ? '700' : '400' }}; color:{{ $isActive ? '#042C53' : '#374151' }}; border-bottom:1px solid #f3f4f6;">
                     <span>@if($navCat->icon){{ $navCat->icon }} @endif{{ $navCat->name }}</span>
-                    <span style="font-size:12px; color:{{ $isActive ? '#1e3a8a' : '#9ca3af' }}; font-weight:600;">{{ $navCat->public_courses_count }}</span>
+                    <span style="font-size:12px; color:{{ $isActive ? '#042C53' : '#9ca3af' }}; font-weight:600;">{{ $navCat->public_courses_count }}</span>
                 </a>
                 @endforeach
             </div>
@@ -180,7 +180,7 @@
         <div class="empty-state">
             <div class="empty-state-icon">🔍</div>
             <h3>No courses found</h3>
-            <p>Try adjusting your filters or <a href="{{ route('public.courses') }}" style="color:#1e3a8a;font-weight:700;">view all courses</a></p>
+            <p>Try adjusting your filters or <a href="{{ route('public.courses') }}" style="color:#042C53;font-weight:700;">view all courses</a></p>
         </div>
         @else
         <div class="courses-grid">

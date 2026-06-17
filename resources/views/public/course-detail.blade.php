@@ -7,7 +7,7 @@
 @section('content')
 <style>
 .cd-hero {
-    background: linear-gradient(135deg,#0f172a 0%,#1e3a8a 100%);
+    background: linear-gradient(135deg,#0f172a 0%,#042C53 100%);
     padding:48px 0; color:#fff;
 }
 .cd-hero-inner { display:grid; grid-template-columns:1fr 380px; gap:40px; align-items:start; }
@@ -27,14 +27,14 @@
     background:#fff; border-radius:16px; box-shadow:0 12px 40px rgba(0,0,0,.25);
     overflow:hidden; position:sticky; top:80px;
 }
-.cd-enroll-card-banner { height:180px; overflow:hidden; background:#1e3a8a; display:flex; align-items:center; justify-content:center; font-size:56px; }
+.cd-enroll-card-banner { height:180px; overflow:hidden; background:#042C53; display:flex; align-items:center; justify-content:center; font-size:56px; }
 .cd-enroll-card-banner img { width:100%; height:100%; object-fit:cover; }
 .cd-enroll-card-body { padding:22px; }
-.cd-enroll-price { font-size:26px; font-weight:900; color:#1e3a8a; margin-bottom:4px; }
+.cd-enroll-price { font-size:26px; font-weight:900; color:#042C53; margin-bottom:4px; }
 .cd-enroll-price small { font-size:13px; color:#6b7280; font-weight:500; }
 .cd-enroll-divider { border:none; border-top:1px solid #f0f2f5; margin:16px 0; }
 .cd-enroll-btn {
-    display:block; background:linear-gradient(135deg,#1e3a8a,#2563eb); color:#fff;
+    display:block; background:linear-gradient(135deg,#042C53,#378ADD); color:#fff;
     padding:14px; border-radius:12px; text-align:center; font-weight:800; font-size:15px;
     text-decoration:none; margin-bottom:10px; transition:opacity .14s;
 }
@@ -65,10 +65,10 @@
     transition: all .15s; flex-shrink: 0;
 }
 .cd-tab svg { opacity: .6; }
-.cd-tab:hover { color: #1e3a8a; background: #f0f4ff; }
+.cd-tab:hover { color: #042C53; background: #f0f4ff; }
 .cd-tab:hover svg { opacity: 1; }
 .cd-tab.active {
-    color: #1e3a8a;
+    color: #042C53;
     background: linear-gradient(135deg, #eff6ff, #dbeafe);
     box-shadow: 0 1px 4px rgba(30,58,138,.12);
     font-weight: 800;
@@ -86,7 +86,7 @@
 .cd-panel-heading::before {
     content: '';
     display: block; width: 4px; height: 22px;
-    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    background: linear-gradient(135deg, #042C53, #378ADD);
     border-radius: 2px; flex-shrink: 0;
 }
 
@@ -121,7 +121,7 @@
 .outline-mod-header {
     display: flex; align-items: center; gap: 14px;
     padding: 15px 20px;
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #042C53 100%);
     cursor: pointer; user-select: none;
 }
 .outline-mod-num {
@@ -152,7 +152,7 @@
 }
 .outline-lesson:hover { background: #f0f6ff; }
 .outline-lesson-badge {
-    font-size: 10.5px; font-weight: 800; color: #2563eb;
+    font-size: 10.5px; font-weight: 800; color: #378ADD;
     background: #eff6ff; padding: 2px 7px; border-radius: 5px;
     flex-shrink: 0; margin-top: 2px; white-space: nowrap; letter-spacing: .2px;
 }
@@ -162,7 +162,7 @@
 }
 .outline-dot {
     width: 6px; height: 6px; border-radius: 50%;
-    background: #2563eb; flex-shrink: 0; margin-top: 6px;
+    background: #378ADD; flex-shrink: 0; margin-top: 6px;
 }
 
 /* Schedule table */
@@ -173,7 +173,7 @@
 
 /* Trainer card */
 .trainer-card { display:flex; gap:20px; align-items:flex-start; background:#f8fafc; border-radius:14px; padding:22px; }
-.trainer-avatar { width:72px; height:72px; border-radius:50%; object-fit:cover; background:#dbeafe; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:900; color:#1e3a8a; flex-shrink:0; }
+.trainer-avatar { width:72px; height:72px; border-radius:50%; object-fit:cover; background:#dbeafe; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:900; color:#042C53; flex-shrink:0; }
 .trainer-avatar img { width:72px; height:72px; border-radius:50%; object-fit:cover; }
 .trainer-name { font-size:18px; font-weight:800; color:#111827; margin:0 0 4px; }
 .trainer-title { font-size:13.5px; color:#6b7280; margin:0 0 10px; }
@@ -320,7 +320,7 @@
             @if($course->testimonials->count())
             <button class="cd-tab" onclick="showTab('reviews', this)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                Reviews <span style="background:#1e3a8a;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:2px;">{{ $course->testimonials->count() }}</span>
+                Reviews <span style="background:#042C53;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:2px;">{{ $course->testimonials->count() }}</span>
             </button>
             @endif
         </div>
@@ -616,7 +616,7 @@
             <h4 style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;margin:0 0 16px;">Related Articles</h4>
             @foreach($course->blogPosts as $bp)
             <a href="{{ route('public.blog.detail', $bp->slug) }}"
-               style="display:block;font-size:14px;font-weight:700;color:#1e3a8a;text-decoration:none;padding:8px 0;border-bottom:1px solid #f0f2f5;line-height:1.4;">
+               style="display:block;font-size:14px;font-weight:700;color:#042C53;text-decoration:none;padding:8px 0;border-bottom:1px solid #f0f2f5;line-height:1.4;">
                 {{ $bp->title }}
             </a>
             @endforeach
