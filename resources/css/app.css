@@ -202,7 +202,7 @@
 }
 .fi:focus, .filter-input:focus, .filter-select:focus {
   border-color: var(--sms-primary);
-  box-shadow: 0 0 0 3px rgba(30,58,138,.08);
+  box-shadow: 0 0 0 3px rgba(4,44,83,.12);
 }
 .fi-search { padding-left: 36px; }
 .fi-search-wrap { position: relative; flex: 1; min-width: 200px; }

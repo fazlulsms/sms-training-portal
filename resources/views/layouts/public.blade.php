@@ -95,7 +95,7 @@
     .pub-btn-solid {
         background: linear-gradient(135deg, #042C53 0%, #378ADD 100%);
         color: #fff; border: none;
-        box-shadow: 0 3px 10px rgba(37,99,235,.28);
+        box-shadow: 0 3px 10px rgba(55,138,221,.28);
     }
     .pub-btn-solid:hover { opacity: .9; transform: translateY(-1px); }
 
@@ -315,7 +315,7 @@
         background: linear-gradient(135deg, #042C53, #378ADD); color: #fff;
         font-size: 13px; font-weight: 700; text-decoration: none;
         border: none; cursor: pointer; font-family: inherit;
-        box-shadow: 0 3px 10px rgba(37,99,235,.25);
+        box-shadow: 0 3px 10px rgba(55,138,221,.25);
         transition: opacity .14s, transform .14s;
     }
     .pub-btn-primary:hover { opacity: .9; transform: translateY(-1px); }
@@ -362,6 +362,16 @@
     @media (max-width: 480px) {
         .pub-container { padding: 0 16px; }
         .pub-section { padding: 36px 0; }
+    }
+
+    /* ── Override Tailwind forms-plugin focus defaults (brand colours) ── */
+    input:focus, input:focus-visible,
+    select:focus, select:focus-visible,
+    textarea:focus, textarea:focus-visible {
+        --tw-ring-color: rgba(55,138,221,.3) !important;
+        border-color: #378ADD !important;
+        box-shadow: 0 0 0 3px rgba(55,138,221,.18) !important;
+        outline: none !important;
     }
     </style>
 
