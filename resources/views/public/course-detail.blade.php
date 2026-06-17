@@ -568,6 +568,42 @@
 
     {{-- Right sidebar --}}
     <aside>
+        {{-- LTF Taxonomy --}}
+        @if($course->ltfStandards->count() || $course->ltfIndustries->count() || $course->ltf_competency_level)
+        <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:20px;">
+            <h4 style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin:0 0 14px;">This course covers</h4>
+
+            @if($course->ltfStandards->count())
+            <div style="margin-bottom:10px;">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Standards</div>
+                <div>
+                    @foreach($course->ltfStandards as $standard)
+                    <span style="display:inline-flex;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;background:#E6F1FB;color:#0C447C;border:0.5px solid #85B7EB;margin-right:6px;margin-bottom:6px;"@if($standard->full_name) title="{{ $standard->full_name }}"@endif>{{ $standard->name }}</span>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            @if($course->ltfIndustries->count())
+            <div style="margin-bottom:10px;">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Industries</div>
+                <div>
+                    @foreach($course->ltfIndustries as $industry)
+                    <span style="display:inline-flex;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;background:#FAEEDA;color:#633806;border:0.5px solid #EF9F27;margin-right:6px;margin-bottom:6px;">{{ $industry->name }}</span>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            @if($course->ltf_competency_level)
+            <div>
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Level</div>
+                <span style="display:inline-flex;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;background:#EEEDFE;color:#3C3489;border:0.5px solid #AFA9EC;">{{ ucfirst($course->ltf_competency_level) }}</span>
+            </div>
+            @endif
+        </div>
+        @endif
+
         {{-- Quick facts --}}
         <div style="background:#fff;border:1px solid #e9ecf0;border-radius:14px;padding:22px;margin-bottom:20px;">
             <h4 style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;margin:0 0 16px;">Course Facts</h4>

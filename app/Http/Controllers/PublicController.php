@@ -163,6 +163,8 @@ class PublicController extends Controller
                 'publicSchedules.trainer',
                 'testimonials',
                 'blogPosts' => fn($q) => $q->published()->latest('published_at')->take(3),
+                'ltfStandards',
+                'ltfIndustries',
             ])
             ->firstOrFail();
 
