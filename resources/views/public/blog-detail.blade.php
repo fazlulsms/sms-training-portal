@@ -12,7 +12,7 @@
 .bd-article { max-width:760px; }
 .bd-breadcrumb { font-size:13px; color:#9ca3af; display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
 .bd-breadcrumb a { color:#6b7280; text-decoration:none; }
-.bd-breadcrumb a:hover { color:#1e3a8a; }
+.bd-breadcrumb a:hover { color:#042C53; }
 .bd-category { display:inline-block; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:14px; }
 .bd-title { font-size:34px; font-weight:900; color:#111827; margin:0 0 14px; line-height:1.25; }
 @media(max-width:768px){ .bd-title{font-size:26px;} }
@@ -27,9 +27,9 @@
 .bd-content p { margin:0 0 1.2em; }
 .bd-content ul, .bd-content ol { padding-left:1.5em; margin:0 0 1.2em; }
 .bd-content li { margin-bottom:.5em; }
-.bd-content blockquote { border-left:4px solid #1e3a8a; background:#f0f4ff; margin:1.5em 0; padding:16px 20px; border-radius:0 10px 10px 0; font-style:italic; color:#374151; }
+.bd-content blockquote { border-left:4px solid #042C53; background:#f0f4ff; margin:1.5em 0; padding:16px 20px; border-radius:0 10px 10px 0; font-style:italic; color:#374151; }
 .bd-content img { max-width:100%; border-radius:10px; margin:1em 0; }
-.bd-content a { color:#1e3a8a; font-weight:600; }
+.bd-content a { color:#042C53; font-weight:600; }
 .bd-content a:hover { text-decoration:underline; }
 
 .bd-related-title { font-size:22px; font-weight:900; color:#111827; margin:48px 0 20px; padding-top:32px; border-top:2px solid #f0f2f5; }
@@ -58,14 +58,14 @@
 
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
             @if($post->category)
-            @php $catColor = $post->category->color ?? '#1e3a8a'; @endphp
+            @php $catColor = $post->category->color ?? '#042C53'; @endphp
             <a href="{{ route('public.blog') }}?category={{ $post->category->slug }}"
                class="bd-category" style="background:{{ $catColor }}22;color:{{ $catColor }};text-decoration:none;">
                 {{ $post->category->name }}
             </a>
             @endif
             @if($post->article_type && $post->article_type !== 'blog_post')
-            @php $typeColors = ['training_news'=>['#1e3a8a','#dbeafe'],'success_story'=>['#7c3aed','#f3e8ff'],'course_announcement'=>['#d97706','#fef3c7']]; $tc = $typeColors[$post->article_type] ?? ['#6b7280','#f3f4f6']; @endphp
+            @php $typeColors = ['training_news'=>['#042C53','#dbeafe'],'success_story'=>['#7c3aed','#f3e8ff'],'course_announcement'=>['#d97706','#fef3c7']]; $tc = $typeColors[$post->article_type] ?? ['#6b7280','#f3f4f6']; @endphp
             <span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:{{ $tc[1] }};color:{{ $tc[0] }};">{{ $post->article_type_label }}</span>
             @endif
             @if($post->ai_generated)<span style="display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#f5f3ff;color:#7c3aed;">🤖 AI Generated</span>@endif
@@ -114,7 +114,7 @@
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 28px;">
             @foreach((array)$post->tags as $tag)
             <a href="{{ route('public.blog') }}?q={{ urlencode($tag) }}"
-               style="display:inline-block;padding:4px 12px;background:#f0f4ff;color:#1e3a8a;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;">#{{ $tag }}</a>
+               style="display:inline-block;padding:4px 12px;background:#f0f4ff;color:#042C53;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;">#{{ $tag }}</a>
             @endforeach
         </div>
         @endif
@@ -123,7 +123,7 @@
         @if($post->course && $post->course->is_public)
         <div style="background:linear-gradient(135deg,#f0f4ff,#dbeafe);border:1px solid #bfdbfe;border-radius:14px;padding:22px;margin:32px 0;display:flex;gap:18px;align-items:center;flex-wrap:wrap;">
             <div style="flex:1;">
-                <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#2563eb;margin-bottom:6px;">Related Course</div>
+                <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#378ADD;margin-bottom:6px;">Related Course</div>
                 <div style="font-size:18px;font-weight:900;color:#111827;">{{ $post->course->name }}</div>
                 @if($post->course->short_description)
                 <p style="font-size:13.5px;color:#6b7280;margin:6px 0 0;line-height:1.5;">{{ Str::limit($post->course->short_description, 120) }}</p>
@@ -159,7 +159,7 @@
         {{-- Author card --}}
         @if($post->author)
         <div class="bd-sidebar-card" style="text-align:center;">
-            <div style="width:60px;height:60px;background:#dbeafe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#1e3a8a;margin:0 auto 10px;">
+            <div style="width:60px;height:60px;background:#dbeafe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#042C53;margin:0 auto 10px;">
                 {{ strtoupper(substr($post->author, 0, 1)) }}
             </div>
             <div style="font-size:16px;font-weight:800;color:#111827;">{{ $post->author }}</div>
@@ -190,10 +190,10 @@
         </div>
 
         {{-- Browse all --}}
-        <div class="bd-sidebar-card" style="background:linear-gradient(135deg,#1e3a8a,#2563eb);border-color:transparent;">
+        <div class="bd-sidebar-card" style="background:linear-gradient(135deg,#042C53,#378ADD);border-color:transparent;">
             <h4 style="color:#fff;font-size:16px;font-weight:900;margin:0 0 8px;">Explore Our Courses</h4>
             <p style="color:rgba(255,255,255,.8);font-size:13.5px;margin:0 0 14px;">Advance your career with professional certifications.</p>
-            <a href="{{ route('public.courses') }}" class="pub-enroll-btn" style="background:#fff;color:#1e3a8a;display:block;text-align:center;">Browse Courses</a>
+            <a href="{{ route('public.courses') }}" class="pub-enroll-btn" style="background:#fff;color:#042C53;display:block;text-align:center;">Browse Courses</a>
         </div>
     </aside>
 </div>

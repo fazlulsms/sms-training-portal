@@ -6,7 +6,7 @@
 
 @section('content')
 <style>
-.blog-hero { background:linear-gradient(135deg,#0f172a,#1e3a8a); padding:56px 0; color:#fff; text-align:center; }
+.blog-hero { background:linear-gradient(135deg,#0f172a,#042C53); padding:56px 0; color:#fff; text-align:center; }
 .blog-hero h1 { font-size:38px; font-weight:900; margin:0 0 10px; }
 .blog-hero p  { font-size:16px; opacity:.75; margin:0 0 24px; }
 .blog-search { display:flex; gap:10px; max-width:480px; margin:0 auto; }
@@ -16,7 +16,7 @@
 }
 .blog-search input::placeholder { color:rgba(255,255,255,.5); }
 .blog-search button {
-    padding:12px 20px; background:#fff; color:#1e3a8a; border:none; border-radius:10px;
+    padding:12px 20px; background:#fff; color:#042C53; border:none; border-radius:10px;
     font-weight:800; font-size:14px; cursor:pointer; font-family:inherit;
 }
 
@@ -34,7 +34,7 @@
 .blog-card-body { padding:18px; flex:1; display:flex; flex-direction:column; }
 .blog-card-cat { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; }
 .blog-card-title { font-size:16px; font-weight:800; color:#111827; text-decoration:none; line-height:1.4; margin:0 0 8px; display:block; }
-.blog-card-title:hover { color:#1e3a8a; }
+.blog-card-title:hover { color:#042C53; }
 .blog-card-excerpt { font-size:13.5px; color:#6b7280; line-height:1.6; margin:0 0 12px; flex:1; }
 .blog-card-meta { display:flex; align-items:center; justify-content:space-between; font-size:12px; color:#9ca3af; margin-top:auto; padding-top:12px; border-top:1px solid #f0f2f5; }
 
@@ -44,14 +44,14 @@
 .sidebar-title { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:#6b7280; margin:0 0 14px; }
 .cat-link { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f0f2f5; text-decoration:none; font-size:14px; color:#374151; font-weight:600; }
 .cat-link:last-child { border-bottom:none; }
-.cat-link:hover { color:#1e3a8a; }
-.cat-count { background:#f0f4ff; color:#1e3a8a; padding:2px 8px; border-radius:20px; font-size:11.5px; font-weight:800; }
+.cat-link:hover { color:#042C53; }
+.cat-count { background:#f0f4ff; color:#042C53; padding:2px 8px; border-radius:20px; font-size:11.5px; font-weight:800; }
 .featured-link { display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-bottom:1px solid #f0f2f5; text-decoration:none; }
 .featured-link:last-child { border-bottom:none; }
 .featured-link-thumb { width:52px; height:40px; border-radius:6px; background:#f0f4ff; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; overflow:hidden; }
 .featured-link-thumb img { width:52px; height:40px; object-fit:cover; border-radius:6px; }
 .featured-link-text { font-size:13px; font-weight:700; color:#111827; line-height:1.4; }
-.featured-link-text:hover { color:#1e3a8a; }
+.featured-link-text:hover { color:#042C53; }
 </style>
 
 <div class="blog-hero">
@@ -89,12 +89,12 @@
         <div style="text-align:center;padding:80px 20px;">
             <div style="font-size:56px;margin-bottom:16px;">📰</div>
             <h3 style="font-size:22px;font-weight:800;color:#111827;margin:0 0 8px;">No articles found</h3>
-            <p style="color:#6b7280;font-size:15px;"><a href="{{ route('public.blog') }}" style="color:#1e3a8a;font-weight:700;">View all articles</a></p>
+            <p style="color:#6b7280;font-size:15px;"><a href="{{ route('public.blog') }}" style="color:#042C53;font-weight:700;">View all articles</a></p>
         </div>
         @else
         <div class="blog-grid">
             @foreach($posts as $post)
-            @php $catColor = $post->category?->color ?? '#1e3a8a'; @endphp
+            @php $catColor = $post->category?->color ?? '#042C53'; @endphp
             <div class="blog-card">
                 <div class="blog-card-img">
                     @if($post->featured_image)
@@ -111,7 +111,7 @@
                         </a>
                         @endif
                         @if($post->article_type && $post->article_type !== 'blog_post')
-                        @php $typeColors = ['training_news'=>['#1e3a8a','#dbeafe'],'success_story'=>['#7c3aed','#f3e8ff'],'course_announcement'=>['#d97706','#fef3c7']]; $tc = $typeColors[$post->article_type] ?? ['#6b7280','#f3f4f6']; @endphp
+                        @php $typeColors = ['training_news'=>['#042C53','#dbeafe'],'success_story'=>['#7c3aed','#f3e8ff'],'course_announcement'=>['#d97706','#fef3c7']]; $tc = $typeColors[$post->article_type] ?? ['#6b7280','#f3f4f6']; @endphp
                         <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:{{ $tc[1] }};color:{{ $tc[0] }};">{{ $post->article_type_label }}</span>
                         @endif
                     </div>
@@ -138,7 +138,7 @@
             <h4 class="sidebar-title">Categories</h4>
             @foreach($categories as $cat)
             <a href="{{ route('public.blog') }}?category={{ $cat->slug }}" class="cat-link"
-               style="{{ request('category') == $cat->slug ? 'color:#1e3a8a;' : '' }}">
+               style="{{ request('category') == $cat->slug ? 'color:#042C53;' : '' }}">
                 <span>{{ $cat->name }}</span>
                 <span class="cat-count">{{ $cat->published_posts_count }}</span>
             </a>
@@ -163,10 +163,10 @@
         @endif
 
         {{-- CTA --}}
-        <div class="sidebar-card" style="background:linear-gradient(135deg,#1e3a8a,#2563eb);border-color:transparent;">
+        <div class="sidebar-card" style="background:linear-gradient(135deg,#042C53,#378ADD);border-color:transparent;">
             <h4 style="color:#fff;font-size:16px;font-weight:900;margin:0 0 8px;">Join Our Next Training</h4>
             <p style="color:rgba(255,255,255,.8);font-size:13.5px;margin:0 0 14px;line-height:1.6;">Professional certifications for your career growth.</p>
-            <a href="{{ route('public.courses') }}" class="pub-enroll-btn" style="background:#fff;color:#1e3a8a;display:block;text-align:center;">Browse Courses</a>
+            <a href="{{ route('public.courses') }}" class="pub-enroll-btn" style="background:#fff;color:#042C53;display:block;text-align:center;">Browse Courses</a>
         </div>
     </aside>
 
