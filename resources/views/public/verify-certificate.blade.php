@@ -97,7 +97,7 @@
 .vcp-btn {
     width: 100%; padding: 13px;
     background: linear-gradient(135deg, #ffffff, #dbeafe);
-    color: #0f2470; border: none; border-radius: 10px;
+    color: #042C53; border: none; border-radius: 10px;
     font-size: 15px; font-weight: 900; font-family: inherit; cursor: pointer;
     display: flex; align-items: center; justify-content: center; gap: 9px;
     margin-top: 6px;
@@ -175,7 +175,7 @@
 .vcp-idle-format {
     background: #f0f4ff; border: 1px solid #bfdbfe;
     border-radius: 8px; padding: 6px 14px;
-    font-size: 12px; font-weight: 700; color: #1e3a8a;
+    font-size: 12px; font-weight: 700; color: #042C53;
     font-family: 'SFMono-Regular', Consolas, monospace; letter-spacing: .3px;
 }
 
@@ -279,13 +279,13 @@
     border: 1.5px solid transparent; transition: all .14s; white-space: nowrap;
 }
 .vcp-action-btn.primary {
-    background: #0f2470; color: #fff; border-color: #0f2470;
+    background: #042C53; color: #fff; border-color: #042C53;
 }
 .vcp-action-btn.primary:hover { background: #163C8A; border-color: #163C8A; }
 .vcp-action-btn.ghost  {
     background: #fff; color: #374151; border-color: #e5e7eb;
 }
-.vcp-action-btn.ghost:hover { border-color: #1e3a8a; color: #1e3a8a; }
+.vcp-action-btn.ghost:hover { border-color: #042C53; color: #042C53; }
 
 /* Verified footer strip */
 .vcp-cred-footer {
@@ -338,7 +338,7 @@
 .vcp-alert.danger  .vcp-alert-title { color: #991b1b; }
 .vcp-alert.info    .vcp-alert-title { color: #1e40af; }
 .vcp-alert-body { font-size: 13.5px; color: #6b7280; line-height: 1.75; margin: 0; }
-.vcp-alert-body a { color: #1e3a8a; font-weight: 700; text-decoration: none; }
+.vcp-alert-body a { color: #042C53; font-weight: 700; text-decoration: none; }
 .vcp-alert-body a:hover { text-decoration: underline; }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -367,7 +367,7 @@
     .vcp-stat:nth-child(2)   { border-bottom: 1px solid #f0f2f5; }
 }
 .vcp-stat-val {
-    font-size: 34px; font-weight: 900; color: #0f2470; line-height: 1;
+    font-size: 34px; font-weight: 900; color: #042C53; line-height: 1;
     margin-bottom: 4px; letter-spacing: -1px;
 }
 .vcp-stat-label { font-size: 12.5px; color: #9ca3af; font-weight: 600; }
@@ -447,7 +447,7 @@
     padding: 8px 16px; font-size: 12.5px; font-weight: 700; color: #6b7280;
     transition: border-color .13s, color .13s;
 }
-.vcp-recog-item:hover { border-color: #bfdbfe; color: #1e3a8a; }
+.vcp-recog-item:hover { border-color: #bfdbfe; color: #042C53; }
 .vcp-recog-item svg { color: #9ca3af; flex-shrink: 0; }
 </style>
 
@@ -728,7 +728,7 @@
         @elseif(request('cert') && !request('name'))
         <div class="vcp-alert info">
             <div class="vcp-alert-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2">
                     <circle cx="12" cy="12" r="10"/>
                     <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
@@ -743,7 +743,7 @@
         {{-- ── Idle state ── --}}
         <div class="vcp-idle">
             <div class="vcp-idle-icon-wrap">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.5">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.5">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     <polyline points="9 12 11 14 15 10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -826,7 +826,7 @@
 
         <div class="vcp-why-card">
             <div class="vcp-why-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8">
                     <rect x="3" y="3" width="18" height="18" rx="2"/>
                     <path d="M9 9h.01M9 15h.01M15 9h.01M15 15h.01"/>
                 </svg>
@@ -837,7 +837,7 @@
 
         <div class="vcp-why-card">
             <div class="vcp-why-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8">
                     <ellipse cx="12" cy="5" rx="9" ry="3"/>
                     <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
                     <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
@@ -849,7 +849,7 @@
 
         <div class="vcp-why-card">
             <div class="vcp-why-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8">
                     <rect x="5" y="2" width="14" height="20" rx="2"/>
                     <line x1="9" y1="7" x2="15" y2="7"/>
                     <line x1="9" y1="11" x2="15" y2="11"/>
@@ -862,7 +862,7 @@
 
         <div class="vcp-why-card">
             <div class="vcp-why-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8">
                     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
                 </svg>
             </div>
@@ -872,7 +872,7 @@
 
         <div class="vcp-why-card">
             <div class="vcp-why-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8">
                     <rect x="3" y="11" width="18" height="11" rx="2"/>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
@@ -883,7 +883,7 @@
 
         <div class="vcp-why-card">
             <div class="vcp-why-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8">
                     <circle cx="12" cy="12" r="10"/>
                     <line x1="2" y1="12" x2="22" y2="12"/>
                     <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
