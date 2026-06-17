@@ -7,19 +7,19 @@
    ═══════════════════════════════════════════════════════ */
 
 :root {
-  --sms-primary:       #1e3a8a;
-  --sms-primary-hover: #1e2d6e;
-  --sms-primary-light: #eff6ff;
-  --sms-accent:        #0f766e;
-  --sms-accent-hover:  #0d6360;
-  --sms-accent-light:  #f0fdfa;
+  --sms-primary:       #042C53;
+  --sms-primary-hover: #031e3b;
+  --sms-primary-light: #e8eef5;
+  --sms-accent:        #0F6E56;
+  --sms-accent-hover:  #0b5a45;
+  --sms-accent-light:  #e6f5f0;
 
   --clr-success:      #16a34a; --clr-success-bg:  #dcfce7; --clr-success-txt: #166534;
   --clr-warning:      #d97706; --clr-warning-bg:  #fef3c7; --clr-warning-txt: #92400e;
-  --clr-info:         #2563eb; --clr-info-bg:     #dbeafe; --clr-info-txt:    #1e40af;
+  --clr-info:         #378ADD; --clr-info-bg:     #dceef9; --clr-info-txt:    #1a5f9e;
   --clr-danger:       #dc2626; --clr-danger-bg:   #fee2e2; --clr-danger-txt:  #991b1b;
   --clr-purple:       #7c3aed; --clr-purple-bg:   #f5f3ff; --clr-purple-txt:  #6d28d9;
-  --clr-teal:         #0f766e; --clr-teal-bg:     #f0fdfa; --clr-teal-txt:    #134e4a;
+  --clr-teal:         #0F6E56; --clr-teal-bg:     #e6f5f0; --clr-teal-txt:    #084534;
   --clr-orange:       #c2410c; --clr-orange-bg:   #fff7ed; --clr-orange-txt:  #c2410c;
   --clr-secondary:    #374151; --clr-secondary-bg:#f3f4f6; --clr-secondary-txt:#374151;
 

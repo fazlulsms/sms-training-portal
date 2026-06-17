@@ -7,7 +7,7 @@
 
 @section('content')
 <style>
-.legal-hero { background:linear-gradient(135deg,#060d2e 0%,#0f2470 45%,#1e3a8a 100%); padding:52px 0 60px; color:#fff; position:relative; overflow:hidden; }
+.legal-hero { background:linear-gradient(135deg,#060d2e 0%,#042C53 45%,#042C53 100%); padding:52px 0 60px; color:#fff; position:relative; overflow:hidden; }
 .legal-hero::after { content:''; position:absolute; inset:0; background-image:radial-gradient(rgba(255,255,255,.04) 1px, transparent 1px); background-size:24px 24px; pointer-events:none; }
 .legal-hero-inner { position:relative; z-index:1; }
 .legal-eyebrow { display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); padding:4px 13px; border-radius:20px; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; margin-bottom:14px; color:rgba(255,255,255,.8); }
@@ -22,16 +22,16 @@
 .legal-toc h3 { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.7px; color:#9ca3af; margin:0 0 12px; }
 .legal-toc ul { list-style:none; margin:0; padding:0; }
 .legal-toc ul li a { display:block; font-size:13px; color:#374151; text-decoration:none; padding:5px 8px; border-radius:6px; margin-bottom:2px; line-height:1.5; transition:background .1s, color .1s; }
-.legal-toc ul li a:hover { background:#eff6ff; color:#1e3a8a; }
+.legal-toc ul li a:hover { background:#eff6ff; color:#042C53; }
 .legal-toc-num { color:#9ca3af; font-size:11px; margin-right:4px; }
 .legal-content h2 { font-size:20px; font-weight:900; color:#111827; margin:40px 0 14px; padding-top:20px; border-top:2px solid #f1f5f9; }
 .legal-content h2:first-child { margin-top:0; border-top:none; padding-top:0; }
-.legal-content h3 { font-size:15px; font-weight:800; color:#1e3a8a; margin:22px 0 8px; }
+.legal-content h3 { font-size:15px; font-weight:800; color:#042C53; margin:22px 0 8px; }
 .legal-content p  { font-size:14.5px; color:#374151; line-height:1.85; margin:0 0 14px; }
 .legal-content ul { margin:8px 0 16px 0; padding-left:20px; }
 .legal-content ul li { font-size:14.5px; color:#374151; line-height:1.8; margin-bottom:5px; }
 .legal-content strong { color:#111827; }
-.legal-note { background:#eff6ff; border-left:3px solid #2563eb; border-radius:0 10px 10px 0; padding:14px 18px; margin:16px 0; }
+.legal-note { background:#eff6ff; border-left:3px solid #378ADD; border-radius:0 10px 10px 0; padding:14px 18px; margin:16px 0; }
 .legal-note p { margin:0; font-size:13.5px; color:#1e40af; line-height:1.7; }
 .legal-rights-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
 @media(max-width:580px){ .legal-rights-grid { grid-template-columns:1fr; } }
@@ -99,7 +99,7 @@
         <div style="background:#f8fafc;border:1.5px solid #e9ecf0;border-radius:12px;padding:20px;margin:10px 0 16px;">
             <p style="margin:0 0 4px;"><strong>Sustainable Management System Inc.</strong></p>
             <p style="margin:0 0 4px;color:#6b7280;">277 Cherry Street, Suite-12N, New York, NY, USA</p>
-            <p style="margin:0;"><a href="mailto:info@smscert.com" style="color:#1e3a8a;">info@smscert.com</a></p>
+            <p style="margin:0;"><a href="mailto:info@smscert.com" style="color:#042C53;">info@smscert.com</a></p>
         </div>
         <p>For individuals in the European Economic Area or United Kingdom, SMS acts as the data controller and has implemented appropriate safeguards for international data transfers as described in Section 7.</p>
 
@@ -211,7 +211,7 @@
                 <p>Request that we restrict processing of your data in certain circumstances.</p>
             </div>
         </div>
-        <p>To exercise any of these rights, please contact us at <a href="mailto:info@smscert.com" style="color:#1e3a8a;">info@smscert.com</a> or via our <a href="{{ route('public.contact') }}" style="color:#1e3a8a;">contact form</a>. We will respond to verified requests within 30 days (or within the timeframe required by applicable law). We may request identity verification before processing your request.</p>
+        <p>To exercise any of these rights, please contact us at <a href="mailto:info@smscert.com" style="color:#042C53;">info@smscert.com</a> or via our <a href="{{ route('public.contact') }}" style="color:#042C53;">contact form</a>. We will respond to verified requests within 30 days (or within the timeframe required by applicable law). We may request identity verification before processing your request.</p>
         <p>If you are in the EEA or UK and are not satisfied with our response, you have the right to lodge a complaint with your local data protection supervisory authority.</p>
         <div class="legal-note">
             <p><strong>Marketing opt-out:</strong> If you have opted in to marketing communications and wish to unsubscribe, you may click the unsubscribe link in any marketing email or contact us directly. Opting out of marketing does not affect transactional or service communications related to your account or enrolled programmes.</p>
@@ -228,8 +228,8 @@
         <div style="background:#f8fafc;border:1.5px solid #e9ecf0;border-radius:12px;padding:20px;margin-top:10px;">
             <p style="margin:0 0 6px;"><strong>Sustainable Management System Inc. — Privacy</strong></p>
             <p style="margin:0 0 4px;color:#6b7280;">277 Cherry Street, Suite-12N, New York, NY, USA</p>
-            <p style="margin:0 0 4px;"><a href="mailto:info@smscert.com" style="color:#1e3a8a;">info@smscert.com</a></p>
-            <p style="margin:0;"><a href="{{ route('public.contact') }}" style="color:#1e3a8a;">Contact Form</a></p>
+            <p style="margin:0 0 4px;"><a href="mailto:info@smscert.com" style="color:#042C53;">info@smscert.com</a></p>
+            <p style="margin:0;"><a href="{{ route('public.contact') }}" style="color:#042C53;">Contact Form</a></p>
         </div>
         <p style="margin-top:20px;font-size:13px;color:#9ca3af;">This Privacy Policy was last updated in June 2026. Previous versions are available upon written request.</p>
     </div>
