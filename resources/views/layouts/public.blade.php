@@ -40,31 +40,6 @@
         --gap-x:   24px;
     }
 
-    /* ── Top bar ─────────────────────────────────────────────────── */
-    .pub-topbar {
-        background: #042C53;
-        color: rgba(255,255,255,.72);
-        font-size: 12.5px;
-        padding: 7px 0;
-    }
-    .pub-topbar-inner {
-        max-width: var(--max-w); margin: 0 auto; padding: 0 var(--gap-x);
-        display: flex; align-items: center; justify-content: space-between; gap: 16px;
-        flex-wrap: wrap;
-    }
-    .pub-topbar a { color: rgba(255,255,255,.72); text-decoration: none; }
-    .pub-topbar a:hover { color: #fff; }
-    .pub-topbar-left, .pub-topbar-right { display: flex; align-items: center; gap: 18px; }
-    .pub-topbar-social { display: flex; align-items: center; gap: 10px; }
-    .pub-topbar-social a {
-        width: 24px; height: 24px; border-radius: 5px;
-        background: rgba(255,255,255,.1);
-        display: flex; align-items: center; justify-content: center;
-        color: rgba(255,255,255,.7); text-decoration: none;
-        transition: background .13s;
-    }
-    .pub-topbar-social a:hover { background: rgba(255,255,255,.22); color: #fff; }
-
     /* ── Main nav ─────────────────────────────────────────────────── */
     .pub-nav {
         background: #fff;
@@ -380,7 +355,6 @@
     @media (max-width: 768px) {
         .pub-menu, .pub-nav-actions { display: none; }
         .pub-hamburger { display: flex; }
-        .pub-topbar { display: none; }
         .pub-section { padding: 48px 0; }
         .section-heading { font-size: 24px; }
         .pub-footer { margin-top: 56px; }
@@ -394,37 +368,6 @@
     @stack('head')
 </head>
 <body>
-
-{{-- ── Top bar ─────────────────────────────────────────────────── --}}
-<div class="pub-topbar">
-    <div class="pub-topbar-inner">
-        <div class="pub-topbar-left">
-            <span>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
-                <a href="mailto:training@smscert.com">training@smscert.com</a>
-            </span>
-            <div class="pub-topbar-social">
-                <a href="https://www.linkedin.com/company/sustainable-management-system-sms" target="_blank" rel="noopener" title="LinkedIn">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
-                </a>
-                <a href="https://www.facebook.com/smstrainingservices" target="_blank" rel="noopener" title="Facebook">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-                </a>
-            </div>
-        </div>
-        <div class="pub-topbar-right">
-            <a href="{{ route('public.verify-certificate') }}">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px;"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
-                Verify Certificate
-            </a>
-            @auth
-                <a href="{{ route('participant.my-courses') }}">My Dashboard</a>
-            @else
-                <a href="{{ route('login') }}">Participant Login</a>
-            @endauth
-        </div>
-    </div>
-</div>
 
 {{-- ── Main Navigation ──────────────────────────────────────────── --}}
 <nav class="pub-nav">
