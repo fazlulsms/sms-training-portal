@@ -8,7 +8,7 @@
 <style>
 .section-wrap { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
 .profile-header {
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%);
+    background: linear-gradient(135deg, #0f172a 0%, #042C53 60%);
     padding: 56px 0 70px; color: #fff;
 }
 .profile-inner { display: flex; gap: 36px; align-items: flex-start; }
@@ -27,7 +27,7 @@
 .profile-badge { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); padding: 5px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 600; }
 .profile-body { padding: 48px 0; }
 .profile-section { margin-bottom: 36px; }
-.profile-section h3 { font-size: 18px; font-weight: 800; color: #1e3a8a; margin: 0 0 14px; padding-bottom: 10px; border-bottom: 2px solid #e0e7ff; }
+.profile-section h3 { font-size: 18px; font-weight: 800; color: #042C53; margin: 0 0 14px; padding-bottom: 10px; border-bottom: 2px solid #e0e7ff; }
 .profile-text { font-size: 15px; color: #374151; line-height: 1.75; white-space: pre-line; }
 .expertise-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
 .expertise-list li { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 7px 16px; border-radius: 30px; font-size: 13.5px; font-weight: 600; }
@@ -38,7 +38,7 @@
 .schedule-course { font-weight: 700; color: #111827; font-size: 15px; }
 .schedule-date { font-size: 13.5px; color: #6b7280; margin-top: 3px; }
 .schedule-mode { font-size: 12px; padding: 3px 10px; border-radius: 20px; font-weight: 700; }
-.schedule-register { background: #1e3a8a; color: #fff; padding: 9px 18px; border-radius: 8px; font-weight: 700; font-size: 13.5px; text-decoration: none; white-space: nowrap; }
+.schedule-register { background: #042C53; color: #fff; padding: 9px 18px; border-radius: 8px; font-weight: 700; font-size: 13.5px; text-decoration: none; white-space: nowrap; }
 </style>
 
 <section class="profile-header">
@@ -131,7 +131,7 @@
             <p style="font-size:15px; color:#374151; margin:0 0 14px;">
                 Interested in inviting {{ $trainer->name }} for your organization's training?
             </p>
-            <a href="/corporate-training" style="background:#1e3a8a; color:#fff; padding:12px 28px; border-radius:10px; font-weight:700; font-size:15px; text-decoration:none; display:inline-block;">
+            <a href="/corporate-training" style="background:#042C53; color:#fff; padding:12px 28px; border-radius:10px; font-weight:700; font-size:15px; text-decoration:none; display:inline-block;">
                 Request Corporate Training â†’
             </a>
         </div>

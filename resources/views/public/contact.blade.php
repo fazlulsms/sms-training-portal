@@ -8,7 +8,7 @@
 @section('content')
 <style>
 .ct-hero {
-    background: linear-gradient(135deg, #060d2e 0%, #0f2470 45%, #1e3a8a 80%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #060d2e 0%, #042C53 45%, #042C53 80%, #1d4ed8 100%);
     padding: 64px 0 72px; color: #fff; position: relative; overflow: hidden;
 }
 .ct-hero::after { content:''; position:absolute; inset:0; background-image:radial-gradient(rgba(255,255,255,.04) 1px, transparent 1px); background-size:26px 26px; pointer-events:none; }
@@ -28,7 +28,7 @@
 .ct-card-icon { width:48px; height:48px; border-radius:14px; background:linear-gradient(135deg,#eff6ff,#dbeafe); display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
 .ct-card h3 { font-size:14.5px; font-weight:800; color:#111827; margin:0 0 6px; }
 .ct-card p  { font-size:13px; color:#6b7280; margin:0 0 14px; line-height:1.6; }
-.ct-card-link { display:inline-block; font-size:13px; font-weight:700; color:#1e3a8a; text-decoration:none; }
+.ct-card-link { display:inline-block; font-size:13px; font-weight:700; color:#042C53; text-decoration:none; }
 .ct-card-link:hover { text-decoration:underline; }
 
 /* Main two-column layout */
@@ -50,9 +50,9 @@
     transition:border-color .15s, box-shadow .15s; box-sizing:border-box;
     font-family:inherit;
 }
-.ct-field input:focus, .ct-field select:focus, .ct-field textarea:focus { outline:none; border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.1); }
+.ct-field input:focus, .ct-field select:focus, .ct-field textarea:focus { outline:none; border-color:#378ADD; box-shadow:0 0 0 3px rgba(37,99,235,.1); }
 .ct-field textarea { resize:vertical; min-height:130px; }
-.ct-submit-btn { width:100%; padding:13px; background:linear-gradient(135deg,#0f2470,#1e3a8a); color:#fff; border:none; border-radius:11px; font-size:15px; font-weight:800; cursor:pointer; transition:opacity .13s; }
+.ct-submit-btn { width:100%; padding:13px; background:linear-gradient(135deg,#042C53,#042C53); color:#fff; border:none; border-radius:11px; font-size:15px; font-weight:800; cursor:pointer; transition:opacity .13s; }
 .ct-submit-btn:hover { opacity:.9; }
 
 /* Success alert */
@@ -70,7 +70,7 @@
 .ct-info-label { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#9ca3af; margin:0 0 3px; }
 .ct-info-val { font-size:13.5px; color:#111827; font-weight:600; margin:0; line-height:1.5; }
 
-.ct-hours-panel { background:linear-gradient(135deg,#0f2470,#1e3a8a); border-radius:16px; padding:24px; color:#fff; }
+.ct-hours-panel { background:linear-gradient(135deg,#042C53,#042C53); border-radius:16px; padding:24px; color:#fff; }
 .ct-hours-panel h3 { font-size:14.5px; font-weight:800; color:#fff; margin:0 0 16px; }
 .ct-hour-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.1); font-size:13px; }
 .ct-hour-row:last-child { border-bottom:none; }
@@ -102,7 +102,7 @@
     <div class="ct-cards-grid">
         <div class="ct-card">
             <div class="ct-card-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </div>
             <h3>General Enquiries</h3>
             <p>Questions about SMS Training Academy, our programmes, or the SMS Group.</p>
@@ -110,7 +110,7 @@
         </div>
         <div class="ct-card">
             <div class="ct-card-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             </div>
             <h3>Training & Enrolment</h3>
             <p>Course recommendations, registration, scheduling, and post-enrolment support.</p>
@@ -118,7 +118,7 @@
         </div>
         <div class="ct-card">
             <div class="ct-card-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             </div>
             <h3>Payment & Billing</h3>
             <p>Invoice requests, payment issues, refund enquiries, and billing assistance.</p>
@@ -126,7 +126,7 @@
         </div>
         <div class="ct-card">
             <div class="ct-card-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
             </div>
             <h3>Corporate Programmes</h3>
             <p>Customised in-house training, group bookings, and long-term partnership enquiries.</p>
@@ -205,7 +205,7 @@
                 <h3>Office Contacts</h3>
                 <div class="ct-info-item">
                     <div class="ct-info-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                     </div>
                     <div>
                         <p class="ct-info-label">Headquarters (USA)</p>
@@ -214,7 +214,7 @@
                 </div>
                 <div class="ct-info-item">
                     <div class="ct-info-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                     </div>
                     <div>
                         <p class="ct-info-label">Training Enquiries</p>
@@ -223,7 +223,7 @@
                 </div>
                 <div class="ct-info-item">
                     <div class="ct-info-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                     </div>
                     <div>
                         <p class="ct-info-label">General</p>
@@ -232,7 +232,7 @@
                 </div>
                 <div class="ct-info-item">
                     <div class="ct-info-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                     </div>
                     <div>
                         <p class="ct-info-label">South Asia</p>
@@ -241,7 +241,7 @@
                 </div>
                 <div class="ct-info-item" style="margin-bottom:0">
                     <div class="ct-info-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                     </div>
                     <div>
                         <p class="ct-info-label">Middle East</p>

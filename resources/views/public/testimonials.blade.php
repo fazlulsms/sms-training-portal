@@ -6,14 +6,14 @@
 
 @section('content')
 <style>
-.testi-hero { background:linear-gradient(135deg,#0f172a,#1e3a8a); padding:56px 0; color:#fff; text-align:center; }
+.testi-hero { background:linear-gradient(135deg,#0f172a,#042C53); padding:56px 0; color:#fff; text-align:center; }
 .testi-hero h1 { font-size:38px; font-weight:900; margin:0 0 10px; }
 .testi-hero p  { font-size:16px; opacity:.75; margin:0; }
 
 .testi-filters { background:#fff; border-bottom:1px solid #e9ecf0; padding:16px 0; }
 .testi-filter-row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
 .testi-select { padding:9px 14px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:14px; font-family:inherit; color:#374151; }
-.testi-filter-btn { padding:9px 18px; background:#1e3a8a; color:#fff; border:none; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; font-family:inherit; }
+.testi-filter-btn { padding:9px 18px; background:#042C53; color:#fff; border:none; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; font-family:inherit; }
 
 .testi-body { padding:48px 0 60px; }
 .testi-main-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }
@@ -22,7 +22,7 @@
 .testi-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:40px; }
 @media(max-width:700px){ .testi-stats{grid-template-columns:repeat(2,1fr);} }
 .testi-stat { background:#fff; border:1px solid #e9ecf0; border-radius:14px; padding:22px; text-align:center; }
-.testi-stat-num { font-size:36px; font-weight:900; color:#1e3a8a; line-height:1; margin-bottom:6px; }
+.testi-stat-num { font-size:36px; font-weight:900; color:#042C53; line-height:1; margin-bottom:6px; }
 .testi-stat-label { font-size:13px; color:#6b7280; font-weight:600; }
 
 /* Submit form */
@@ -36,12 +36,12 @@
     width:100%; padding:11px 14px; border:1.5px solid #e5e7eb; border-radius:10px;
     font-size:14.5px; font-family:inherit; color:#111827; background:#fff; box-sizing:border-box;
 }
-.tf-input:focus { outline:none; border-color:#1e3a8a; box-shadow:0 0 0 3px rgba(30,58,138,.1); }
+.tf-input:focus { outline:none; border-color:#042C53; box-shadow:0 0 0 3px rgba(30,58,138,.1); }
 .tf-stars { display:flex; gap:8px; margin-top:4px; }
 .tf-star { font-size:28px; cursor:pointer; color:#d1d5db; transition:color .1s; }
 .tf-star.active { color:#f59e0b; }
 .tf-submit {
-    background:linear-gradient(135deg,#1e3a8a,#2563eb); color:#fff; border:none;
+    background:linear-gradient(135deg,#042C53,#378ADD); color:#fff; border:none;
     padding:14px 32px; border-radius:12px; font-size:15px; font-weight:800;
     cursor:pointer; font-family:inherit; margin-top:6px;
 }
@@ -120,7 +120,7 @@
     @if($testimonials->isEmpty())
     <div style="text-align:center;padding:64px 24px;background:#fff;border:1px solid #e9ecf0;border-radius:16px;margin-bottom:32px;">
         <div style="width:72px;height:72px;background:linear-gradient(135deg,#f0f4ff,#dbeafe);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </div>
         <h3 style="font-size:20px;font-weight:900;color:#111827;margin:0 0 8px;">No participant reviews available yet</h3>
         <p style="color:#6b7280;font-size:15px;margin:0;line-height:1.7;">Reviews will appear automatically after course completion.<br>Be the first to share your experience below!</p>
@@ -132,7 +132,7 @@
             <div class="testi-stars">{{ str_repeat('★', $t->rating) }}{{ str_repeat('☆', 5 - $t->rating) }}</div>
             <p class="testi-text">"{{ $t->feedback }}"</p>
             @if($t->course_name || $t->course)
-            <div style="font-size:11.5px;color:#1e3a8a;font-weight:700;margin-bottom:10px;background:#f0f4ff;display:inline-block;padding:3px 10px;border-radius:20px;">
+            <div style="font-size:11.5px;color:#042C53;font-weight:700;margin-bottom:10px;background:#f0f4ff;display:inline-block;padding:3px 10px;border-radius:20px;">
                 📚 {{ $t->course_name ?? $t->course?->name }}
             </div>
             @endif
@@ -227,7 +227,7 @@
 
             <div style="margin-top:16px;">
                 <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:14px;color:#374151;">
-                    <input type="checkbox" name="consent" value="1" {{ old('consent') ? 'checked' : '' }} required style="margin-top:2px;accent-color:#1e3a8a;">
+                    <input type="checkbox" name="consent" value="1" {{ old('consent') ? 'checked' : '' }} required style="margin-top:2px;accent-color:#042C53;">
                     I consent to SMS Training Academy (Sustainable Management System Inc.) publishing my review on their website and marketing materials.
                 </label>
                 @error('consent')<p style="color:#ef4444;font-size:12px;margin:4px 0 0;">{{ $message }}</p>@enderror

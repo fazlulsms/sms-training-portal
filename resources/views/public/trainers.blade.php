@@ -7,7 +7,7 @@
 @section('content')
 <style>
 .page-hero {
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #042C53 60%, #1d4ed8 100%);
     padding: 60px 0 70px; color: #fff; text-align: center;
 }
 .page-hero h1 { font-size: 42px; font-weight: 900; margin: 0 0 12px; }
@@ -43,7 +43,7 @@
 .trainer-org { font-size: 13px; color: #6b7280; margin: 0 0 12px; }
 .trainer-exp { display: inline-flex; align-items: center; gap: 5px; background: #eff6ff; color: #1e40af; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
 .trainer-bio { font-size: 13.5px; color: #4b5563; line-height: 1.65; margin: 12px 0 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.trainer-link { margin-top: 16px; color: #1e3a8a; font-weight: 700; font-size: 13.5px; display: flex; align-items: center; gap: 5px; }
+.trainer-link { margin-top: 16px; color: #042C53; font-weight: 700; font-size: 13.5px; display: flex; align-items: center; gap: 5px; }
 .empty-state { text-align: center; padding: 80px 24px; color: #9ca3af; }
 .empty-state h3 { font-size: 22px; font-weight: 700; color: #d1d5db; margin: 16px 0 8px; }
 </style>
@@ -61,7 +61,7 @@
         <div class="empty-state">
             <div style="font-size:60px;">ðŸ‘¨â€ðŸ«</div>
             <h3>Trainer profiles coming soon</h3>
-            <p>Our trainer directory is being updated. Please <a href="/corporate-training" style="color:#1e3a8a;">contact us</a> for trainer information.</p>
+            <p>Our trainer directory is being updated. Please <a href="/corporate-training" style="color:#042C53;">contact us</a> for trainer information.</p>
         </div>
         @else
         <div class="trainers-grid">

@@ -9,7 +9,7 @@
 <style>
 /* ── About page ── */
 .abt-hero {
-    background: linear-gradient(135deg, #060d2e 0%, #0f2470 40%, #1e3a8a 75%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #060d2e 0%, #042C53 40%, #042C53 75%, #1d4ed8 100%);
     padding: 72px 0 80px; color: #fff; position: relative; overflow: hidden;
 }
 .abt-hero::after {
@@ -36,7 +36,7 @@
 
 /* ── Section headers ── */
 .abt-sec-hd { text-align: center; margin-bottom: 40px; }
-.abt-sec-eyebrow { display: inline-block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .9px; color: #1e3a8a; background: #eff6ff; border: 1px solid #bfdbfe; padding: 4px 14px; border-radius: 20px; margin-bottom: 10px; }
+.abt-sec-eyebrow { display: inline-block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .9px; color: #042C53; background: #eff6ff; border: 1px solid #bfdbfe; padding: 4px 14px; border-radius: 20px; margin-bottom: 10px; }
 .abt-sec-title { font-size: 28px; font-weight: 900; color: #111827; margin: 0 0 10px; }
 .abt-sec-sub   { font-size: 15px; color: #6b7280; margin: 0; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.7; }
 
@@ -52,14 +52,14 @@
 .abt-mv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media(max-width:500px){ .abt-mv-grid { grid-template-columns: 1fr; } }
 .abt-mv-card { border-radius: 16px; padding: 24px; }
-.abt-mv-card.mission { background: linear-gradient(135deg, #0f2470, #1e3a8a); color: #fff; }
+.abt-mv-card.mission { background: linear-gradient(135deg, #042C53, #042C53); color: #fff; }
 .abt-mv-card.vision  { background: #f0f4ff; border: 1px solid #bfdbfe; color: #111827; }
 .abt-mv-icon { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
 .abt-mv-card.mission .abt-mv-icon { background: rgba(255,255,255,.15); }
 .abt-mv-card.vision  .abt-mv-icon { background: rgba(30,58,138,.12); }
 .abt-mv-card h3 { font-size: 15px; font-weight: 900; margin: 0 0 8px; }
 .abt-mv-card.mission h3 { color: #fff; }
-.abt-mv-card.vision  h3 { color: #1e3a8a; }
+.abt-mv-card.vision  h3 { color: #042C53; }
 .abt-mv-card p { font-size: 13.5px; line-height: 1.7; margin: 0; }
 .abt-mv-card.mission p { color: rgba(255,255,255,.8); }
 .abt-mv-card.vision  p { color: #374151; }
@@ -71,7 +71,7 @@
 @media(max-width:700px){ .abt-entities { grid-template-columns: 1fr; } }
 .abt-entity {
     background: #fff; border: 1px solid #e9ecf0; border-radius: 14px;
-    padding: 22px; border-top: 3px solid #1e3a8a;
+    padding: 22px; border-top: 3px solid #042C53;
 }
 .abt-entity-flag { font-size: 22px; margin-bottom: 10px; }
 .abt-entity h4 { font-size: 14.5px; font-weight: 800; color: #111827; margin: 0 0 6px; }
@@ -82,7 +82,7 @@
     padding: 6px 16px; font-size: 13px; font-weight: 600; color: #374151;
     display: flex; align-items: center; gap: 6px;
 }
-.abt-service-pill svg { color: #1e3a8a; flex-shrink: 0; }
+.abt-service-pill svg { color: #042C53; flex-shrink: 0; }
 
 /* ── Delivery methods ── */
 .abt-methods { padding: 64px 0; }
@@ -128,18 +128,18 @@
 @media(max-width:700px){ .abt-values-grid { grid-template-columns: 1fr 1fr; } }
 @media(max-width:420px){ .abt-values-grid { grid-template-columns: 1fr; } }
 .abt-value { text-align: center; padding: 8px 4px; }
-.abt-value-icon { width: 48px; height: 48px; border-radius: 14px; margin: 0 auto 14px; background: linear-gradient(135deg, #0f2470, #1e3a8a); display: flex; align-items: center; justify-content: center; }
+.abt-value-icon { width: 48px; height: 48px; border-radius: 14px; margin: 0 auto 14px; background: linear-gradient(135deg, #042C53, #042C53); display: flex; align-items: center; justify-content: center; }
 .abt-value h4 { font-size: 14px; font-weight: 800; color: #111827; margin: 0 0 7px; }
 .abt-value p  { font-size: 13px; color: #6b7280; margin: 0; line-height: 1.65; }
 
 /* ── CTA ── */
-.abt-cta { background: linear-gradient(135deg, #0a1854, #1e3a8a, #2563eb); padding: 56px 0; text-align: center; position: relative; overflow: hidden; }
+.abt-cta { background: linear-gradient(135deg, #0a1854, #042C53, #378ADD); padding: 56px 0; text-align: center; position: relative; overflow: hidden; }
 .abt-cta::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.04) 1px, transparent 1px); background-size: 22px 22px; }
 .abt-cta-inner { position: relative; z-index: 1; }
 .abt-cta h2 { font-size: 30px; font-weight: 900; color: #fff; margin: 0 0 10px; }
 .abt-cta p  { font-size: 16px; color: rgba(255,255,255,.7); margin: 0 0 28px; }
 .abt-cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-.abt-cta-btn-primary   { background: #fff; color: #0f2470; padding: 13px 26px; border-radius: 11px; font-weight: 900; font-size: 14.5px; text-decoration: none; transition: opacity .13s; }
+.abt-cta-btn-primary   { background: #fff; color: #042C53; padding: 13px 26px; border-radius: 11px; font-weight: 900; font-size: 14.5px; text-decoration: none; transition: opacity .13s; }
 .abt-cta-btn-primary:hover { opacity: .92; }
 .abt-cta-btn-ghost { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.25); padding: 13px 26px; border-radius: 11px; font-weight: 700; font-size: 14.5px; text-decoration: none; transition: background .13s; }
 .abt-cta-btn-ghost:hover { background: rgba(255,255,255,.18); }
@@ -185,7 +185,7 @@
                 </div>
                 <div class="abt-mv-card vision">
                     <div class="abt-mv-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                     </div>
                     <h3>Our Vision</h3>
                     <p>To be the most trusted international training platform for sustainability, compliance, and management systems — empowering professionals in every region to drive measurable positive change in their organisations and supply chains.</p>
@@ -249,28 +249,28 @@
     <div class="abt-methods-grid">
         <div class="abt-method">
             <div class="abt-method-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
             <h3>Instructor-Led Training</h3>
             <p>Classroom-based programs delivered by subject-matter experts at scheduled venues across our operating regions. Ideal for immersive, interactive learning and professional networking.</p>
         </div>
         <div class="abt-method">
             <div class="abt-method-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
             </div>
             <h3>Virtual Training (VILT)</h3>
             <p>Live, instructor-led sessions delivered via secure video platforms — providing the same structured learning and interaction as in-person training, accessible from anywhere in the world.</p>
         </div>
         <div class="abt-method">
             <div class="abt-method-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             </div>
             <h3>Self-Paced eLearning</h3>
             <p>Structured online courses accessible 24/7 through our learning management system. Participants progress at their own pace with assessments, knowledge checks, and digital certificates.</p>
         </div>
         <div class="abt-method">
             <div class="abt-method-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
             </div>
             <h3>Corporate Programs</h3>
             <p>Customised in-house training programs designed for organisations seeking to build capability across teams — delivered on-site, virtually, or as blended programs tailored to specific business needs.</p>
@@ -304,7 +304,7 @@
         @foreach($categories as $cat)
         <div class="abt-cat">
             <div class="abt-cat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.8">{!! $cat['icon'] !!}</svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.8">{!! $cat['icon'] !!}</svg>
             </div>
             <div>
                 <h4>{{ $cat['title'] }}</h4>
