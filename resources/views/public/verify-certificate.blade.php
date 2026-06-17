@@ -24,7 +24,7 @@
     padding: 48px 24px;
 }
 .vcp-hero-container {
-    max-width: 1400px;
+    max-width: var(--max-w);
     margin: 0 auto;
     border-radius: 24px;
     overflow: hidden;
@@ -135,9 +135,11 @@
 /* ─── RIGHT: Result panel ─── */
 .vcp-result {
     background: #fff;
+    background-image: linear-gradient(180deg, #fff 0%, #fafbfd 100%);
     display: flex; align-items: center; justify-content: center;
     padding: 40px 44px;
     border-left: 1px solid rgba(0,0,0,.06);
+    border-bottom: 1px solid rgba(0,0,0,.04);
 }
 @media(max-width: 960px) { .vcp-result { padding: 36px 24px; border-left: none; border-top: 1px solid rgba(0,0,0,.06); } }
 
