@@ -31,9 +31,9 @@
 
     /* ── Design tokens ───────────────────────────────────────────── */
     :root {
-        --navy:    #0f2470;
-        --brand:   #1e3a8a;
-        --blue:    #2563eb;
+        --navy:    #042C53;
+        --brand:   #042C53;
+        --blue:    #378ADD;
         --radius:  12px;
         --radius-lg: 16px;
         --max-w:   1240px;
@@ -42,7 +42,7 @@
 
     /* ── Top bar ─────────────────────────────────────────────────── */
     .pub-topbar {
-        background: #0f2470;
+        background: #042C53;
         color: rgba(255,255,255,.72);
         font-size: 12.5px;
         padding: 7px 0;
@@ -86,7 +86,7 @@
     .pub-logo img { flex-shrink: 0; }
     .pub-logo-text strong {
         display: block; font-size: 14.5px; font-weight: 900;
-        color: #0f2470; line-height: 1.2;
+        color: #042C53; line-height: 1.2;
     }
     .pub-logo-text span {
         display: block; font-size: 10.5px; font-weight: 500;
@@ -103,7 +103,7 @@
         text-decoration: none; white-space: nowrap;
         transition: color .14s, background .14s;
     }
-    .pub-menu a:hover, .pub-menu a.active { color: #1e3a8a; background: #eff6ff; }
+    .pub-menu a:hover, .pub-menu a.active { color: #042C53; background: #eff6ff; }
 
     /* Nav actions */
     .pub-nav-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
@@ -114,11 +114,11 @@
         text-decoration: none; cursor: pointer; transition: all .15s; white-space: nowrap;
     }
     .pub-btn-outline {
-        border: 1.5px solid #1e3a8a; color: #1e3a8a; background: transparent;
+        border: 1.5px solid #042C53; color: #042C53; background: transparent;
     }
     .pub-btn-outline:hover { background: #eff6ff; }
     .pub-btn-solid {
-        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        background: linear-gradient(135deg, #042C53 0%, #378ADD 100%);
         color: #fff; border: none;
         box-shadow: 0 3px 10px rgba(37,99,235,.28);
     }
@@ -147,10 +147,10 @@
         font-size: 14.5px; font-weight: 600; color: #374151;
         text-decoration: none; display: block;
     }
-    .pub-mobile-nav a:hover { background: #f3f4f6; color: #1e3a8a; }
+    .pub-mobile-nav a:hover { background: #f3f4f6; color: #042C53; }
     .pub-mobile-nav .mob-divider { border: none; border-top: 1px solid #f0f2f5; margin: 8px 0; }
     .pub-mobile-nav .mob-cta {
-        background: linear-gradient(135deg,#1e3a8a,#2563eb);
+        background: linear-gradient(135deg,#042C53,#378ADD);
         color: #fff !important; border-radius: 10px; margin-top: 4px;
     }
 
@@ -267,14 +267,14 @@
         flex-wrap: wrap; gap: 12px;
     }
     .view-all-link {
-        font-size: 13.5px; font-weight: 700; color: #1e3a8a; text-decoration: none;
+        font-size: 13.5px; font-weight: 700; color: #042C53; text-decoration: none;
         display: inline-flex; align-items: center; gap: 5px;
     }
     .view-all-link:hover { color: #1d4ed8; }
 
     .section-eyebrow {
         font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
-        color: #2563eb; margin-bottom: 10px;
+        color: #378ADD; margin-bottom: 10px;
     }
     .section-heading {
         font-size: 30px; font-weight: 900; color: #0f172a; margin: 0 0 6px; line-height: 1.25;
@@ -303,7 +303,7 @@
     .course-card-body { padding: 18px 20px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
     .course-card-category {
         font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
-        color: #2563eb; background: #eff6ff; padding: 3px 9px; border-radius: 20px;
+        color: #378ADD; background: #eff6ff; padding: 3px 9px; border-radius: 20px;
         display: inline-block;
     }
     .course-card-title {
@@ -311,7 +311,7 @@
         line-height: 1.35; margin: 0;
         text-decoration: none; display: block;
     }
-    .course-card-title:hover { color: #1e3a8a; }
+    .course-card-title:hover { color: #042C53; }
     .course-card-desc {
         font-size: 13px; color: #6b7280; line-height: 1.6;
         display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
@@ -330,14 +330,14 @@
         border-top: 1px solid #f0f2f5;
         display: flex; align-items: center; justify-content: space-between; gap: 10px;
     }
-    .course-price { font-size: 15.5px; font-weight: 900; color: #1e3a8a; }
+    .course-price { font-size: 15.5px; font-weight: 900; color: #042C53; }
     .course-price small { font-size: 11px; color: #9ca3af; font-weight: 500; display: block; line-height: 1.3; }
 
     /* ── Primary / secondary action buttons ─────────────────────── */
     .pub-btn-primary {
         display: inline-flex; align-items: center; gap: 6px;
         padding: 9px 18px; border-radius: var(--radius);
-        background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #fff;
+        background: linear-gradient(135deg, #042C53, #378ADD); color: #fff;
         font-size: 13px; font-weight: 700; text-decoration: none;
         border: none; cursor: pointer; font-family: inherit;
         box-shadow: 0 3px 10px rgba(37,99,235,.25);
@@ -349,7 +349,7 @@
     a.pub-enroll-btn {
         display: inline-flex; align-items: center; gap: 6px;
         padding: 8px 16px; border-radius: var(--radius);
-        background: #1e3a8a; color: #fff;
+        background: #042C53; color: #fff;
         font-size: 13px; font-weight: 700; text-decoration: none;
         transition: background .14s, transform .1s;
     }
