@@ -7,7 +7,7 @@
 @section('content')
 <style>
 .page-hero {
-    background: linear-gradient(135deg, #0f172a 0%, #042C53 60%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #042C53 60%, #378ADD 100%);
     padding: 60px 0 70px; color: #fff; text-align: center;
 }
 .page-hero h1 { font-size: 42px; font-weight: 900; margin: 0 0 12px; }

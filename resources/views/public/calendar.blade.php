@@ -137,7 +137,7 @@
     padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700;
 }
 .scm-physical { background: #f0fdf4; color: #15803d; }
-.scm-online   { background: #eff6ff; color: #1d4ed8; }
+.scm-online   { background: #eff6ff; color: #1a5f9e; }
 .scm-hybrid   { background: #fff7ed; color: #c2410c; }
 .sc-fee { font-size: 15px; font-weight: 900; color: #042C53; }
 

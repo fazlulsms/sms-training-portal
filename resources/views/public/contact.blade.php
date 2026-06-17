@@ -8,7 +8,7 @@
 @section('content')
 <style>
 .ct-hero {
-    background: linear-gradient(135deg, #060d2e 0%, #042C53 45%, #042C53 80%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #060d2e 0%, #042C53 45%, #042C53 80%, #378ADD 100%);
     padding: 64px 0 72px; color: #fff; position: relative; overflow: hidden;
 }
 .ct-hero::after { content:''; position:absolute; inset:0; background-image:radial-gradient(rgba(255,255,255,.04) 1px, transparent 1px); background-size:26px 26px; pointer-events:none; }

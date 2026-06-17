@@ -9,7 +9,7 @@
 <style>
 /* ── Hero ─────────────────────────────────────────────── */
 .hero-section {
-    background: linear-gradient(135deg, #0f172a 0%, #042C53 55%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #042C53 55%, #378ADD 100%);
     padding: 80px 0 90px;
     position: relative; overflow: hidden;
     color: #fff;
@@ -123,7 +123,7 @@
     font-size: 14px; font-weight: 700; color: #042C53; text-decoration: none;
     display: inline-flex; align-items: center; gap: 5px;
 }
-.view-all-link:hover { color: #1d4ed8; }
+.view-all-link:hover { color: #378ADD; }
 
 /* ── Course grid ──────────────────────────────────────── */
 .courses-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
@@ -154,7 +154,7 @@
     padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700;
 }
 .scm-physical { background: #f0fdf4; color: #15803d; }
-.scm-online   { background: #eff6ff; color: #1d4ed8; }
+.scm-online   { background: #eff6ff; color: #1a5f9e; }
 .scm-hybrid   { background: #fff7ed; color: #c2410c; }
 .sc-fee { font-size: 15px; font-weight: 900; color: #042C53; }
 

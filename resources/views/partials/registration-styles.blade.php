@@ -129,9 +129,9 @@ textarea.fi { resize: vertical; }
 }
 .agreement-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
 .agreement-row:last-child { margin-bottom: 0; }
-.agreement-row input[type=checkbox] { margin-top: 2px; width: 16px; height: 16px; flex-shrink: 0; accent-color: #1e3a8a; cursor: pointer; }
-.agreement-row label { font-size: 13px; color: #1e3a8a; line-height: 1.5; cursor: pointer; }
-.agreement-row label a { color: #1d4ed8; font-weight: 700; }
+.agreement-row input[type=checkbox] { margin-top: 2px; width: 16px; height: 16px; flex-shrink: 0; accent-color: #042C53; cursor: pointer; }
+.agreement-row label { font-size: 13px; color: #042C53; line-height: 1.5; cursor: pointer; }
+.agreement-row label a { color: #378ADD; font-weight: 700; }
 
 /* Submit button */
 .btn-reg-submit {
@@ -195,7 +195,7 @@ textarea.fi { resize: vertical; }
 .feature-row svg { flex-shrink: 0; color: #16a34a; }
 
 .trust-card {
-    background: linear-gradient(135deg,#1e3a8a,#1d4ed8);
+    background: linear-gradient(135deg,#042C53,#378ADD);
     border-radius: 14px; padding: 20px; color: #fff; margin-bottom: 18px;
 }
 .trust-card h4 { font-size: 15px; font-weight: 800; margin: 0 0 6px; }

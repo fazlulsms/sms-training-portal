@@ -21,7 +21,7 @@
 
     /* â”€â”€ Top nav bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .top-bar {
-        background: linear-gradient(135deg, #0f2470 0%, #1e3a8a 60%, #1d4ed8 100%);
+        background: linear-gradient(135deg, #042C53 0%, #042C53 60%, #378ADD 100%);
         padding: 14px 32px;
         display: flex;
         align-items: center;

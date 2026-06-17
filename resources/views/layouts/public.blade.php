@@ -143,7 +143,7 @@
     }
     .pub-alert-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
     .pub-alert-error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-    .pub-alert-info    { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .pub-alert-info    { background: #eff6ff; color: #1a5f9e; border: 1px solid #bfdbfe; }
 
     /* ── Footer ─────────────────────────────────────────────────── */
     .pub-footer {
@@ -245,7 +245,7 @@
         font-size: 13.5px; font-weight: 700; color: #042C53; text-decoration: none;
         display: inline-flex; align-items: center; gap: 5px;
     }
-    .view-all-link:hover { color: #1d4ed8; }
+    .view-all-link:hover { color: #378ADD; }
 
     .section-eyebrow {
         font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
@@ -328,7 +328,7 @@
         font-size: 13px; font-weight: 700; text-decoration: none;
         transition: background .14s, transform .1s;
     }
-    .pub-enroll-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+    .pub-enroll-btn:hover { background: #0a4278; transform: translateY(-1px); }
 
     /* ── Delivery type badge ─────────────────────────────────────── */
     .delivery-badge {
@@ -348,7 +348,7 @@
     /* ── Schedule mode badges ────────────────────────────────────── */
     .sc-mode-badge { padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; }
     .scm-physical { background: #f0fdf4; color: #15803d; }
-    .scm-online   { background: #eff6ff; color: #1d4ed8; }
+    .scm-online   { background: #eff6ff; color: #1a5f9e; }
     .scm-hybrid   { background: #fff7ed; color: #c2410c; }
 
     /* ── Responsive ─────────────────────────────────────────────── */

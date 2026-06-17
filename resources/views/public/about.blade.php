@@ -9,7 +9,7 @@
 <style>
 /* ── About page ── */
 .abt-hero {
-    background: linear-gradient(135deg, #060d2e 0%, #042C53 40%, #042C53 75%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #060d2e 0%, #042C53 40%, #042C53 75%, #378ADD 100%);
     padding: 72px 0 80px; color: #fff; position: relative; overflow: hidden;
 }
 .abt-hero::after {

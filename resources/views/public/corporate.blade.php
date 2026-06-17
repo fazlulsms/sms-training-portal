@@ -7,7 +7,7 @@
 @section('content')
 <style>
 .corp-hero {
-    background: linear-gradient(135deg, #0f172a 0%, #042C53 55%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #042C53 55%, #378ADD 100%);
     padding: 72px 0 80px; color: #fff;
 }
 .corp-hero-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
