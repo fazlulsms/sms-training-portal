@@ -100,7 +100,7 @@
                 </div>
                 <div class="fg" style="grid-column:1/-1;">
                     <label class="fl">Gender</label>
-                    <select name="gender" class="fi" style="max-width:220px;">
+                    <select name="gender" class="fi">
                         <option value="">Select gender</option>
                         @foreach(['Male','Female','Other','Prefer not to say'] as $g)
                         <option value="{{ $g }}" {{ old('gender') === $g ? 'selected' : '' }}>{{ $g }}</option>
