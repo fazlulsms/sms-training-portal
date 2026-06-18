@@ -5,6 +5,11 @@
     <div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
         <a href="{{ route('feedback.templates.index') }}" style="color:#6b7280; font-size:13px; text-decoration:none;">← Back to Templates</a>
         <div style="display:flex; gap:8px;">
+            <a href="{{ route('feedback.templates.preview', $template) }}" target="_blank"
+               style="background:#f0f9ff; color:#0369a1; padding:8px 18px; border-radius:7px; font-size:13px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; border:1px solid #bae6fd;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Preview
+            </a>
             <a href="{{ route('feedback.templates.edit', $template) }}" style="background:#e0e7ff; color:#3730a3; padding:8px 18px; border-radius:7px; font-size:13px; font-weight:700; text-decoration:none;">Edit</a>
             <form method="POST" action="{{ route('feedback.templates.clone', $template) }}" style="display:inline;">
                 @csrf

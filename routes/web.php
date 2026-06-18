@@ -453,6 +453,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         Route::put( 'templates/{template}',               [FeedbackTemplateController::class, 'update'])  ->name('templates.update');
         Route::delete('templates/{template}',             [FeedbackTemplateController::class, 'destroy']) ->name('templates.destroy');
         Route::post('templates/{template}/clone',         [FeedbackTemplateController::class, 'clone'])   ->name('templates.clone');
+        Route::get( 'templates/{template}/preview',       [FeedbackTemplateController::class, 'preview']) ->name('templates.preview');
         // Responses
         Route::get( 'responses',                          [FeedbackResponseController::class, 'index'])            ->name('responses.index');
         Route::get( 'responses/{response}',               [FeedbackResponseController::class, 'show'])             ->name('responses.show');

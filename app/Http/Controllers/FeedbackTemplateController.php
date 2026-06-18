@@ -76,6 +76,12 @@ class FeedbackTemplateController extends Controller
         return view('feedback.templates.show', compact('template', 'totalResponses'));
     }
 
+    public function preview(FeedbackTemplate $template)
+    {
+        $template->load('questions');
+        return view('feedback.preview', compact('template'));
+    }
+
     public function edit(FeedbackTemplate $template)
     {
         $template->load('questions');
