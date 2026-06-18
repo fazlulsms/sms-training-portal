@@ -19,16 +19,18 @@ class ElearningLesson extends Model
         'duration_minutes',
         'lesson_type',
         'completion_rule',
+        'require_audio_completion',
         'required_passing_score',
         'certificate_eligible',
         'status',
     ];
 
     protected $casts = [
-        'certificate_eligible'   => 'boolean',
-        'lesson_order'           => 'integer',
-        'duration_minutes'       => 'integer',
-        'required_passing_score' => 'integer',
+        'certificate_eligible'    => 'boolean',
+        'require_audio_completion'=> 'boolean',
+        'lesson_order'            => 'integer',
+        'duration_minutes'        => 'integer',
+        'required_passing_score'  => 'integer',
     ];
 
     /**
@@ -73,6 +75,30 @@ class ElearningLesson extends Model
     public function allBlocks(): HasMany
     {
         return $this->hasMany(LessonBlock::class, 'lesson_id')->orderBy('sort_order');
+    }
+
+    /** All generated audio for this lesson (block + recap) */
+    public function audios(): HasMany
+    {
+        return $this->hasMany(LessonAudio::class, 'lesson_id');
+    }
+
+    /** Ready audio only — the set used for completion enforcement */
+    public function readyAudios(): HasMany
+    {
+        return $this->hasMany(LessonAudio::class, 'lesson_id')->where('status', 'ready');
+    }
+
+    /**
+     * Whether this lesson has ready audio AND audio completion is required.
+     * Controls whether the "Mark Complete" button gate is active.
+     */
+    public function needsAudioCompletion(): bool
+    {
+        if (!$this->require_audio_completion) {
+            return false;
+        }
+        return $this->readyAudios()->exists();
     }
 
     /**

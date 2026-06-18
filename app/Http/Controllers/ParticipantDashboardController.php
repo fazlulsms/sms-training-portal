@@ -6,6 +6,7 @@ use App\Models\Enrollment;
 use App\Models\ElearningEnrollment;
 use App\Models\ElearningLesson;
 use App\Models\LessonAudio;
+use App\Models\LessonAudioProgress;
 use App\Models\LessonProgress;
 use App\Models\QuizAttemptOverride;
 use App\Models\QuizReviewGate;
@@ -183,9 +184,18 @@ class ParticipantDashboardController extends Controller
         $previousLesson = $currentIndex > 0 ? $lessons[$currentIndex - 1] : null;
         $nextLesson     = $currentIndex < $lessons->count() - 1 ? $lessons[$currentIndex + 1] : null;
 
-        $audioRecords    = LessonAudio::where('lesson_id', $lesson->id)->where('status', 'ready')->get();
-        $blockAudioMap   = $audioRecords->where('audio_type', 'ai_coach')->keyBy('block_id');
+        $audioRecords     = LessonAudio::where('lesson_id', $lesson->id)->where('status', 'ready')->get();
+        $blockAudioMap    = $audioRecords->where('audio_type', 'ai_coach')->keyBy('block_id');
         $lessonRecapAudio = $audioRecords->firstWhere('audio_type', 'lesson_recap');
+
+        // Audio completion tracking data for the frontend
+        $requiresAudioCompletion = !$previewMode && $lesson->needsAudioCompletion();
+        $audioProgressMap = $requiresAudioCompletion
+            ? LessonAudioProgress::where('enrollment_id', $enrollment->id)
+                ->whereIn('audio_id', $audioRecords->pluck('id'))
+                ->get()
+                ->keyBy('audio_id')
+            : collect();
 
         return view('participant.lesson-show', compact(
             'enrollment',
@@ -197,7 +207,10 @@ class ParticipantDashboardController extends Controller
             'lessons',
             'currentIndex',
             'blockAudioMap',
-            'lessonRecapAudio'
+            'lessonRecapAudio',
+            'requiresAudioCompletion',
+            'audioProgressMap',
+            'audioRecords'
         ));
     }
 
@@ -236,6 +249,10 @@ class ParticipantDashboardController extends Controller
             403,
             'Your enrollment has expired. Please contact the administrator.'
         );
+
+        if (!$this->progressService->audioCompletionPassed($enrollment, $lesson)) {
+            return back()->with('error', 'Please complete the lesson audio before marking this lesson as completed.');
+        }
 
         if (!$this->progressService->lessonQuizzesPassed($enrollment, $lesson)) {
             return back()->with('error', 'Please pass the quiz before marking this lesson as complete.');

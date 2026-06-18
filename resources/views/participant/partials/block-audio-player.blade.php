@@ -80,7 +80,11 @@
             'audioId' => $audioId,
             'label'   => '&#9654; Play Audio',
         ])
-        <audio id="lfAudio_{{ $audioId }}" preload="none" src="{{ $blockAudio->publicUrl() }}"></audio>
+        <audio id="lfAudio_{{ $audioId }}"
+               preload="none"
+               src="{{ $blockAudio->publicUrl() }}"
+               data-audio-db-id="{{ $blockAudio->id }}"
+               data-audio-duration="{{ $blockAudio->duration_seconds ?? 0 }}"></audio>
     </div>
 </div>
 

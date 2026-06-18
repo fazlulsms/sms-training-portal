@@ -10,6 +10,11 @@
     $totalN      = $lessons->count();
     $pct         = $totalN > 0 ? round(($completedN / $totalN) * 100) : 0;
 
+    // Audio completion — defaults for preview mode / non-audio lessons
+    $requiresAudioCompletion = $requiresAudioCompletion ?? false;
+    $audioProgressMap        = $audioProgressMap ?? collect();
+    $audioRecords            = $audioRecords ?? collect();
+
     $lessonBlocks    = $lesson->blocks;
     $hasBlocks       = $lessonBlocks->isNotEmpty();
     $blockCount      = $hasBlocks ? $lessonBlocks->count() : 0;
@@ -1358,14 +1363,30 @@
                 <form method="POST" action="{{ route('participant.lesson.complete', [$enrollment->id, $lesson->id]) }}" style="margin:0;display:none;" id="frmComplete">
                     @csrf
                     @if($quizzesPassed || $lesson->quizzes->isEmpty())
-                        <button type="submit" class="lfb lfb-ok">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                            Mark Complete
-                        </button>
+                        @if($requiresAudioCompletion)
+                            {{-- Button starts disabled; JS enables it once all audio is done --}}
+                            <button type="submit" class="lfb lfb-ok" id="btnMarkComplete" disabled
+                                    style="opacity:.45;cursor:not-allowed;"
+                                    title="Please complete the lesson audio first">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                Mark Complete
+                            </button>
+                        @else
+                            <button type="submit" class="lfb lfb-ok" id="btnMarkComplete">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                Mark Complete
+                            </button>
+                        @endif
                     @else
                         <span class="lfb lfb-dis">Complete Quiz First</span>
                     @endif
                 </form>
+                @if($requiresAudioCompletion)
+                <div id="audioGateMsg" style="font-size:11.5px;color:#d97706;font-weight:600;display:flex;align-items:center;gap:5px;margin-left:6px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                    Listen to audio first
+                </div>
+                @endif
                 @elseif($isCompleted)
                 <span class="lfb lfb-done" id="doneChip" style="display:none;">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
@@ -2068,5 +2089,241 @@ renderUI();
     });
 })();
 </script>
+
+@php
+    /* Computed variables for the audio completion tracker script below */
+    $acUrl      = (!$previewMode && isset($enrollment) && $enrollment)
+                  ? route('participant.lesson.audio-progress', [$enrollment->id, $lesson->id])
+                  : null;
+    $acProgress = $audioProgressMap->toArray();   // keyed by audio_id integer
+    $acReqIds   = $audioRecords->pluck('id')->values()->all();
+    $acAllDone  = !$requiresAudioCompletion
+                  || $audioRecords->isEmpty()
+                  || ($audioProgressMap->where('is_completed', true)->count() >= $audioRecords->count());
+@endphp
+
+@if($requiresAudioCompletion && !$previewMode)
+<script>
+// ── Audio Completion Tracker ──────────────────────────────────
+(function () {
+    'use strict';
+
+    /* ── Config from PHP ─────────────────────────────────── */
+    const URL_PROGRESS = @json($acUrl);
+    const CSRF         = '{{ csrf_token() }}';
+    const THRESHOLD    = 0.90;
+    const SEND_MS      = 15000;
+    const INIT_PROG    = @json($acProgress);    // {audioId: {high_water_mark, seconds_listened, is_completed}}
+    const REQUIRED_IDS = @json($acReqIds).map(String);
+    const ALREADY_DONE = {{ $acAllDone ? 'true' : 'false' }};
+
+    if (!URL_PROGRESS) return;
+
+    /* ── Per-audio runtime state ─────────────────────────── */
+    const state = {};       // keyed by audio DB id string
+    const doneSet = new Set();
+
+    function getOrInitState(dbId) {
+        if (state[dbId]) return state[dbId];
+        const init = INIT_PROG[dbId] || {};
+        state[dbId] = {
+            hwm:       parseFloat(init.high_water_mark  || 0),
+            listened:  parseFloat(init.seconds_listened || 0),
+            done:      !!init.is_completed,
+            ivs:       [],      // [start, end] intervals this session
+            segStart:  null,    // start of current play segment
+            timer:     null,
+        };
+        if (state[dbId].done) doneSet.add(dbId);
+        return state[dbId];
+    }
+
+    /* ── Interval-union helpers ──────────────────────────── */
+    function mergeIvs(ivs) {
+        if (!ivs.length) return [];
+        const sorted = ivs.slice().sort((a, b) => a[0] - b[0]);
+        const out = [sorted[0].slice()];
+        for (let i = 1; i < sorted.length; i++) {
+            const last = out[out.length - 1];
+            if (sorted[i][0] <= last[1]) last[1] = Math.max(last[1], sorted[i][1]);
+            else out.push(sorted[i].slice());
+        }
+        return out;
+    }
+    function ivsTotal(ivs) {
+        return mergeIvs(ivs).reduce((s, [a, b]) => s + (b - a), 0);
+    }
+
+    /* ── Progress send ───────────────────────────────────── */
+    function sendProgress(dbId, naturallyEnded, useBeacon) {
+        const s = state[dbId];
+        if (!s) return;
+
+        // Close open segment before computing
+        const audio = document.querySelector('audio[data-audio-db-id="' + dbId + '"]');
+        if (s.segStart !== null && audio) {
+            s.ivs.push([s.segStart, audio.currentTime]);
+            s.segStart = null;
+        }
+
+        const sessionSecs = ivsTotal(s.ivs);
+        const totalSecs   = Math.round((s.listened + sessionSecs) * 100) / 100;
+        const hwm         = Math.round(s.hwm * 100) / 100;
+
+        if (useBeacon) {
+            const params = new URLSearchParams({
+                _token:          CSRF,
+                audio_id:        dbId,
+                high_water_mark: hwm,
+                seconds_listened:totalSecs,
+                naturally_ended: naturallyEnded ? '1' : '0',
+            });
+            navigator.sendBeacon(URL_PROGRESS, params);
+            return;
+        }
+
+        fetch(URL_PROGRESS, {
+            method:  'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF,
+                'Accept':       'application/json',
+            },
+            body: JSON.stringify({
+                audio_id:        parseInt(dbId),
+                high_water_mark: hwm,
+                seconds_listened:totalSecs,
+                naturally_ended: !!naturallyEnded,
+            }),
+        })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+            if (!data) return;
+            // Reconcile listened seconds with server
+            s.listened = parseFloat(data.seconds_listened || totalSecs);
+            s.ivs      = [];   // reset session intervals — server has stored them
+            if (data.is_completed && !s.done) {
+                s.done = true;
+                doneSet.add(dbId);
+                checkAllDone();
+            }
+        })
+        .catch(() => {});
+    }
+
+    /* ── Completion gate ─────────────────────────────────── */
+    function checkAllDone() {
+        if (REQUIRED_IDS.every(id => doneSet.has(id))) {
+            unlockMarkComplete();
+        }
+    }
+
+    function unlockMarkComplete() {
+        const btn = document.getElementById('btnMarkComplete');
+        const msg = document.getElementById('audioGateMsg');
+        if (btn) {
+            btn.disabled = false;
+            btn.style.opacity  = '';
+            btn.style.cursor   = '';
+            btn.title          = '';
+        }
+        if (msg) msg.style.display = 'none';
+    }
+
+    /* ── Hook a single audio element ─────────────────────── */
+    function hookAudio(audio) {
+        const dbId = audio.dataset.audioDbId;
+        if (!dbId || !REQUIRED_IDS.includes(dbId)) return;
+
+        const s = getOrInitState(dbId);
+
+        // Restore playhead to high-water mark on metadata load
+        audio.addEventListener('loadedmetadata', () => {
+            if (s.hwm > 1 && audio.duration && s.hwm < audio.duration - 0.5) {
+                audio.currentTime = s.hwm;
+            }
+        });
+
+        // No-skip: snap back if user jumps past high-water mark
+        audio.addEventListener('timeupdate', () => {
+            if (!audio.duration || audio.currentTime === 0) return;
+            if (audio.currentTime > s.hwm + 2) {
+                audio.currentTime = s.hwm;
+                return;
+            }
+            if (audio.currentTime > s.hwm) s.hwm = audio.currentTime;
+        });
+
+        // Play — open interval, start periodic send
+        audio.addEventListener('play', () => {
+            s.segStart = audio.currentTime;
+            if (s.timer) clearInterval(s.timer);
+            s.timer = setInterval(() => sendProgress(dbId, false, false), SEND_MS);
+        });
+
+        // Pause — close interval, flush
+        audio.addEventListener('pause', () => {
+            if (s.segStart !== null) {
+                s.ivs.push([s.segStart, audio.currentTime]);
+                s.segStart = null;
+            }
+            if (s.timer) { clearInterval(s.timer); s.timer = null; }
+            sendProgress(dbId, false, false);
+        });
+
+        // Natural end — mark complete optimistically, flush
+        audio.addEventListener('ended', () => {
+            if (audio.duration) s.hwm = audio.duration;
+            if (s.segStart !== null) {
+                s.ivs.push([s.segStart, audio.duration || audio.currentTime]);
+                s.segStart = null;
+            }
+            if (s.timer) { clearInterval(s.timer); s.timer = null; }
+            sendProgress(dbId, true, false);
+            // Optimistic UI
+            if (!s.done) { s.done = true; doneSet.add(dbId); checkAllDone(); }
+        });
+    }
+
+    /* ── Override seek to enforce no-skip ───────────────── */
+    const _origSeek = window.lfAudioSeek;
+    window.lfAudioSeek = function (audioId, el) {
+        const audio = document.getElementById('lfAudio_' + audioId);
+        if (audio && audio.dataset.audioDbId) {
+            const s = state[audio.dataset.audioDbId];
+            if (s && parseFloat(el.value) > s.hwm + 1) {
+                el.value = s.hwm;
+                if (!audio.paused) audio.currentTime = s.hwm;
+                return;
+            }
+        }
+        if (_origSeek) _origSeek(audioId, el);
+    };
+
+    /* ── Initialise ──────────────────────────────────────── */
+    function initAll() {
+        document.querySelectorAll('audio[data-audio-db-id]').forEach(hookAudio);
+        if (ALREADY_DONE) unlockMarkComplete();
+        else checkAllDone();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAll);
+    } else {
+        initAll();
+    }
+
+    /* ── Flush on page unload ────────────────────────────── */
+    window.addEventListener('beforeunload', () => {
+        Object.keys(state).forEach(dbId => {
+            const s = state[dbId];
+            if (s.segStart !== null || s.ivs.length) {
+                sendProgress(dbId, false, true);
+            }
+        });
+    });
+})();
+</script>
+@endif
 
 @endsection

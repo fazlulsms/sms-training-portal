@@ -139,6 +139,20 @@ textarea.form-input { resize: vertical; }
                class="form-input" placeholder="e.g. 80">
         @error('required_passing_score')<div class="form-error">{{ $message }}</div>@enderror
     </div>
+    <div class="lf-half">
+        <label class="form-label">Require Audio Completion
+            <span class="hint">— learner must finish audio before marking done</span>
+        </label>
+        <select name="require_audio_completion" class="form-input">
+            <option value="1" {{ old('require_audio_completion', ($lt->require_audio_completion ?? true) ? '1' : '0') == '1' ? 'selected' : '' }}>
+                Yes — audio must be listened before lesson completion
+            </option>
+            <option value="0" {{ old('require_audio_completion', ($lt->require_audio_completion ?? true) ? '1' : '0') == '0' ? 'selected' : '' }}>
+                No — learner can complete without listening
+            </option>
+        </select>
+        @error('require_audio_completion')<div class="form-error">{{ $message }}</div>@enderror
+    </div>
 
     {{-- ── Section: Access & Status ───────────────────────────── --}}
     <div class="lf-section-head"><span>Access &amp; Status</span></div>

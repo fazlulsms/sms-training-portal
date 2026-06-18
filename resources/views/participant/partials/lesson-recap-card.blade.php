@@ -22,7 +22,11 @@
                     'audioId' => $rcpAudioId,
                     'label'   => '&#9654; Lesson Audio Summary',
                 ])
-                <audio id="lfAudio_{{ $rcpAudioId }}" preload="none" src="{{ $lessonRecapAudio->publicUrl() }}"></audio>
+                <audio id="lfAudio_{{ $rcpAudioId }}"
+                       preload="none"
+                       src="{{ $lessonRecapAudio->publicUrl() }}"
+                       data-audio-db-id="{{ $lessonRecapAudio->id }}"
+                       data-audio-duration="{{ $lessonRecapAudio->duration_seconds ?? 0 }}"></audio>
             </div>
 
         @else

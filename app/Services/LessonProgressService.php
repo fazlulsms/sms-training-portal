@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ElearningEnrollment;
 use App\Models\ElearningLesson;
+use App\Models\LessonAudioProgress;
 use App\Models\LessonProgress;
 use App\Models\QuizAttempt;
 
@@ -98,6 +99,31 @@ class LessonProgressService
         }
 
         $enrollment->update($updates);
+    }
+
+    /**
+     * Check whether all ready audio files on a lesson have been completed
+     * by this enrollment. Returns true if audio completion is not required,
+     * or if there is no ready audio on the lesson.
+     */
+    public function audioCompletionPassed(ElearningEnrollment $enrollment, ElearningLesson $lesson): bool
+    {
+        if (!$lesson->require_audio_completion) {
+            return true;
+        }
+
+        $readyAudioIds = $lesson->readyAudios()->pluck('id');
+
+        if ($readyAudioIds->isEmpty()) {
+            return true; // no audio to require
+        }
+
+        $completedCount = LessonAudioProgress::where('enrollment_id', $enrollment->id)
+            ->whereIn('audio_id', $readyAudioIds)
+            ->where('is_completed', true)
+            ->count();
+
+        return $completedCount >= $readyAudioIds->count();
     }
 
     /**

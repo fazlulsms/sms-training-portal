@@ -34,6 +34,7 @@ use App\Http\Controllers\ElearningQuizQuestionController;
 use App\Http\Controllers\ElearningQuizAttemptController;
 
 use App\Http\Controllers\ParticipantDashboardController;
+use App\Http\Controllers\LessonAudioProgressController;
 use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\ParticipantQuizController;
 use App\Http\Controllers\ElearningCertificateController;
@@ -148,6 +149,12 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/my-elearning/{enrollment}/lessons/{lesson}/complete', [ParticipantDashboardController::class, 'markLessonComplete'])
         ->name('participant.lesson.complete');
+
+    Route::post('/my-elearning/{enrollment}/lessons/{lesson}/audio-progress', [LessonAudioProgressController::class, 'upsert'])
+        ->name('participant.lesson.audio-progress');
+
+    Route::get('/my-elearning/{enrollment}/lessons/{lesson}/audio-status', [LessonAudioProgressController::class, 'status'])
+        ->name('participant.lesson.audio-status');
 
 
     Route::get('/my-elearning/{enrollment}/quizzes/{quiz}', [ParticipantQuizController::class, 'start'])
