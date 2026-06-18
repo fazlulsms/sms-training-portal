@@ -651,6 +651,15 @@
             @foreach($lessonBlocks as $bi => $block)
             <div class="lf-panel" data-step="{{ $bi + 1 }}">
                 <div class="lf-inner">
+                    @if($block->isAudioEligible())
+                    @include('participant.partials.block-audio-player', [
+                        'block'       => $block,
+                        'blockAudio'  => ($blockAudioMap ?? collect())[$block->id] ?? null,
+                        'lesson'      => $lesson,
+                        'enrollment'  => $enrollment ?? null,
+                        'previewMode' => $previewMode ?? false,
+                    ])
+                    @endif
                 @switch($block->block_type)
 
                     @case('rich_text')
@@ -1202,16 +1211,6 @@
                     @break
 
                 @endswitch
-
-                    @if($block->isAudioEligible())
-                    @include('participant.partials.block-audio-player', [
-                        'block'       => $block,
-                        'blockAudio'  => ($blockAudioMap ?? collect())[$block->id] ?? null,
-                        'lesson'      => $lesson,
-                        'enrollment'  => $enrollment ?? null,
-                        'previewMode' => $previewMode ?? false,
-                    ])
-                    @endif
 
                 </div>
             </div>

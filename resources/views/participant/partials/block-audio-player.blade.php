@@ -60,9 +60,7 @@
 
 /* ── Block player wrapper ── */
 .bap {
-    margin-top: 16px;
-    padding-top: 14px;
-    border-top: 1px solid rgba(124,58,237,.12);
+    margin-bottom: 16px;
 }
 .bap-player-wrap {
     background: linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);
