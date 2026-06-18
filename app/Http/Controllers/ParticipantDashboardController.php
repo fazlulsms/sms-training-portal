@@ -189,7 +189,7 @@ class ParticipantDashboardController extends Controller
         $lessonRecapAudio = $audioRecords->firstWhere('audio_type', 'lesson_recap');
 
         // Audio completion tracking data for the frontend
-        $requiresAudioCompletion = !$previewMode && $lesson->needsAudioCompletion();
+        $requiresAudioCompletion = $lesson->needsAudioCompletion();
         $audioProgressMap = $requiresAudioCompletion
             ? LessonAudioProgress::where('enrollment_id', $enrollment->id)
                 ->whereIn('audio_id', $audioRecords->pluck('id'))
