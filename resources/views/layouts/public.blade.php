@@ -19,7 +19,7 @@
     <style>
     /* ══ PUBLIC LAYOUT — SMS Training Academy Design System ══════ */
     *, *::before, *::after { box-sizing: border-box; }
-    html { scroll-behavior: smooth; overflow-x: hidden; }
+    html { scroll-behavior: smooth; }
     body {
         margin: 0; padding: 0;
         font-family: 'Inter', system-ui, sans-serif;
@@ -28,6 +28,7 @@
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
         overflow-x: hidden;
+        max-width: 100vw;
     }
 
     /* ── Design tokens ───────────────────────────────────────────── */
