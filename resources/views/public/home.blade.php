@@ -25,12 +25,13 @@
     position: relative; z-index: 1;
 }
 @media (max-width: 900px) { .hero-inner { grid-template-columns: 1fr; gap: 40px; } .hero-visual { display: none; } }
+.hero-inner > div { min-width: 0; }
 .hero-eyebrow {
     display: inline-flex; align-items: center; gap: 8px;
     background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
     padding: 6px 14px; border-radius: 20px;
     font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px;
-    margin-bottom: 18px;
+    margin-bottom: 18px; white-space: normal; flex-wrap: wrap;
 }
 .hero-title {
     font-size: 46px; font-weight: 900; line-height: 1.15; margin: 0 0 18px;
