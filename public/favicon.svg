@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <!-- Background gradient: navy diagonal -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#1E3E8A"/>
+      <stop offset="100%" stop-color="#042C53"/>
+    </linearGradient>
+    <!-- S letter: top blue-purple, bottom orange (mirrors the logo) -->
+    <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#5B6DD6"/>
+      <stop offset="48%"  stop-color="#4A5FC4"/>
+      <stop offset="52%"  stop-color="#F5A317"/>
+      <stop offset="100%" stop-color="#F07A00"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect width="100" height="100" rx="22" ry="22" fill="url(#bg)"/>
+
+  <!-- Subtle inner glow ring -->
+  <rect width="100" height="100" rx="22" ry="22"
+        fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="3"/>
+
+  <!-- Bold two-tone "S" — blue top half, orange bottom half -->
+  <text x="50" y="76"
+        text-anchor="middle"
+        font-family="'Arial Black','Impact','Franklin Gothic Heavy',sans-serif"
+        font-weight="900"
+        font-size="80"
+        fill="url(#sg)">S</text>
+
+  <!-- Logo-mark accent: network dots + arrow (top-right corner) -->
+  <!-- Arrow shaft -->
+  <line x1="75" y1="28" x2="88" y2="10"
+        stroke="#378ADD" stroke-width="2.2" stroke-linecap="round" opacity="0.85"/>
+  <!-- Arrow head -->
+  <polyline points="83,9 88,10 87,15"
+            fill="none" stroke="#378ADD" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+  <!-- Orange dot (center node) -->
+  <circle cx="75" cy="28" r="4" fill="#F5A317"/>
+  <!-- Outer ring on orange node -->
+  <circle cx="75" cy="28" r="4" fill="none" stroke="#F5A317" stroke-width="1.5" opacity="0.4"/>
+  <!-- Small blue satellite dot -->
+  <line x1="75" y1="28" x2="68" y2="38"
+        stroke="#7B8FD4" stroke-width="1.2" stroke-dasharray="2,2" opacity="0.6"/>
+  <circle cx="68" cy="38" r="2.2" fill="#378ADD" opacity="0.8"/>
+</svg>
