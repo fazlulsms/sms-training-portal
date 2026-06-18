@@ -65,9 +65,11 @@
         color: #042C53; line-height: 1.2;
     }
     .pub-logo-text span {
-        display: block; font-size: 10.5px; font-weight: 500;
+        font-size: 10.5px; font-weight: 500;
         color: #6b7280; margin-top: 1px;
     }
+    .pub-logo-sub-full  { display: block; }
+    .pub-logo-sub-short { display: none; }
 
     /* Desktop menu */
     .pub-menu {
@@ -360,6 +362,8 @@
         .section-heading { font-size: 24px; }
         .pub-footer { margin-top: 56px; }
         .pub-logo { min-width: 0; flex-shrink: 1; }
+        .pub-logo-sub-full  { display: none; }
+        .pub-logo-sub-short { display: block; }
     }
     @media (max-width: 480px) {
         .pub-container { padding: 0 16px; }
@@ -389,7 +393,8 @@
             <img src="{{ asset('sms-logo.png') }}" alt="SMS Training Academy" style="height:42px;width:auto;display:block;">
             <div class="pub-logo-text">
                 <strong>SMS Training Academy</strong>
-                <span>Powered by SMS Inc.</span>
+                <span class="pub-logo-sub-full">Powered by Sustainable Management System Inc.</span>
+                <span class="pub-logo-sub-short">Powered by SMS Inc.</span>
             </div>
         </a>
 
