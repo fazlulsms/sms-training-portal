@@ -359,7 +359,6 @@
         .pub-section { padding: 48px 0; }
         .section-heading { font-size: 24px; }
         .pub-footer { margin-top: 56px; }
-        .pub-logo-text span { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .pub-logo { min-width: 0; flex-shrink: 1; }
     }
     @media (max-width: 480px) {
@@ -390,7 +389,8 @@
             <img src="{{ asset('sms-logo.png') }}" alt="SMS Training Academy" style="height:42px;width:auto;display:block;">
             <div class="pub-logo-text">
                 <strong>SMS Training Academy</strong>
-                <span>Powered by Sustainable Management System Inc.</span>
+                <span class="hidden md:inline">Powered by Sustainable Management System Inc.</span>
+                <span class="inline md:hidden">Powered by SMS Inc.</span>
             </div>
         </a>
 
