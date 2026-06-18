@@ -7,6 +7,7 @@ use App\Models\ElearningLesson;
 use App\Models\LessonAudioProgress;
 use App\Models\LessonProgress;
 use App\Models\QuizAttempt;
+use App\Services\TrainingNotificationService;
 
 class LessonProgressService
 {
@@ -84,21 +85,44 @@ class LessonProgressService
 
         $updates = ['progress_percentage' => $percentage];
 
+        $justCompleted = false;
+
         if ($percentage === 100 && $enrollment->completion_status !== 'completed') {
             $paymentCleared = in_array($enrollment->payment_status, [
                 'paid', 'manual_approved', 'waived', 'free',
             ]);
 
             if ($paymentCleared) {
-                $updates['completion_status']  = 'completed';
-                $updates['certificate_status'] = 'eligible';
+                $updates['completion_status'] = 'completed';
                 if (empty($enrollment->completion_date)) {
                     $updates['completion_date'] = now();
+                }
+
+                $course = $enrollment->course;
+                if (!$course->require_admin_approval) {
+                    // Auto-issue: no admin approval needed
+                    $updates['certificate_status']     = 'issued';
+                    $updates['certificate_number']     = $enrollment->certificate_number
+                        ?? ('EL-' . date('Y') . '-' . str_pad($enrollment->id, 5, '0', STR_PAD_LEFT));
+                    $updates['certificate_issue_date'] = now()->toDateString();
+                    $justCompleted = true;
+                } else {
+                    // Admin must manually issue — just mark eligible
+                    $updates['certificate_status'] = 'eligible';
                 }
             }
         }
 
         $enrollment->update($updates);
+
+        // Send certificate-issued notification after saving
+        if ($justCompleted) {
+            try {
+                TrainingNotificationService::certificateIssued($enrollment->fresh(), 'ElearningEnrollment');
+            } catch (\Throwable $e) {
+                \Log::error('Auto-issue notification failed', ['enrollment_id' => $enrollment->id, 'error' => $e->getMessage()]);
+            }
+        }
     }
 
     /**

@@ -42,6 +42,7 @@ class ElearningEnrollment extends Model
         'certificate_status',
         'progress_percentage',
         'certificate_number',
+        'certificate_issue_date',
         'completion_date',
     ];
 
