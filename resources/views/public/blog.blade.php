@@ -6,7 +6,7 @@
 
 @section('content')
 <style>
-.blog-hero { background:linear-gradient(135deg,#0f172a,#042C53); padding:56px 0; color:#fff; text-align:center; }
+.blog-hero { background:linear-gradient(135deg,#0f172a 0%,#042C53 55%,#378ADD 100%); padding:56px 0; color:#fff; text-align:center; }
 .blog-hero h1 { font-size:38px; font-weight:900; margin:0 0 10px; }
 .blog-hero p  { font-size:16px; opacity:.75; margin:0 0 24px; }
 .blog-search { display:flex; gap:10px; max-width:480px; margin:0 auto; }

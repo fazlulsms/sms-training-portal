@@ -7,7 +7,7 @@
 @section('content')
 <style>
 .catalog-hero {
-    background: linear-gradient(135deg,#042C53 0%,#378ADD 100%);
+    background: linear-gradient(135deg,#0f172a 0%,#042C53 55%,#378ADD 100%);
     padding: 48px 0 56px; color:#fff;
 }
 .catalog-hero h1 { font-size:34px; font-weight:900; margin:0 0 8px; }
