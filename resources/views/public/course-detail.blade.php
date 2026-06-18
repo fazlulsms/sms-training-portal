@@ -182,6 +182,8 @@
 /* Right sidebar */
 .cd-layout { display:grid; grid-template-columns:1fr 340px; gap:40px; padding:40px 0 60px; }
 @media(max-width:900px){ .cd-layout{grid-template-columns:1fr;} }
+.cd-layout > div,
+.cd-layout > aside { min-width: 0; }
 </style>
 
 {{-- Course Hero --}}
