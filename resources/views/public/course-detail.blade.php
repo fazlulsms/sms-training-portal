@@ -54,18 +54,6 @@
     overflow-x: auto;
     scrollbar-width: none;
     box-shadow: 0 1px 4px rgba(15,23,42,.05);
-    position: relative;
-}
-@media(max-width:900px){
-    .cd-tabs-wrap::after {
-        content: '';
-        position: absolute;
-        right: 0; top: 0; bottom: 0;
-        width: 24px;
-        background: linear-gradient(to right, transparent, #fff);
-        pointer-events: none;
-        border-radius: 0 14px 14px 0;
-    }
 }
 .cd-tabs-wrap::-webkit-scrollbar { display: none; }
 
