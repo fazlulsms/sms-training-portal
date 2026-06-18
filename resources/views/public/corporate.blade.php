@@ -1,7 +1,7 @@
 ﻿@extends('layouts.public')
 
 @section('page-title', 'Corporate Training Solutions')
-@section('seo-title', 'Corporate Training Programs â€“ SMS Training Academy')
+@section('seo-title', 'Corporate Training Programs — SMS Training Academy')
 @section('seo-desc', 'Customized corporate training programs for organizations. ISO standards, quality management, compliance, and professional development for your team.')
 
 @section('content')
@@ -16,7 +16,7 @@
 .corp-hero p { font-size: 16px; opacity: .82; line-height: 1.75; margin: 0 0 28px; }
 .benefit-list { list-style: none; margin: 0; padding: 0; }
 .benefit-list li { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 14.5px; opacity: .9; }
-.benefit-list li:before { content: 'âœ“'; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; flex-shrink: 0; margin-top: 1px; }
+.benefit-list li:before { content: '\2713'; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; flex-shrink: 0; margin-top: 1px; }
 .corp-form-card { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15); border-radius: 20px; padding: 28px; backdrop-filter: blur(8px); }
 .corp-form-card h3 { font-size: 18px; font-weight: 800; margin: 0 0 20px; }
 .section-wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
@@ -47,7 +47,7 @@
     <div class="corp-hero-inner">
         <div>
             <div style="display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); padding:5px 14px; border-radius:20px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; margin-bottom:16px;">
-                ðŸ¢ Corporate Training
+                Corporate Training
             </div>
             <h1>Customized Training for Your Organization</h1>
             <p>We design and deliver tailored training programs that align with your organization's specific goals, industry requirements, and compliance standards.</p>
@@ -59,7 +59,7 @@
                 <li>Post-training assessment and certificates</li>
             </ul>
             <a href="#inquiry-form" style="display:inline-flex; align-items:center; gap:8px; background:#fff; color:#042C53; padding:14px 28px; border-radius:12px; font-weight:800; font-size:15px; text-decoration:none; margin-top:8px; box-shadow:0 6px 20px rgba(0,0,0,.2);">
-                Submit an Inquiry â†“
+                Submit an Inquiry &#8595;
             </a>
         </div>
         <div class="corp-hero-form">
@@ -80,7 +80,7 @@
                         <textarea name="training_requirement" rows="3" placeholder="Training requirement *" required style="background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.2); color:#fff; resize:vertical;"></textarea>
                     </div>
                     <button type="submit" style="width:100%; background:#fff; color:#042C53; padding:12px; border:none; border-radius:9px; font-weight:800; font-size:15px; cursor:pointer;">
-                        Send Inquiry â†’
+                        Send Inquiry &#8594;
                     </button>
                 </form>
             </div>
@@ -103,32 +103,32 @@
         </div>
         <div class="why-grid">
             <div class="why-card">
-                <div class="why-icon">ðŸŽ“</div>
+                <div class="why-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
                 <h4 class="why-title">Certified Expert Trainers</h4>
                 <p class="why-text">Our trainers hold international certifications from IRCA, BSI, NEBOSH, and other globally recognized bodies.</p>
             </div>
             <div class="why-card">
-                <div class="why-icon">ðŸŽ¯</div>
+                <div class="why-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
                 <h4 class="why-title">Tailored Curriculum</h4>
                 <p class="why-text">Every corporate program is customized to your industry, team size, and specific training objectives.</p>
             </div>
             <div class="why-card">
-                <div class="why-icon">ðŸ“</div>
+                <div class="why-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
                 <h4 class="why-title">Flexible Delivery</h4>
-                <p class="why-text">Training can be delivered at your premises, at our facility, or online â€” wherever is most convenient for your team.</p>
+                <p class="why-text">Training can be delivered at your premises, at our facility, or online — wherever is most convenient for your team.</p>
             </div>
             <div class="why-card">
-                <div class="why-icon">ðŸ“œ</div>
+                <div class="why-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="6"/><path d="M9 22l3-9 3 9M15.9 18.1l2.1 3M8.1 18.1l-2.1 3"/></svg></div>
                 <h4 class="why-title">Recognized Certificates</h4>
                 <p class="why-text">Participants receive certificates recognized by industry bodies and regulatory authorities upon successful completion.</p>
             </div>
             <div class="why-card">
-                <div class="why-icon">ðŸ“Š</div>
+                <div class="why-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg></div>
                 <h4 class="why-title">Assessment & Reporting</h4>
                 <p class="why-text">We provide pre and post assessments, attendance records, and detailed reports for your HR and compliance teams.</p>
             </div>
             <div class="why-card">
-                <div class="why-icon">ðŸ’°</div>
+                <div class="why-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v2m0 8v2m-4-6h8m-8 0a2 2 0 0 0 0 4h8"/></svg></div>
                 <h4 class="why-title">Group Pricing</h4>
                 <p class="why-text">Competitive group rates with significant savings compared to public schedule enrollment.</p>
             </div>
@@ -145,7 +145,7 @@
 
             @if(session('success'))
             <div style="background:#dcfce7; border:1px solid #86efac; border-radius:10px; padding:16px 20px; margin-bottom:24px; color:#166534; font-weight:600;">
-                âœ“ {{ session('success') }}
+                &#10003; {{ session('success') }}
             </div>
             @endif
 
@@ -211,7 +211,7 @@
                     <label>Additional Message</label>
                     <textarea name="message" rows="3" placeholder="Any other details, constraints, or questions...">{{ old('message') }}</textarea>
                 </div>
-                <button type="submit" class="submit-btn">Submit Inquiry â†’</button>
+                <button type="submit" class="submit-btn">Submit Inquiry &#8594;</button>
             </form>
         </div>
     </div>

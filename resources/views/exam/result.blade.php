@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Exam Result â€“ SMS Training Academy</title>
+<title>Exam Result — SMS Training Academy</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1e293b;margin:0;padding:0;}
@@ -36,7 +36,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1e293b;ma
 <body>
 
 <div class="top-bar">
-    <h1>ðŸ“‹ Exam Result</h1>
+    <h1><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-4px;margin-right:6px"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-3"/></svg>Exam Result</h1>
     <p>{{ $attempt->enrollment->trainingSchedule?->course?->name ?? 'Training Programme' }}</p>
 </div>
 
@@ -52,14 +52,14 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1e293b;ma
 
 <div class="result-card {{ $isPassed ? 'passed' : ($isPending ? 'pending' : 'failed') }}">
     <div class="result-icon">
-        @if($isPassed) ðŸŽ‰
-        @elseif($isPending) â³
-        @else âŒ
+        @if($isPassed) &#10003;
+        @elseif($isPending) &#8230;
+        @else &#10007;
         @endif
     </div>
     <div class="result-title {{ $isPassed ? 'passed' : ($isPending ? 'pending' : 'failed') }}">
         @if($isPassed) Congratulations! You Passed!
-        @elseif($isPending) Submitted â€” Pending Review
+        @elseif($isPending) Submitted — Pending Review
         @else Not Passed
         @endif
     </div>
@@ -82,7 +82,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1e293b;ma
         </div>
         <div class="score-box">
             <div class="score-num" style="color:{{ $isPassed ? '#15803d' : '#dc2626' }};">
-                {{ $isPassed ? 'âœ…' : 'âŒ' }}
+                {{ $isPassed ? '&#10003;' : '&#10007;' }}
             </div>
             <div class="score-label">{{ $isPassed ? 'Passed' : 'Not Passed' }}</div>
         </div>
@@ -93,12 +93,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1e293b;ma
 <div class="info-card">
     <table>
         <tr><td>Participant</td><td>{{ $attempt->enrollment->full_name }}</td></tr>
-        <tr><td>Course</td><td>{{ $attempt->enrollment->trainingSchedule?->course?->name ?? 'â€”' }}</td></tr>
+        <tr><td>Course</td><td>{{ $attempt->enrollment->trainingSchedule?->course?->name ?? '—' }}</td></tr>
         <tr><td>Exam</td><td>{{ $attempt->questionSet->title }}</td></tr>
         <tr><td>Attempt #</td><td>{{ $attempt->attempt_number }}</td></tr>
-        <tr><td>Submitted At</td><td>{{ $attempt->submitted_at?->format('d M Y, h:i A') ?? 'â€”' }}</td></tr>
+        <tr><td>Submitted At</td><td>{{ $attempt->submitted_at?->format('d M Y, h:i A') ?? '—' }}</td></tr>
         @if($isPassed && $attempt->questionSet->allow_certificate_after_pass)
-        <tr><td>Certificate</td><td style="color:#15803d;">ðŸ† Will be issued by admin</td></tr>
+        <tr><td>Certificate</td><td style="color:#15803d;">&#127942; Will be issued by admin</td></tr>
         @endif
     </table>
 </div>
@@ -111,7 +111,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1e293b;ma
 
 <div style="text-align:center;margin-top:24px;">
     <p style="font-size:13px;color:#64748b;">You may close this page. Results and any further instructions will be sent to your email.</p>
-    <p style="font-size:12px;color:#94a3b8;margin-top:8px;">SMS Training Academy Â· Sustainable Management System Inc.</p>
+    <p style="font-size:12px;color:#94a3b8;margin-top:8px;">SMS Training Academy · Sustainable Management System Inc.</p>
 </div>
 
 </div>

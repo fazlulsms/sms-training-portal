@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register â€” {{ $schedule->course->name ?? 'Training' }} | SMS Training Academy</title>
+    <title>Register — {{ $schedule->course->name ?? 'Training' }} | SMS Training Academy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -19,7 +19,7 @@
         background: #f0f4ff;
     }
 
-    /* â”€â”€ Top nav bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* -- Top nav bar --------------------------------------- */
     .top-bar {
         background: linear-gradient(135deg, #042C53 0%, #042C53 60%, #378ADD 100%);
         padding: 14px 32px;
@@ -62,7 +62,7 @@
         font-weight: 600;
     }
 
-    /* â”€â”€ Hero / Course card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* -- Hero / Course card -------------------------------- */
     .hero {
         background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
         padding: 40px 32px 50px;
@@ -135,7 +135,7 @@
     }
     .hero-chip svg { opacity: .8; flex-shrink: 0; }
 
-    /* â”€â”€ Fee highlight chips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* -- Fee highlight chips ------------------------------- */
     .fee-row {
         display: flex;
         flex-wrap: wrap;
@@ -162,7 +162,7 @@
         margin-right: 2px;
     }
 
-    /* â”€â”€ Main content wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* -- Main content wrapper ------------------------------ */
     .page-wrap {
         max-width: 780px;
         margin: -28px auto 48px;
@@ -171,7 +171,7 @@
         z-index: 10;
     }
 
-    /* â”€â”€ Form card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* -- Form card ----------------------------------------- */
     .form-card {
         background: #fff;
         border-radius: 20px;
@@ -179,7 +179,7 @@
         overflow: hidden;
     }
 
-    /* â”€â”€ Success banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* -- Success banner ------------------------------------ */
     .success-banner {
         background: linear-gradient(135deg, #065f46 0%, #059669 100%);
         color: #fff;
@@ -205,7 +205,7 @@
         margin: 0;
     }
 
-    /* â”€â”€ Form section headers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* -- Form section headers ------------------------------ */
     .form-section {
         padding: 28px 32px 0;
     }
@@ -230,12 +230,12 @@
         background: #f0f2f5;
     }
 
-    /* â”€â”€ Form grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* -- Form grid ----------------------------------------- */
     .fg { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     .fg-full { grid-column: 1 / -1; }
     @media (max-width: 600px) { .fg { grid-template-columns: 1fr; } }
 
-    /* â”€â”€ Form fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* -- Form fields --------------------------------------- */
     .field { display: flex; flex-direction: column; gap: 6px; }
     .field label {
         font-size: 13px;
@@ -344,7 +344,7 @@
     .mode-card:has(input:checked) .mode-name { color: #1e3a8a; }
     .mode-card:has(input:checked) .mode-fee  { color: #2563eb; }
 
-    /* â”€â”€ Form footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* -- Form footer --------------------------------------- */
     .form-footer {
         padding: 24px 32px 32px;
         border-top: 1px solid #f0f2f5;
@@ -381,7 +381,7 @@
     }
     .form-note a { color: #2563eb; font-weight: 600; text-decoration: none; }
 
-    /* â”€â”€ Validation errors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* -- Validation errors --------------------------------- */
     .err-box {
         background: #fef2f2;
         border: 1px solid #fecaca;
@@ -399,7 +399,7 @@
         background: #fff5f5;
     }
 
-    /* â”€â”€ Footer strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* -- Footer strip -------------------------------------- */
     .page-footer {
         text-align: center;
         padding: 20px;
@@ -411,10 +411,10 @@
 </head>
 <body>
 
-{{-- â”€â”€ Top bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+{{-- -- Top bar ---------------------------------------------- --}}
 <div class="top-bar">
     <div class="top-bar-brand">
-        <div class="top-bar-logo">ðŸŽ“</div>
+        <div class="top-bar-logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
         <div>
             <div class="top-bar-name">SMS Training Academy</div>
             <div class="top-bar-tagline">Sustainable Management System Inc.</div>
@@ -423,7 +423,7 @@
     <div class="top-bar-badge">Public Registration</div>
 </div>
 
-{{-- â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+{{-- -- Hero --------------------------------------------------- --}}
 <div class="hero">
     <div class="hero-eyebrow">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -442,7 +442,7 @@
         <span class="hero-chip">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             {{ \Carbon\Carbon::parse($schedule->start_date)->format('d M Y') }}
-            â€“
+            –
             {{ \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') }}
         </span>
         @endif
@@ -476,14 +476,14 @@
     </div>
 </div>
 
-{{-- â”€â”€ Form card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+{{-- -- Form card ---------------------------------------------- --}}
 <div class="page-wrap">
     <div class="form-card">
 
         {{-- Success state --}}
         @if(session('success'))
         <div class="success-banner">
-            <div class="success-icon">âœ“</div>
+            <div class="success-icon">&#10003;</div>
             <div class="success-title">Registration Submitted!</div>
             <p class="success-sub">{{ session('success') }}</p>
         </div>
@@ -556,17 +556,17 @@
                         <label>Country</label>
                         <div class="select-wrap">
                             <select name="country" id="countrySelect">
-                                <option value="">â€” Select Country â€”</option>
-                                <option value="Bangladesh"           data-code="+880" {{ old('country') == 'Bangladesh'           ? 'selected' : '' }}>ðŸ‡§ðŸ‡© Bangladesh</option>
-                                <option value="India"                data-code="+91"  {{ old('country') == 'India'                ? 'selected' : '' }}>ðŸ‡®ðŸ‡³ India</option>
-                                <option value="United States"        data-code="+1"   {{ old('country') == 'United States'        ? 'selected' : '' }}>ðŸ‡ºðŸ‡¸ United States</option>
-                                <option value="United Arab Emirates" data-code="+971" {{ old('country') == 'United Arab Emirates' ? 'selected' : '' }}>ðŸ‡¦ðŸ‡ª United Arab Emirates</option>
-                                <option value="Malaysia"             data-code="+60"  {{ old('country') == 'Malaysia'             ? 'selected' : '' }}>ðŸ‡²ðŸ‡¾ Malaysia</option>
-                                <option value="Indonesia"            data-code="+62"  {{ old('country') == 'Indonesia'            ? 'selected' : '' }}>ðŸ‡®ðŸ‡© Indonesia</option>
-                                <option value="Vietnam"              data-code="+84"  {{ old('country') == 'Vietnam'              ? 'selected' : '' }}>ðŸ‡»ðŸ‡³ Vietnam</option>
-                                <option value="Thailand"             data-code="+66"  {{ old('country') == 'Thailand'             ? 'selected' : '' }}>ðŸ‡¹ðŸ‡­ Thailand</option>
-                                <option value="Sri Lanka"            data-code="+94"  {{ old('country') == 'Sri Lanka'            ? 'selected' : '' }}>ðŸ‡±ðŸ‡° Sri Lanka</option>
-                                <option value="Nepal"                data-code="+977" {{ old('country') == 'Nepal'                ? 'selected' : '' }}>ðŸ‡³ðŸ‡µ Nepal</option>
+                                <option value="">-- Select Country --</option>
+                                <option value="Bangladesh"           data-code="+880" {{ old('country') == 'Bangladesh'           ? 'selected' : '' }}>Bangladesh</option>
+                                <option value="India"                data-code="+91"  {{ old('country') == 'India'                ? 'selected' : '' }}>India</option>
+                                <option value="United States"        data-code="+1"   {{ old('country') == 'United States'        ? 'selected' : '' }}>United States</option>
+                                <option value="United Arab Emirates" data-code="+971" {{ old('country') == 'United Arab Emirates' ? 'selected' : '' }}>United Arab Emirates</option>
+                                <option value="Malaysia"             data-code="+60"  {{ old('country') == 'Malaysia'             ? 'selected' : '' }}>Malaysia</option>
+                                <option value="Indonesia"            data-code="+62"  {{ old('country') == 'Indonesia'            ? 'selected' : '' }}>Indonesia</option>
+                                <option value="Vietnam"              data-code="+84"  {{ old('country') == 'Vietnam'              ? 'selected' : '' }}>Vietnam</option>
+                                <option value="Thailand"             data-code="+66"  {{ old('country') == 'Thailand'             ? 'selected' : '' }}>Thailand</option>
+                                <option value="Sri Lanka"            data-code="+94"  {{ old('country') == 'Sri Lanka'            ? 'selected' : '' }}>Sri Lanka</option>
+                                <option value="Nepal"                data-code="+977" {{ old('country') == 'Nepal'                ? 'selected' : '' }}>Nepal</option>
                             </select>
                         </div>
                     </div>
@@ -608,10 +608,10 @@
                                required>
                         <div class="mode-radio"></div>
                         <div>
-                            <div class="mode-name">ðŸ¢ Physical</div>
+                            <div class="mode-name">Physical</div>
                             <div class="mode-fee">
                                 {{ $schedule->currency }} {{ number_format($schedule->physical_fee, 2) }}
-                                @if($schedule->venue) Â· {{ $schedule->venue }} @endif
+                                @if($schedule->venue) · {{ $schedule->venue }} @endif
                             </div>
                         </div>
                     </label>
@@ -624,10 +624,10 @@
                                required>
                         <div class="mode-radio"></div>
                         <div>
-                            <div class="mode-name">ðŸ’» Online</div>
+                            <div class="mode-name">Online</div>
                             <div class="mode-fee">
                                 {{ $schedule->currency }} {{ number_format($schedule->online_fee, 2) }}
-                                Â· Zoom / Virtual
+                                · Zoom / Virtual
                             </div>
                         </div>
                     </label>
@@ -653,7 +653,7 @@
 </div>
 
 <div class="page-footer">
-    &copy; {{ date('Y') }} <strong>SMS Training Academy</strong> â€” Sustainable Management System Inc.
+    &copy; {{ date('Y') }} <strong>SMS Training Academy</strong> — Sustainable Management System Inc.
 </div>
 
 <script>

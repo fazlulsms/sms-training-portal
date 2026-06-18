@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Certificate â€” {{ $certificate->certificate_number }}</title>
+    <title>Certificate — {{ $certificate->certificate_number }}</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -66,7 +66,7 @@
     </style>
 </head>
 <body>
-<button class="print-btn" onclick="window.print()">ðŸ–¨ Print Certificate</button>
+<button class="print-btn" onclick="window.print()">Print Certificate</button>
 
 <div class="cert-page">
     <div class="cert-border-outer"></div>
@@ -93,7 +93,7 @@
 
     <div class="cert-body">
         @if($certificate->participant->position || $certificate->participant->department)
-        <em>{{ $certificate->participant->position }}{{ $certificate->participant->department ? ' â€” '.$certificate->participant->department : '' }}</em><br>
+        <em>{{ $certificate->participant->position }}{{ $certificate->participant->department ? ' — '.$certificate->participant->department : '' }}</em><br>
         @endif
         has successfully completed the training programme
 
@@ -105,7 +105,7 @@
         @if($certificate->session->training_date)
         held on <strong>{{ $certificate->session->training_date->format('d F Y') }}
         @if($certificate->session->training_date_end && $certificate->session->training_date_end != $certificate->session->training_date)
-        â€“ {{ $certificate->session->training_date_end->format('d F Y') }}
+        – {{ $certificate->session->training_date_end->format('d F Y') }}
         @endif
         </strong>
         @if($certificate->session->venue)

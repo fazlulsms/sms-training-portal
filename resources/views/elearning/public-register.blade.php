@@ -1,7 +1,7 @@
 ﻿@extends('layouts.public')
 
-@section('page-title', 'Register â€” ' . $course->name)
-@section('seo-title', 'Enroll in ' . $course->name . ' â€” SMS Training Academy')
+@section('page-title', 'Register — ' . $course->name)
+@section('seo-title', 'Enroll in ' . $course->name . ' — SMS Training Academy')
 @section('seo-desc', 'Register for ' . $course->name . '. Self-paced eLearning with certificate of completion.')
 
 @push('head')
@@ -19,14 +19,14 @@
             <a href="{{ route('public.course.detail', $course->slug ?? $course->id) }}">{{ Str::limit($course->name, 40) }}</a><span>/</span>
             <span>Register</span>
         </div>
-        <div class="reg-hero-type">ðŸ’» eLearning Registration</div>
+        <div class="reg-hero-type"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="2" y1="20" x2="22" y2="20"/></svg>eLearning Registration</div>
         <h1>{{ $course->name }}</h1>
         <div class="reg-hero-badges">
-            <span class="reg-hero-badge">ðŸ’» Self-Paced eLearning</span>
-            @if($course->duration)<span class="reg-hero-badge">â± {{ $course->duration }}</span>@endif
-            @if($course->language)<span class="reg-hero-badge">ðŸŒ {{ $course->language }}</span>@endif
-            @if($course->cpd_hours)<span class="reg-hero-badge">â­ {{ $course->cpd_hours }} CPD Hours</span>@endif
-            @if($course->certificate_type)<span class="reg-hero-badge">ðŸŽ“ {{ $course->certificate_type }}</span>@endif
+            <span class="reg-hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="2" y1="20" x2="22" y2="20"/></svg>Self-Paced eLearning</span>
+            @if($course->duration)<span class="reg-hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ $course->duration }}</span>@endif
+            @if($course->language)<span class="reg-hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>{{ $course->language }}</span>@endif
+            @if($course->cpd_hours)<span class="reg-hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>{{ $course->cpd_hours }} {{ $course->cpd_hours == 1 ? 'CPD Hour' : 'CPD Hours' }}</span>@endif
+            @if($course->certificate_type)<span class="reg-hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>{{ $course->certificate_type }}</span>@endif
         </div>
     </div>
 </div>
@@ -46,7 +46,7 @@
         <p>Thank you for registering for <strong>{{ $course->name }}</strong>.<br>Our team will send payment instructions and course access to your email within 24 hours.</p>
         <div class="reg-next-steps">
             <div class="reg-next-title">What happens next?</div>
-            @foreach(['Confirmation email sent within 24 hours','Our team sends payment instructions to your email','Course access granted once payment is verified','Start learning at your own pace â€” anytime, anywhere'] as $step)
+            @foreach(['Confirmation email sent within 24 hours','Our team sends payment instructions to your email','Course access granted once payment is verified','Start learning at your own pace — anytime, anywhere'] as $step)
             <div class="reg-next-item">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 {{ $step }}
@@ -55,17 +55,17 @@
         </div>
         <div class="reg-success-actions">
             <a href="{{ route('public.courses') }}" class="pub-enroll-btn">Browse More Courses</a>
-            <a href="{{ route('public.home') }}" class="btn-ghost-link">â† Back to Home</a>
+            <a href="{{ route('public.home') }}" class="btn-ghost-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:3px"><polyline points="15 18 9 12 15 6"/></svg>Back to Home</a>
         </div>
     </div>
 
     @else
 
     @if(session('error'))
-    <div class="reg-alert-error">âš ï¸ {{ session('error') }}</div>
+    <div class="reg-alert-error"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>{{ session('error') }}</div>
     @endif
     @if($errors->any())
-    <div class="reg-alert-error">âš  Please fix the highlighted errors below before submitting.</div>
+    <div class="reg-alert-error"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Please fix the highlighted errors below before submitting.</div>
     @endif
 
     <form method="POST" action="{{ route('elearning.public.register.store', $course->id) }}">
@@ -127,7 +127,7 @@
                     <label class="fl">Years of Experience</label>
                     <select name="experience_years" class="fi">
                         <option value="">Select</option>
-                        @foreach(['Less than 1 year','1â€“3 years','3â€“5 years','5â€“10 years','10+ years'] as $e)
+                        @foreach(['Less than 1 year','1–3 years','3–5 years','5–10 years','10+ years'] as $e)
                         <option value="{{ $e }}" {{ old('experience_years') === $e ? 'selected' : '' }}>{{ $e }}</option>
                         @endforeach
                     </select>
@@ -184,7 +184,7 @@
             <div class="fg">
                 <label class="fl">Any questions before you start?</label>
                 <textarea name="pre_questions" class="fi" rows="2"
-                          placeholder="Optional â€” we'll answer before granting accessâ€¦">{{ old('pre_questions') }}</textarea>
+                          placeholder="Optional — we'll answer before granting access...">{{ old('pre_questions') }}</textarea>
             </div>
         </div>
 
@@ -220,7 +220,7 @@
         <div class="sidebar-img">
             @if($course->banner_image)
             <img src="{{ asset('storage/'.$course->banner_image) }}" alt="{{ $course->name }}">
-            @else <span>ðŸŽ“</span> @endif
+            @else <span><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span> @endif
         </div>
         <div class="sidebar-body">
             <div class="sidebar-price-row">
@@ -233,7 +233,7 @@
             </div>
             <div class="feature-row">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                Self-paced â€” learn at your own pace
+                Self-paced — learn at your own pace
             </div>
             @if($course->access_days)
             <div class="feature-row">
@@ -267,7 +267,7 @@
     <div class="sidebar-help">
         <div class="sidebar-help-title">Need help enrolling?</div>
         <div class="sidebar-help-sub">Our team is ready to assist you</div>
-        <a href="mailto:training@smscert.com" class="sidebar-help-btn">ðŸ“§ training@smscert.com</a>
+        <a href="mailto:training@smscert.com" class="sidebar-help-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:4px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>training@smscert.com</a>
     </div>
 </aside>
 

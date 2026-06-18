@@ -32,7 +32,7 @@
         <div class="reg-hero-type"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>Instructor-Led Training Registration</div>
         <h1>{{ $courseName }}</h1>
         <div class="reg-hero-badges">
-            <span class="reg-hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>{{ \Carbon\Carbon::parse($schedule->start_date)->format('d M') }} â€“ {{ \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') }}</span>
+            <span class="reg-hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>{{ \Carbon\Carbon::parse($schedule->start_date)->format('d M') }} – {{ \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') }}</span>
             <span class="reg-hero-badge">{{ $schedule->training_mode }}</span>
             @if($schedule->training_mode !== 'Online' && $schedule->venue)
             <span class="reg-hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>{{ $schedule->venue }}</span>
@@ -57,7 +57,7 @@
 <div class="pub-container">
 <div class="reg-body">
 
-{{-- â”€â”€ LEFT: Form â”€â”€ --}}
+{{-- -- LEFT: Form -- --}}
 <div class="reg-main">
 
     @if(session('error'))
@@ -131,7 +131,7 @@
                     <label class="fl">Years of Experience</label>
                     <select name="experience_years" class="fi">
                         <option value="">Select</option>
-                        @foreach(['Less than 1 year','1â€“3 years','3â€“5 years','5â€“10 years','10+ years'] as $e)
+                        @foreach(['Less than 1 year','1–3 years','3–5 years','5–10 years','10+ years'] as $e)
                         <option value="{{ $e }}" {{ old('experience_years') === $e ? 'selected' : '' }}>{{ $e }}</option>
                         @endforeach
                     </select>
@@ -216,7 +216,7 @@
             <div class="fg" style="margin-bottom:16px;">
                 <label class="fl">Dietary Requirements / Special Needs</label>
                 <textarea name="special_requirements" class="fi" rows="2"
-                          placeholder="e.g. vegetarian, wheelchair accessâ€¦">{{ old('special_requirements') }}</textarea>
+                          placeholder="e.g. vegetarian, wheelchair access...">{{ old('special_requirements') }}</textarea>
             </div>
             <div class="fg" style="margin-bottom:16px;">
                 <label class="fl">How did you hear about us?</label>
@@ -229,7 +229,7 @@
             </div>
             <div class="fg">
                 <label class="fl">Any questions for the trainer?</label>
-                <textarea name="pre_questions" class="fi" rows="2" placeholder="Optionalâ€¦">{{ old('pre_questions') }}</textarea>
+                <textarea name="pre_questions" class="fi" rows="2" placeholder="Optional...">{{ old('pre_questions') }}</textarea>
             </div>
         </div>
 
@@ -254,7 +254,7 @@
             @endif
             <div class="fee-row">
                 <span class="fee-label">Dates</span>
-                <span class="fee-value">{{ \Carbon\Carbon::parse($schedule->start_date)->format('d M') }} â€“ {{ \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') }}</span>
+                <span class="fee-value">{{ \Carbon\Carbon::parse($schedule->start_date)->format('d M') }} – {{ \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') }}</span>
             </div>
             <div class="fee-row">
                 <span class="fee-label">Mode (<span id="feeModeLbl">—</span>)</span>
@@ -290,7 +290,7 @@
 
 </div>
 
-{{-- â”€â”€ RIGHT: Sidebar â”€â”€ --}}
+{{-- -- RIGHT: Sidebar -- --}}
 <aside class="reg-sidebar">
 
     {{-- Schedule info card --}}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Exam Already Submitted â€“ SMS Training Academy</title>
+<title>Exam Already Submitted — SMS Training Academy</title>
 <style>
 body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px;}
 .card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:40px;max-width:500px;width:100%;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.08);}
@@ -19,9 +19,9 @@ p{font-size:14px;color:#64748b;line-height:1.6;margin:0;}
 <body>
 <div class="card">
     <div class="icon">
-        @if($attempt->status === 'passed') ðŸŽ‰
-        @elseif(in_array($attempt->status, ['submitted','pending_review'])) â³
-        @else ðŸ“‹
+        @if($attempt->status === 'passed') &#10003;
+        @elseif(in_array($attempt->status, ['submitted','pending_review'])) &#8230;
+        @else 
         @endif
     </div>
     <h1>Exam Already Submitted</h1>
@@ -44,7 +44,7 @@ p{font-size:14px;color:#64748b;line-height:1.6;margin:0;}
     <p style="margin-top:12px;">Please check your email for your result. You may close this page.</p>
 
     <div style="margin-top:24px;padding-top:20px;border-top:1px solid #f1f5f9;font-size:12px;color:#94a3b8;">
-        SMS Training Academy Â· Sustainable Management System Inc.
+        SMS Training Academy · Sustainable Management System Inc.
     </div>
 </div>
 </body>
