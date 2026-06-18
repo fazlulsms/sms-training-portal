@@ -73,6 +73,7 @@
     <div class="tab-nav">
         <button class="tab-btn active" id="tab-btn-basic"    onclick="showTab('basic',this)"   type="button">Basic Info</button>
         <button class="tab-btn"         id="tab-btn-content" onclick="showTab('content',this)" type="button">Public Content</button>
+        <button class="tab-btn"         id="tab-btn-cover"   onclick="showTab('cover',this)"   type="button">🖼 Course Cover</button>
         <button class="tab-btn"         id="tab-btn-seo"     onclick="showTab('seo',this)"     type="button">Visibility &amp; SEO</button>
     </div>
 
@@ -257,7 +258,12 @@
             </div>
         </div>
 
-        {{-- ── TAB 3: Visibility & SEO ─────────────────────────── --}}
+        {{-- ── TAB 3: Course Cover ────────────────────────────── --}}
+        <div id="tab-cover" class="tab-panel">
+            @include('elearning.courses.partials.cover-section')
+        </div>
+
+        {{-- ── TAB 4: Visibility & SEO ─────────────────────────── --}}
         <div id="tab-seo" class="tab-panel">
             <div class="fg">
                 <label>URL Slug (auto-generated if blank)</label>

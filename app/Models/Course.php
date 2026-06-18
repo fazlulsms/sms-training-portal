@@ -15,7 +15,9 @@ class Course extends Model
         'delivery_type', 'language', 'duration', 'cpd_hours',
         'course_type', 'description', 'short_description', 'full_description',
         'learning_objectives', 'course_outline', 'who_should_attend', 'prerequisites',
-        'banner_image', 'certificate_type', 'certification_info',
+        'banner_image',
+        'cover_image', 'cover_thumbnail', 'cover_generated_by_ai', 'cover_prompt',
+        'certificate_type', 'certification_info',
         'course_fee', 'public_price', 'access_days', 'passing_score',
         'certificate_template', 'lesson_count', 'certification_remarks',
         'is_public', 'is_featured', 'display_order', 'featured_order',
@@ -25,9 +27,10 @@ class Course extends Model
     ];
 
     protected $casts = [
-        'is_public'           => 'boolean',
-        'is_featured'         => 'boolean',
-        'ai_generated'        => 'boolean',
+        'is_public'              => 'boolean',
+        'is_featured'            => 'boolean',
+        'cover_generated_by_ai'  => 'boolean',
+        'ai_generated'           => 'boolean',
         'ai_course_structure' => 'array',
         'gen_progress'        => 'array',
         'gen_started_at'      => 'datetime',

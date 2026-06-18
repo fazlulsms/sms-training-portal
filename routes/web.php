@@ -576,6 +576,13 @@ Route::middleware(['auth', 'admin'])->prefix('elearning')->name('elearning.')->g
 
     Route::resource('courses', ElearningCourseController::class);
 
+    // Course Cover Generator
+    Route::post('courses/{course}/cover/generate',       [\App\Http\Controllers\CourseCoverController::class, 'generate'])      ->name('courses.cover.generate');
+    Route::get('courses/{course}/cover/status',          [\App\Http\Controllers\CourseCoverController::class, 'status'])        ->name('courses.cover.status');
+    Route::post('courses/{course}/cover/upload',         [\App\Http\Controllers\CourseCoverController::class, 'upload'])        ->name('courses.cover.upload');
+    Route::delete('courses/{course}/cover',              [\App\Http\Controllers\CourseCoverController::class, 'delete'])        ->name('courses.cover.delete');
+    Route::post('courses/{course}/cover/preview-prompt', [\App\Http\Controllers\CourseCoverController::class, 'previewPrompt']) ->name('courses.cover.preview-prompt');
+
     Route::get('courses/{course}/lessons', [ElearningLessonController::class, 'index'])->name('lessons.index');
     Route::get('courses/{course}/lessons/create', [ElearningLessonController::class, 'create'])->name('lessons.create');
     Route::post('courses/{course}/lessons', [ElearningLessonController::class, 'store'])->name('lessons.store');
