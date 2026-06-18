@@ -19,7 +19,7 @@
     <style>
     /* ══ PUBLIC LAYOUT — SMS Training Academy Design System ══════ */
     *, *::before, *::after { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
     body {
         margin: 0; padding: 0;
         font-family: 'Inter', system-ui, sans-serif;
@@ -27,6 +27,7 @@
         background: #fff;
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
     }
 
     /* ── Design tokens ───────────────────────────────────────────── */
@@ -354,10 +355,12 @@
     /* ── Responsive ─────────────────────────────────────────────── */
     @media (max-width: 768px) {
         .pub-menu, .pub-nav-actions { display: none; }
-        .pub-hamburger { display: flex; }
+        .pub-hamburger { display: flex; flex-shrink: 0; margin-left: auto; }
         .pub-section { padding: 48px 0; }
         .section-heading { font-size: 24px; }
         .pub-footer { margin-top: 56px; }
+        .pub-logo-text span { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pub-logo { min-width: 0; flex-shrink: 1; }
     }
     @media (max-width: 480px) {
         .pub-container { padding: 0 16px; }
