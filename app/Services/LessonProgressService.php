@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\ElearningEnrollment;
 use App\Models\ElearningLesson;
+use App\Models\FeedbackAssignment;
+use App\Models\FeedbackResponse;
 use App\Models\LessonAudioProgress;
 use App\Models\LessonProgress;
 use App\Models\QuizAttempt;
@@ -64,7 +66,8 @@ class LessonProgressService
 
     /**
      * Recalculate and save progress_percentage on the enrollment.
-     * If all lessons are done and payment is cleared, set completion + certificate eligibility.
+     * Handles completion, feedback-response creation, and certificate issuance.
+     * Safe to call multiple times — re-evaluates certificate when feedback is submitted.
      */
     public function recalculateProgress(ElearningEnrollment $enrollment): void
     {
@@ -83,39 +86,51 @@ class LessonProgressService
 
         $percentage = (int) round(($completedCount / $totalLessons) * 100);
 
-        $updates = ['progress_percentage' => $percentage];
-
+        $updates      = ['progress_percentage' => $percentage];
         $justCompleted = false;
 
-        if ($percentage === 100 && $enrollment->completion_status !== 'completed') {
-            $paymentCleared = in_array($enrollment->payment_status, [
-                'paid', 'manual_approved', 'waived', 'free',
-            ]);
+        $paymentCleared = in_array($enrollment->payment_status, [
+            'paid', 'manual_approved', 'waived', 'free',
+        ]);
 
-            if ($paymentCleared) {
+        if ($percentage === 100 && $paymentCleared) {
+
+            // Step 1 — mark completion on first reach
+            if ($enrollment->completion_status !== 'completed') {
                 $updates['completion_status'] = 'completed';
                 if (empty($enrollment->completion_date)) {
                     $updates['completion_date'] = now();
                 }
+                // Create a FeedbackResponse record for every active assignment on this course
+                // so the learner receives (or can see) their personalised feedback link.
+                $this->ensureFeedbackResponses($enrollment);
+            }
 
+            // Step 2 — certificate decision (re-evaluated on every call, so feedback
+            // submission can upgrade pending_feedback → eligible / issued without
+            // needing a separate code path).
+            if ($enrollment->certificate_status !== 'issued') {
                 $course = $enrollment->course;
-                if (!$course->require_admin_approval) {
-                    // Auto-issue: no admin approval needed
+
+                if ($this->feedbackBlocksCertificate($enrollment)) {
+                    // Mandatory feedback not yet submitted — hold the certificate
+                    $updates['certificate_status'] = 'pending_feedback';
+                } elseif ($course->require_admin_approval) {
+                    // Feedback done (or not required); waiting for admin sign-off
+                    $updates['certificate_status'] = 'eligible';
+                } else {
+                    // Auto-issue
                     $updates['certificate_status']     = 'issued';
                     $updates['certificate_number']     = $enrollment->certificate_number
                         ?? ('EL-' . date('Y') . '-' . str_pad($enrollment->id, 5, '0', STR_PAD_LEFT));
                     $updates['certificate_issue_date'] = now()->toDateString();
                     $justCompleted = true;
-                } else {
-                    // Admin must manually issue — just mark eligible
-                    $updates['certificate_status'] = 'eligible';
                 }
             }
         }
 
         $enrollment->update($updates);
 
-        // Send certificate-issued notification after saving
         if ($justCompleted) {
             try {
                 TrainingNotificationService::certificateIssued($enrollment->fresh(), 'ElearningEnrollment');
@@ -123,6 +138,50 @@ class LessonProgressService
                 \Log::error('Auto-issue notification failed', ['enrollment_id' => $enrollment->id, 'error' => $e->getMessage()]);
             }
         }
+    }
+
+    /**
+     * Create FeedbackResponse records for every active assignment on this course,
+     * so each learner has a unique token URL waiting for them.
+     * Uses firstOrCreate — safe to call repeatedly.
+     */
+    private function ensureFeedbackResponses(ElearningEnrollment $enrollment): void
+    {
+        $assignments = FeedbackAssignment::where('assignable_type', 'elearning_course')
+            ->where('assignable_id', $enrollment->course_id)
+            ->where('is_active', true)
+            ->get();
+
+        foreach ($assignments as $assignment) {
+            FeedbackResponse::firstOrCreate(
+                [
+                    'assignment_id'           => $assignment->id,
+                    'elearning_enrollment_id' => $enrollment->id,
+                ],
+                [
+                    'user_id'          => $enrollment->user_id,
+                    'respondent_name'  => $enrollment->participant_name,
+                    'respondent_email' => $enrollment->email,
+                ]
+            );
+        }
+    }
+
+    /**
+     * Returns true when at least one active assignment on this course requires
+     * feedback for the certificate AND the learner has not yet submitted it.
+     */
+    private function feedbackBlocksCertificate(ElearningEnrollment $enrollment): bool
+    {
+        return FeedbackAssignment::where('assignable_type', 'elearning_course')
+            ->where('assignable_id', $enrollment->course_id)
+            ->where('require_for_certificate', true)
+            ->where('is_active', true)
+            ->whereDoesntHave('responses', function ($q) use ($enrollment) {
+                $q->where('elearning_enrollment_id', $enrollment->id)
+                  ->where('is_complete', true);
+            })
+            ->exists();
     }
 
     /**

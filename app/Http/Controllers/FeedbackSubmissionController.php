@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ElearningEnrollment;
 use App\Models\FeedbackAnswer;
 use App\Models\FeedbackQuestion;
 use App\Models\FeedbackResponse;
+use App\Services\LessonProgressService;
 use Illuminate\Http\Request;
 
 class FeedbackSubmissionController extends Controller
@@ -105,6 +107,14 @@ class FeedbackSubmissionController extends Controller
         }
 
         $response->update($updateData);
+
+        // If this feedback was blocking an eLearning certificate, re-evaluate now
+        if ($response->elearning_enrollment_id && $response->assignment->require_for_certificate) {
+            $enrollment = ElearningEnrollment::find($response->elearning_enrollment_id);
+            if ($enrollment) {
+                app(LessonProgressService::class)->recalculateProgress($enrollment);
+            }
+        }
 
         return redirect()->route('feedback.thankyou', $token);
     }

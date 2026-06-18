@@ -67,6 +67,11 @@ class ElearningEnrollment extends Model
         return $this->hasMany(LessonProgress::class, 'enrollment_id');
     }
 
+    public function feedbackResponses()
+    {
+        return $this->hasMany(\App\Models\FeedbackResponse::class, 'elearning_enrollment_id');
+    }
+
     public function isPaymentCleared(): bool
     {
         return in_array($this->payment_status, ['paid', 'manual_approved', 'waived', 'free']);

@@ -85,7 +85,12 @@ class ParticipantDashboardController extends Controller
 
         $lessonProgressMap = $enrollment->lessonProgress->keyBy('lesson_id');
 
-        return view('participant.elearning-details', compact('enrollment', 'lessonProgressMap'));
+        // Pending feedback responses for this enrollment (shown when cert is pending_feedback)
+        $feedbackResponses = \App\Models\FeedbackResponse::where('elearning_enrollment_id', $enrollment->id)
+            ->with('assignment')
+            ->get();
+
+        return view('participant.elearning-details', compact('enrollment', 'lessonProgressMap', 'feedbackResponses'));
     }
 
     // ── Lesson player ─────────────────────────────────────────────────────────

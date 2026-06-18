@@ -39,7 +39,28 @@ p{font-size:15px;color:#6b7280;line-height:1.6;margin:0 0 24px;}
 
     <div class="divider"></div>
 
+    @php
+        $elEnrollment = null;
+        if ($response->elearning_enrollment_id && $response->assignment->require_for_certificate) {
+            $elEnrollment = \App\Models\ElearningEnrollment::find($response->elearning_enrollment_id);
+        }
+    @endphp
+
+    @if($elEnrollment && $elEnrollment->certificate_status === 'issued')
+    <div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:12px;padding:16px 20px;margin-bottom:20px;text-align:left;">
+        <div style="font-weight:800;color:#065f46;font-size:14px;margin-bottom:4px;">🎓 Certificate Issued!</div>
+        <div style="font-size:13px;color:#047857;">Your certificate has been automatically issued. Return to your course page to download it.</div>
+        <a href="{{ route('participant.elearning-details', $elEnrollment->id) }}" style="display:inline-block;margin-top:12px;background:#065f46;color:#fff;padding:8px 18px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;">View Certificate →</a>
+    </div>
+    @elseif($elEnrollment && in_array($elEnrollment->certificate_status, ['eligible', 'pending_feedback']))
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px 20px;margin-bottom:20px;text-align:left;">
+        <div style="font-weight:800;color:#1e40af;font-size:14px;margin-bottom:4px;">Certificate Pending</div>
+        <div style="font-size:13px;color:#1d4ed8;">Your certificate is being processed. You can check its status on your course page.</div>
+        <a href="{{ route('participant.elearning-details', $elEnrollment->id) }}" style="display:inline-block;margin-top:12px;background:#1e3a8a;color:#fff;padding:8px 18px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;">Go to Course →</a>
+    </div>
+    @else
     <p style="font-size:13.5px;">Your feedback helps us continuously improve our training programs and deliver better learning experiences.</p>
+    @endif
 
     <div class="note">This feedback form is now closed. If you have additional comments, please contact us directly.</div>
 </div>

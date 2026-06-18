@@ -51,8 +51,15 @@
     gap: 14px;
     flex-wrap: wrap;
 }
-.cert-panel.issued   { background: #f0fdf4; border: 1px solid #a7f3d0; }
-.cert-panel.eligible { background: #eff6ff; border: 1px solid #bfdbfe; }
+.cert-panel.issued          { background: #f0fdf4; border: 1px solid #a7f3d0; }
+.cert-panel.eligible        { background: #eff6ff; border: 1px solid #bfdbfe; }
+.cert-panel.pending-feedback{ background: #fffbeb; border: 1px solid #fcd34d; }
+.feedback-link-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid #fef3c7; flex-wrap:wrap; }
+.feedback-link-row:last-child { border-bottom:none; padding-bottom:0; }
+.feedback-link-row .fl-name { font-size:13px; font-weight:700; color:#78350f; }
+.feedback-link-row .fl-status { font-size:11px; color:#b45309; margin-top:2px; }
+.feedback-btn { display:inline-flex; align-items:center; gap:6px; background:#d97706; color:#fff; padding:8px 16px; border-radius:8px; font-weight:700; font-size:12.5px; text-decoration:none; white-space:nowrap; transition:background .15s; }
+.feedback-btn:hover { background:#b45309; }
 .cert-panel strong { font-size: 14px; font-weight: 800; display: block; }
 .cert-panel span   { font-size: 12px; color: #6b7280; margin-top: 2px; display: block; }
 .cert-dl-btn {
@@ -254,6 +261,47 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Pending Issuance
     </span>
+</div>
+
+@elseif($enrollment->certificate_status === 'pending_feedback')
+@php
+    $pendingFeedback = ($feedbackResponses ?? collect())->filter(fn($r) => !$r->is_complete && $r->assignment->require_for_certificate);
+    $doneFeedback    = ($feedbackResponses ?? collect())->filter(fn($r) =>  $r->is_complete && $r->assignment->require_for_certificate);
+@endphp
+<div class="cert-panel pending-feedback">
+    <div style="flex:1;min-width:0;">
+        <strong style="color:#92400e;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Feedback Required Before Certificate
+        </strong>
+        <span style="color:#78350f;display:block;margin-top:4px;">
+            Please complete the course evaluation form to unlock your certificate.
+        </span>
+        @if($pendingFeedback->count())
+        <div style="margin-top:12px;">
+            @foreach($pendingFeedback as $fr)
+            <div class="feedback-link-row">
+                <div>
+                    <div class="fl-name">{{ $fr->assignment->template->name ?? 'Course Evaluation' }}</div>
+                    <div class="fl-status">Not yet submitted</div>
+                </div>
+                <a href="{{ $fr->submit_url }}" class="feedback-btn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Complete Feedback
+                </a>
+            </div>
+            @endforeach
+            @foreach($doneFeedback as $fr)
+            <div class="feedback-link-row">
+                <div>
+                    <div class="fl-name">{{ $fr->assignment->template->name ?? 'Course Evaluation' }}</div>
+                    <div class="fl-status" style="color:#16a34a;">Submitted ✓</div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+    </div>
 </div>
 @endif
 
