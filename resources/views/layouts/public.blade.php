@@ -389,8 +389,7 @@
             <img src="{{ asset('sms-logo.png') }}" alt="SMS Training Academy" style="height:42px;width:auto;display:block;">
             <div class="pub-logo-text">
                 <strong>SMS Training Academy</strong>
-                <span class="hidden md:inline">Powered by Sustainable Management System Inc.</span>
-                <span class="inline md:hidden">Powered by SMS Inc.</span>
+                <span>Powered by SMS Inc.</span>
             </div>
         </a>
 
