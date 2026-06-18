@@ -520,17 +520,13 @@
             <div class="footer-col">
                 <h4>Resources</h4>
                 <ul>
-                    <li><a href="{{ route('public.verify-certificate') }}">Verify Certificate</a></li>
+                    <li><a href="{{ route('public.about') }}">About Us</a></li>
+                    <li><a href="{{ route('public.contact') }}">Contact Us</a></li>
                     @auth
                     <li><a href="{{ route('participant.my-courses') }}">My Dashboard</a></li>
                     @else
                     <li><a href="{{ route('login') }}">Participant Login</a></li>
                     @endauth
-                    <li><a href="{{ route('public.about') }}">About Us</a></li>
-                    <li><a href="{{ route('public.contact') }}">Contact Us</a></li>
-                    <li><a href="{{ route('public.privacy') }}">Privacy Policy</a></li>
-                    <li><a href="{{ route('public.terms') }}">Terms of Use</a></li>
-                    <li><a href="{{ route('public.refund') }}">Refund Policy</a></li>
                 </ul>
             </div>
 
