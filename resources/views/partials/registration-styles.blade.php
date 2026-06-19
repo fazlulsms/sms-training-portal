@@ -54,16 +54,25 @@
 .fl { font-size: 12px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: .4px; }
 .req { color: #dc2626; margin-left: 2px; }
 .fi {
-    padding: 10px 13px; border: 1.5px solid #e5e7eb; border-radius: 9px;
+    padding: 11px 14px;
+    border: 1.5px solid #e5e7eb; border-radius: 9px;
     font-size: 14px; font-family: inherit; color: #111827; background: #fff;
-    width: 100%; transition: border-color .15s, box-shadow .15s;
+    width: 100%; box-sizing: border-box;
+    line-height: 1.5; min-height: 48px;
+    transition: border-color .15s, box-shadow .15s;
+    vertical-align: middle;
 }
 .fi:focus { outline: none; border-color: #1e3a8a; box-shadow: 0 0 0 3px rgba(30,58,138,.1); }
 .fi.is-err { border-color: #ef4444; }
-textarea.fi { resize: vertical; }
-select.fi { -webkit-appearance: none; appearance: none; cursor: pointer;
+textarea.fi { resize: vertical; min-height: 0; height: auto; }
+select.fi {
+    -webkit-appearance: none; appearance: none; cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+    background-repeat: no-repeat; background-position: right 12px center;
+    padding-right: 36px;
+    height: 48px; line-height: 48px;
+    padding-top: 0; padding-bottom: 0;
+}
 .fe { color: #dc2626; font-size: 11.5px; }
 .fh { color: #9ca3af; font-size: 11.5px; }
 
