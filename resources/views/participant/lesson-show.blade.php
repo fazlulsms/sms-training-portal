@@ -1659,14 +1659,47 @@ function toggleAcc(id) {
 // ── Slide navigation + TTS narration ─────────────────────────
 function slideBidFromId(id) { return id.replace(/^slides-/, ''); }
 
+// Update Prev/Next Slide button visibility based on position & speaking state
+function updateSlideNavButtons(bid) {
+    const state  = slideState[bid];
+    if (!state) return;
+    const total  = SLIDE_BLOCKS[bid]?.total || 0;
+    const isFirst = state.cur === 0;
+    const isLast  = state.cur >= total - 1;
+
+    const prevBtn = document.getElementById('slide-prev-' + bid);
+    const nextBtn = document.getElementById('slide-next-' + bid);
+    const counter = document.getElementById('slides-' + bid + '-counter');
+
+    // Prev Slide: hidden on first slide
+    if (prevBtn) prevBtn.style.visibility = isFirst ? 'hidden' : 'visible';
+
+    // Next Slide: hidden on last slide; disabled while speaking
+    if (nextBtn) {
+        if (isLast) {
+            nextBtn.style.display = 'none';
+        } else {
+            nextBtn.style.display = '';
+            nextBtn.disabled      = !!state.speaking;
+            nextBtn.style.opacity = state.speaking ? '0.35' : '';
+        }
+    }
+
+    // Counter: show checkmark on last slide once listened
+    if (counter) {
+        const listened = state.listened.has(state.cur);
+        counter.textContent = (state.cur + 1) + ' / ' + total + (isLast && listened ? ' ✓' : '');
+    }
+}
+
 function slidePrev(id) {
     slidesCancelSpeech();
     const bid = slideBidFromId(id);
     const ps  = document.getElementById(id).querySelectorAll('.slide-panel');
     let c = [...ps].findIndex(p => p.classList.contains('active'));
     if (c > 0) { ps[c].classList.remove('active'); ps[--c].classList.add('active'); }
-    document.getElementById(id + '-counter').textContent = (c + 1) + ' / ' + ps.length;
     if (slideState[bid]) slideState[bid].cur = c;
+    updateSlideNavButtons(bid);
     if (!IS_COMPLETED) slideSpeakCurrent(bid);
 }
 
@@ -1676,8 +1709,8 @@ function slideNext(id, total) {
     const ps  = document.getElementById(id).querySelectorAll('.slide-panel');
     let c = [...ps].findIndex(p => p.classList.contains('active'));
     if (c < ps.length - 1) { ps[c].classList.remove('active'); ps[++c].classList.add('active'); }
-    document.getElementById(id + '-counter').textContent = (c + 1) + ' / ' + ps.length;
     if (slideState[bid]) slideState[bid].cur = c;
+    updateSlideNavButtons(bid);
     if (!IS_COMPLETED) slideSpeakCurrent(bid);
 }
 
@@ -1696,11 +1729,11 @@ function slideAllListened(bid) {
 
 function slidesCancelSpeech() {
     if (typeof window.speechSynthesis !== 'undefined') window.speechSynthesis.cancel();
-    // Hide all narrating indicators
     document.querySelectorAll('.slide-narrating').forEach(el => el.style.display = 'none');
-    // Re-enable all Next Slide buttons
-    document.querySelectorAll('[id^="slide-next-"]').forEach(btn => {
-        btn.disabled = false; btn.style.opacity = '';
+    // Restore correct button states (position-aware, not blind re-enable)
+    Object.keys(SLIDE_BLOCKS).forEach(bid => {
+        if (slideState[bid]) slideState[bid].speaking = false;
+        updateSlideNavButtons(bid);
     });
 }
 
@@ -1726,19 +1759,18 @@ function slideSpeak(bid, idx) {
 
     if (!text) { onSlideAudioDone(bid, idx); return; }
 
-    const utter  = new SpeechSynthesisUtterance(text);
-    utter.rate   = 0.92;
-    utter.lang   = 'en-US';
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate  = 0.92;
+    utter.lang  = 'en-US';
 
-    // Show narrating indicator, lock Next Slide
     const indicator = document.getElementById('slide-narrating-' + bid);
-    const nextBtn   = document.getElementById('slide-next-' + bid);
     if (indicator) indicator.style.display = 'flex';
-    if (nextBtn)   { nextBtn.disabled = true; nextBtn.style.opacity = '0.35'; }
+    if (slideState[bid]) slideState[bid].speaking = true;
+    updateSlideNavButtons(bid); // lock Next Slide while speaking
 
     const done = () => {
         if (indicator) indicator.style.display = 'none';
-        if (nextBtn)   { nextBtn.disabled = false; nextBtn.style.opacity = ''; }
+        if (slideState[bid]) slideState[bid].speaking = false;
         onSlideAudioDone(bid, idx);
     };
     utter.onend   = done;
@@ -1751,6 +1783,7 @@ function onSlideAudioDone(bid, idx) {
     const state = slideState[bid];
     if (!state) return;
     state.listened.add(idx);
+    updateSlideNavButtons(bid); // hide Next Slide if last; re-enable if not last
 
     if (slideAllListened(bid)) {
         const step = SLIDE_BLOCKS[bid]?.step;
