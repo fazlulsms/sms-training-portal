@@ -48,21 +48,6 @@
         }
     }
 
-    // Slide blocks — track step index and slide count for TTS narration lock
-    $slideBlocksData = [];
-    foreach ($lessonBlocks as $bi => $block) {
-        if ($block->block_type === 'slides') {
-            $raw = $block->getDecodedContent();
-            $items = [];
-            if (is_array($raw) && !empty($raw)) {
-                if (isset($raw['slides']) && is_array($raw['slides'])) { $items = array_values($raw['slides']); }
-                elseif (is_string(array_key_first($raw)))               { $items = [$raw]; }
-                else                                                     { $items = array_values($raw); }
-            }
-            $slideBlocksData[$block->id] = ['step' => $bi + 1, 'total' => count($items)];
-        }
-    }
-
     $stepTypes = array_merge(
         ['overview'],
         $lessonBlocks->map(fn($b) => $b->block_type)->values()->all(),
@@ -266,23 +251,6 @@
 .slide-panel.active { display:block; }
 .slide-nav { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:18px; padding-top:18px; border-top:1px solid #f0f2f5; }
 .slide-counter { font-size:13px; font-weight:700; color:#6b7280; }
-.slide-narrating {
-    display:none; align-items:center; gap:8px;
-    background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px;
-    padding:7px 14px; margin-bottom:12px;
-    font-size:12.5px; font-weight:700; color:#1d4ed8;
-}
-.slide-wave { display:inline-flex; gap:3px; align-items:center; }
-.slide-wave span {
-    width:4px; height:14px; border-radius:2px; background:#3b82f6; display:block;
-    animation:slideWave .7s ease-in-out infinite;
-}
-.slide-wave span:nth-child(2) { animation-delay:.15s; }
-.slide-wave span:nth-child(3) { animation-delay:.3s; }
-@keyframes slideWave {
-    0%,100% { transform:scaleY(.4); opacity:.5; }
-    50%      { transform:scaleY(1.3); opacity:1; }
-}
 .sc-scenario-text { background:#f8fafc; border-left:4px solid #1e3a8a; padding:16px 20px; border-radius:0 10px 10px 0; font-size:15.5px; line-height:1.75; color:#374151; margin-bottom:20px; }
 .sc-opt { margin-bottom:10px; }
 .sc-opt-btn { width:100%; background:#f8fafc; border:1.5px solid #e5e7eb; border-radius:12px; padding:14px 16px; cursor:pointer; font-family:inherit; font-size:15px; font-weight:600; color:#374151; text-align:left; display:flex; align-items:center; gap:12px; transition:border-color .14s,background .14s; }
@@ -683,7 +651,7 @@
             @foreach($lessonBlocks as $bi => $block)
             <div class="lf-panel" data-step="{{ $bi + 1 }}">
                 <div class="lf-inner">
-                    @if($block->isAudioEligible() && $block->block_type !== 'slides')
+                    @if($block->isAudioEligible())
                     @include('participant.partials.block-audio-player', [
                         'block'       => $block,
                         'blockAudio'  => ($blockAudioMap ?? collect())[$block->id] ?? null,
@@ -914,11 +882,6 @@
                             <span class="lb-head-title">{{ $block->title ?: 'Presentation' }}</span>
                         </div>
                         <div class="lb-body">
-                            {{-- Narrating indicator (hidden audio, shown while TTS plays) --}}
-                            <div class="slide-narrating" id="slide-narrating-{{ $block->id }}">
-                                <span class="slide-wave"><span></span><span></span><span></span></span>
-                                Narrating slide…
-                            </div>
                             <div id="{{ $slideId }}">
                                 @foreach($slideItems as $si => $slide)
                                 @php
@@ -1480,15 +1443,7 @@ const STEP_LABELS = {!! json_encode(array_merge(['Overview'], $lessonBlocks->map
 const LAST        = {{ $lastPanel }};
 const HAS_ACT     = {{ $hasActivities ? 'true' : 'false' }};
 const STEP_TYPES  = {!! json_encode($stepTypes) !!};
-// 'slides' removed — it uses mandatory TTS narration, not auto-done
-const AUTO_DONE   = new Set(['overview','rich_text','audio','image','gallery','pdf','download','accordion','activities','fun_fact','reflection','click_reveal','myth_fact','workplace_example','case_study']);
-const SLIDE_BLOCKS = {!! json_encode($slideBlocksData) !!};
-
-// Per-block slide state: which slides have been narrated, current index
-const slideState = {};
-Object.keys(SLIDE_BLOCKS).forEach(bid => {
-    slideState[bid] = { cur: 0, listened: new Set() };
-});
+const AUTO_DONE   = new Set(['overview','rich_text','audio','image','gallery','pdf','download','accordion','activities','fun_fact','reflection','click_reveal','myth_fact','workplace_example','case_study','slides']);
 
 function toggleReveal(id) {
     const el = document.getElementById(id);
@@ -1524,8 +1479,6 @@ function goToStep(n) {
     if (n > getFrontier()) return; // block jumping ahead of the furthest reached step
     // Stop all audio whenever the learner changes section
     if (typeof window.lfAudioStopAll === 'function') window.lfAudioStopAll();
-    // Cancel any slide TTS in progress
-    slidesCancelSpeech();
     // Pause any YT video on the panel we're leaving
     const leavingBid = currentYtBlockId();
     if (leavingBid && ytStates[leavingBid]?.player?.pauseVideo) {
@@ -1542,23 +1495,16 @@ function goToStep(n) {
     if (AUTO_DONE.has(STEP_TYPES[n])) stepDone[n] = true;
     renderUI();
     document.querySelector('.lf-panel.lf-active')?.scrollTo({ top: 0 });
-    // Auto-narrate slide step (delayed so panel is visible first)
-    if (!IS_COMPLETED && STEP_TYPES[n] === 'slides') {
-        const bid = currentSlideBlockId();
-        if (bid) setTimeout(() => slideSpeakCurrent(bid), 300);
-    }
+    // Auto-play section audio when entering a block step
+    if (typeof window.sapAutoPlay === 'function') setTimeout(() => sapAutoPlay(n), 250);
 }
 function prevStep() { goToStep(cur - 1); }
 function nextStep() {
     if (isCurrentPanelLocked()) {
-        const ytBid    = currentYtBlockId();
-        const slideBid = currentSlideBlockId();
+        const ytBid = currentYtBlockId();
         if (ytBid) {
             const msg = document.getElementById('yt-lock-msg-' + ytBid);
             if (msg) { msg.style.display = 'flex'; setTimeout(() => { msg.style.display = 'none'; }, 3500); }
-        } else if (slideBid) {
-            // Re-start narration if it somehow stopped
-            slideSpeakCurrent(slideBid);
         } else {
             const msg = document.getElementById('block-lock-' + cur);
             if (msg) { msg.style.display = 'flex'; setTimeout(() => { msg.style.display = 'none'; }, 3500); }
@@ -1601,15 +1547,11 @@ function renderUI() {
             fn.className = 'lfb ' + (locked ? 'lfb-locked' : 'lfb-next');
             const t = STEP_TYPES[cur];
             const lockLabel = t === 'video'          ? '🔒 Watch First'
-                : t === 'slides'                     ? '🔊 Listen First'
                 : t === 'knowledge_check'            ? '❓ Answer First'
                 : t === 'scenario'                   ? '✋ Choose First'
                 : t === 'matching'                   ? '🔗 Match First'
                 : '🔒 Complete First';
-            // Slides step unlabelled differently; Finish only on penultimate content step
-            const nextLabel = (t === 'slides' && !IS_COMPLETED) ? 'Next Section'
-                : (cur > 0 && cur === LAST - 1 && !IS_COMPLETED) ? 'Finish'
-                : 'Next';
+            const nextLabel = (cur > 0 && cur === LAST - 1 && !IS_COMPLETED) ? 'Finish' : 'Next';
             fn.innerHTML = (locked ? lockLabel : nextLabel) +
                 ' <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
         }
@@ -1656,142 +1598,35 @@ function toggleAcc(id) {
     item.querySelector('.acc-body').style.display = item.classList.toggle('open') ? 'block' : 'none';
 }
 
-// ── Slide navigation + TTS narration ─────────────────────────
+// ── Slide navigation ─────────────────────────────────────────
 function slideBidFromId(id) { return id.replace(/^slides-/, ''); }
 
-// Update Prev/Next Slide button visibility based on position & speaking state
 function updateSlideNavButtons(bid) {
-    const state  = slideState[bid];
-    if (!state) return;
-    const total  = SLIDE_BLOCKS[bid]?.total || 0;
-    const isFirst = state.cur === 0;
-    const isLast  = state.cur >= total - 1;
+    const ps    = document.querySelectorAll('#slides-' + bid + ' .slide-panel');
+    const total = ps.length;
+    const c     = [...ps].findIndex(p => p.classList.contains('active'));
 
     const prevBtn = document.getElementById('slide-prev-' + bid);
     const nextBtn = document.getElementById('slide-next-' + bid);
     const counter = document.getElementById('slides-' + bid + '-counter');
 
-    // Prev Slide: hidden on first slide
-    if (prevBtn) prevBtn.style.visibility = isFirst ? 'hidden' : 'visible';
-
-    // Next Slide: hidden on last slide; disabled while speaking
-    if (nextBtn) {
-        if (isLast) {
-            nextBtn.style.display = 'none';
-        } else {
-            nextBtn.style.display = '';
-            nextBtn.disabled      = !!state.speaking;
-            nextBtn.style.opacity = state.speaking ? '0.35' : '';
-        }
-    }
-
-    // Counter: show checkmark on last slide once listened
-    if (counter) {
-        const listened = state.listened.has(state.cur);
-        counter.textContent = (state.cur + 1) + ' / ' + total + (isLast && listened ? ' ✓' : '');
-    }
+    if (prevBtn) prevBtn.style.visibility = c === 0 ? 'hidden' : 'visible';
+    if (nextBtn) nextBtn.style.display    = c >= total - 1 ? 'none' : '';
+    if (counter) counter.textContent      = (c + 1) + ' / ' + total;
 }
 
 function slidePrev(id) {
-    slidesCancelSpeech();
-    const bid = slideBidFromId(id);
-    const ps  = document.getElementById(id).querySelectorAll('.slide-panel');
+    const ps = document.getElementById(id).querySelectorAll('.slide-panel');
     let c = [...ps].findIndex(p => p.classList.contains('active'));
     if (c > 0) { ps[c].classList.remove('active'); ps[--c].classList.add('active'); }
-    if (slideState[bid]) slideState[bid].cur = c;
-    updateSlideNavButtons(bid);
-    if (!IS_COMPLETED) slideSpeakCurrent(bid);
+    updateSlideNavButtons(slideBidFromId(id));
 }
 
 function slideNext(id, total) {
-    slidesCancelSpeech();
-    const bid = slideBidFromId(id);
-    const ps  = document.getElementById(id).querySelectorAll('.slide-panel');
+    const ps = document.getElementById(id).querySelectorAll('.slide-panel');
     let c = [...ps].findIndex(p => p.classList.contains('active'));
     if (c < ps.length - 1) { ps[c].classList.remove('active'); ps[++c].classList.add('active'); }
-    if (slideState[bid]) slideState[bid].cur = c;
-    updateSlideNavButtons(bid);
-    if (!IS_COMPLETED) slideSpeakCurrent(bid);
-}
-
-function currentSlideBlockId() {
-    for (const [bid, info] of Object.entries(SLIDE_BLOCKS)) {
-        if (info.step === cur) return bid;
-    }
-    return null;
-}
-
-function slideAllListened(bid) {
-    const total = SLIDE_BLOCKS[bid]?.total || 0;
-    if (total === 0) return true;
-    return (slideState[bid]?.listened.size || 0) >= total;
-}
-
-function slidesCancelSpeech() {
-    if (typeof window.speechSynthesis !== 'undefined') window.speechSynthesis.cancel();
-    document.querySelectorAll('.slide-narrating').forEach(el => el.style.display = 'none');
-    // Restore correct button states (position-aware, not blind re-enable)
-    Object.keys(SLIDE_BLOCKS).forEach(bid => {
-        if (slideState[bid]) slideState[bid].speaking = false;
-        updateSlideNavButtons(bid);
-    });
-}
-
-function slideSpeakCurrent(bid) {
-    const state = slideState[bid];
-    if (!state) return;
-    const idx = state.cur;
-    if (state.listened.has(idx)) return; // already heard, skip
-    slideSpeak(bid, idx);
-}
-
-function slideSpeak(bid, idx) {
-    if (!window.speechSynthesis) { onSlideAudioDone(bid, idx); return; }
-
-    const panel = document.querySelector(`#slides-${bid} .slide-panel[data-slide="${idx}"]`);
-    if (!panel) { onSlideAudioDone(bid, idx); return; }
-
-    const titleEl = panel.querySelector('[data-slide-title]');
-    const textEl  = panel.querySelector('[data-slide-text]');
-    const title   = titleEl?.textContent?.trim() || '';
-    const body    = textEl?.textContent?.trim()  || '';
-    const text    = [title, body].filter(Boolean).join('. ').replace(/\s+/g, ' ');
-
-    if (!text) { onSlideAudioDone(bid, idx); return; }
-
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.rate  = 0.92;
-    utter.lang  = 'en-US';
-
-    // Stop any block/lesson audio players before narrating
-    if (typeof window.lfAudioStopAll === 'function') window.lfAudioStopAll();
-
-    const indicator = document.getElementById('slide-narrating-' + bid);
-    if (indicator) indicator.style.display = 'flex';
-    if (slideState[bid]) slideState[bid].speaking = true;
-    updateSlideNavButtons(bid); // lock Next Slide while speaking
-
-    const done = () => {
-        if (indicator) indicator.style.display = 'none';
-        if (slideState[bid]) slideState[bid].speaking = false;
-        onSlideAudioDone(bid, idx);
-    };
-    utter.onend   = done;
-    utter.onerror = done;
-
-    window.speechSynthesis.speak(utter);
-}
-
-function onSlideAudioDone(bid, idx) {
-    const state = slideState[bid];
-    if (!state) return;
-    state.listened.add(idx);
-    updateSlideNavButtons(bid); // hide Next Slide if last; re-enable if not last
-
-    if (slideAllListened(bid)) {
-        const step = SLIDE_BLOCKS[bid]?.step;
-        if (step !== undefined) markStepDone(step);
-    }
+    updateSlideNavButtons(slideBidFromId(id));
 }
 
 // Knowledge check
@@ -2026,10 +1861,6 @@ function isCurrentPanelLocked() {
         const bid = currentYtBlockId();
         return bid ? !(ytStates[bid]?.done) : false;
     }
-    if (t === 'slides') {
-        const bid = currentSlideBlockId();
-        return bid ? !slideAllListened(bid) : false;
-    }
     return t === 'knowledge_check' || t === 'scenario' || t === 'matching';
 }
 
@@ -2039,6 +1870,12 @@ function markStepDone(n) {
 }
 
 renderUI();
+
+// Initialise slide nav buttons to correct visibility on first render
+document.querySelectorAll('[id^="slides-"]').forEach(el => {
+    const bid = el.id.replace(/^slides-/, '');
+    if (bid) updateSlideNavButtons(bid);
+});
 
 /* ══ RICH TEXT ENHANCEMENT ENGINE ══════════════════════ */
 (function enhanceRichText() {
@@ -2218,6 +2055,8 @@ renderUI();
             resetPlayerUI(audioId);
             sessionStorage.removeItem(lessonKey + audioId);
         });
+        // Also stop SAP (section audio player) elements
+        if (typeof window.sapStopAll === 'function') window.sapStopAll();
     };
 
     window.lfAudioPlay = function(audioId) {
@@ -2281,6 +2120,78 @@ renderUI();
     // Init all server-rendered audio players on page load
     document.querySelectorAll('audio[id^="lfAudio_"]').forEach(audio => {
         window.bapInitPlayer(audio.id.replace('lfAudio_', ''));
+    });
+})();
+</script>
+
+<script>
+/* ══ Section Audio Player (SAP) ════════════════════════════════
+   Minimal play/pause + mute controls for block-level audio.
+   Elements: sap-audio-{id}, sap-play-{id}, sap-wave-{id}, sap-mute-{id}
+   ============================================================= */
+(function () {
+    const PLAY_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+    const PAUSE_ICON= '<svg width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="none"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
+    const SOUND_ICON= '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
+    const MUTE_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+
+    function sapSetWave(id, playing) {
+        const w = document.getElementById('sap-wave-' + id);
+        if (w) w.classList.toggle('paused', !playing);
+    }
+    function sapSetPlayIcon(id, playing) {
+        const b = document.getElementById('sap-play-' + id);
+        if (b) b.innerHTML = playing ? PAUSE_ICON : PLAY_ICON;
+    }
+
+    window.sapToggle = function(id) {
+        const audio = document.getElementById('sap-audio-' + id);
+        if (!audio) return;
+        if (audio.paused) {
+            // Stop all other audio (bap + sap)
+            if (typeof window.lfAudioStopAll === 'function') window.lfAudioStopAll();
+            audio.play().catch(() => {});
+        } else {
+            audio.pause();
+        }
+    };
+
+    window.sapMute = function(id) {
+        const audio = document.getElementById('sap-audio-' + id);
+        const icon  = document.getElementById('sap-mute-icon-' + id);
+        if (!audio) return;
+        audio.muted = !audio.muted;
+        if (icon) icon.outerHTML = (audio.muted ? MUTE_ICON : SOUND_ICON)
+            .replace('<svg ', '<svg id="sap-mute-icon-' + id + '" ');
+    };
+
+    window.sapStopAll = function() {
+        document.querySelectorAll('audio[id^="sap-audio-"]').forEach(audio => {
+            if (!audio.paused) audio.pause();
+            audio.currentTime = 0;
+            const id = audio.id.replace('sap-audio-', '');
+            sapSetWave(id, false);
+            sapSetPlayIcon(id, false);
+        });
+    };
+
+    // Auto-play the SAP audio for the panel at step n (if any)
+    window.sapAutoPlay = function(n) {
+        const panel = document.querySelector('.lf-panel[data-step="' + n + '"]');
+        if (!panel) return;
+        const audio = panel.querySelector('audio[id^="sap-audio-"]');
+        if (!audio) return;
+        const id = audio.id.replace('sap-audio-', '');
+        if (typeof window.lfAudioStopAll === 'function') window.lfAudioStopAll();
+        audio.play().catch(() => {});
+    };
+
+    // Wire up events on all SAP audio elements
+    document.querySelectorAll('audio[id^="sap-audio-"]').forEach(audio => {
+        const id = audio.id.replace('sap-audio-', '');
+        audio.addEventListener('play',  () => { sapSetWave(id, true);  sapSetPlayIcon(id, true);  });
+        audio.addEventListener('pause', () => { sapSetWave(id, false); sapSetPlayIcon(id, false); });
+        audio.addEventListener('ended', () => { sapSetWave(id, false); sapSetPlayIcon(id, false); audio.currentTime = 0; });
     });
 })();
 </script>

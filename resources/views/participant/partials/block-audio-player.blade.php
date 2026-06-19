@@ -1,6 +1,4 @@
 @php
-    // Only render this partial when block has audio enabled AND audio is ready.
-    // Administrators generate and review audio before publishing — learners never trigger generation.
     $bapIsReady = $block->audio_enabled && $blockAudio && $blockAudio->isReady();
     $audioId    = 'block_' . $block->id;
 @endphp
@@ -9,81 +7,54 @@
 
 @once
 <style>
-/* ── Shared audio player controls ── */
-.lf-aw-label {
-    font-size:11px; font-weight:700; color:rgba(255,255,255,.5);
-    text-transform:uppercase; letter-spacing:.05em; margin-bottom:12px;
-    display:flex; align-items:center; gap:6px;
+/* ── Section Audio Player (SAP) — minimal: play/pause + mute only ── */
+.sap {
+    display:flex; align-items:center; gap:10px;
+    padding:8px 14px; margin-bottom:14px;
+    background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);
+    border-radius:10px; border:1px solid rgba(139,92,246,.25);
 }
-.lf-aw-label-dot {
-    width:6px; height:6px; border-radius:50%; background:#a78bfa; flex-shrink:0;
-    animation: lf-pulse 1.8s ease-in-out infinite;
+.sap-play {
+    width:34px; height:34px; border-radius:50%; border:none;
+    background:#7c3aed; cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    transition:.15s; box-shadow:0 2px 8px rgba(124,58,237,.4);
 }
-.lf-aw-label-dot.paused { animation:none; background:rgba(167,139,250,.4); }
-@keyframes lf-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.75)} }
-.lf-aw-controls { display:flex; align-items:center; gap:10px; }
-.lf-aw-play-btn {
-    width:42px; height:42px; border-radius:50%; background:#7c3aed; border:none;
-    display:flex; align-items:center; justify-content:center; cursor:pointer;
-    flex-shrink:0; transition:.15s; box-shadow:0 2px 8px rgba(124,58,237,.5);
+.sap-play:hover { background:#6d28d9; transform:scale(1.06); }
+.sap-info { flex:1; display:flex; align-items:center; gap:8px; min-width:0; }
+.sap-lbl  { font-size:11px; font-weight:700; color:rgba(255,255,255,.45); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+.sap-wave { display:flex; align-items:center; gap:2px; flex-shrink:0; }
+.sap-wave span { width:3px; height:13px; border-radius:2px; background:#a78bfa; display:block; animation:sapWv .8s ease-in-out infinite; }
+.sap-wave span:nth-child(2) { animation-delay:.16s; }
+.sap-wave span:nth-child(3) { animation-delay:.32s; }
+.sap-wave span:nth-child(4) { animation-delay:.48s; }
+.sap-wave.paused span { animation:none; opacity:.25; transform:scaleY(.35); }
+@keyframes sapWv { 0%,100%{transform:scaleY(.3)} 50%{transform:scaleY(1)} }
+.sap-mute {
+    background:none; border:none; cursor:pointer; padding:5px;
+    color:rgba(255,255,255,.5); display:flex; align-items:center;
+    justify-content:center; flex-shrink:0; transition:color .15s; border-radius:6px;
 }
-.lf-aw-play-btn:hover { background:#6d28d9; transform:scale(1.05); }
-.lf-aw-timeline { flex:1; display:flex; flex-direction:column; gap:5px; }
-.lf-aw-seek {
-    -webkit-appearance:none; appearance:none; width:100%; height:4px;
-    border-radius:2px; background:rgba(255,255,255,.2); outline:none; cursor:pointer;
-}
-.lf-aw-seek::-webkit-slider-thumb {
-    -webkit-appearance:none; appearance:none; width:14px; height:14px;
-    border-radius:50%; background:#a78bfa; cursor:pointer;
-    box-shadow:0 0 0 2px rgba(167,139,250,.4);
-}
-.lf-aw-time {
-    display:flex; justify-content:space-between; font-size:11px;
-    color:rgba(255,255,255,.45); font-variant-numeric:tabular-nums;
-}
-.lf-aw-stop-btn {
-    display:inline-flex; align-items:center; gap:5px;
-    padding:6px 11px; border-radius:7px; flex-shrink:0;
-    background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18);
-    cursor:pointer; font-size:11.5px; font-weight:700; color:rgba(255,255,255,.75);
-    transition:.15s;
-}
-.lf-aw-stop-btn:hover { background:rgba(255,255,255,.2); color:white; }
-.lf-aw-speed-btn {
-    font-size:11.5px; font-weight:800; color:#a78bfa;
-    background:none; border:1px solid rgba(167,139,250,.4);
-    border-radius:5px; padding:3px 7px; cursor:pointer;
-    flex-shrink:0; transition:.15s; min-width:40px; text-align:center;
-}
-.lf-aw-speed-btn:hover { background:rgba(167,139,250,.15); }
-
-/* ── Block player wrapper ── */
-.bap {
-    margin-bottom: 16px;
-}
-.bap-player-wrap {
-    background: linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);
-    border-radius: 12px;
-    padding: 14px 16px;
-    border: 1px solid rgba(139,92,246,.3);
-    box-shadow: 0 3px 14px rgba(124,58,237,.18);
-}
+.sap-mute:hover { color:#fff; background:rgba(255,255,255,.1); }
 </style>
 @endonce
 
-<div class="bap" id="bap_{{ $block->id }}">
-    <div class="bap-player-wrap">
-        @include('participant.partials.audio-player-controls', [
-            'audioId' => $audioId,
-            'label'   => '&#9654; Play Audio',
-        ])
-        <audio id="lfAudio_{{ $audioId }}"
-               preload="none"
-               src="{{ $blockAudio->publicUrl() }}"
-               data-audio-db-id="{{ $blockAudio->id }}"
-               data-audio-duration="{{ $blockAudio->duration_seconds ?? 0 }}"></audio>
+<div class="sap" data-sap-id="{{ $audioId }}">
+    <button class="sap-play" id="sap-play-{{ $audioId }}"
+            onclick="sapToggle('{{ $audioId }}')" type="button" title="Play / Pause">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    </button>
+    <div class="sap-info">
+        <span class="sap-wave paused" id="sap-wave-{{ $audioId }}">
+            <span></span><span></span><span></span><span></span>
+        </span>
+        <span class="sap-lbl">Section Audio</span>
     </div>
+    <button class="sap-mute" id="sap-mute-{{ $audioId }}"
+            onclick="sapMute('{{ $audioId }}')" type="button" title="Mute / Unmute">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="sap-mute-icon-{{ $audioId }}"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    </button>
+    <audio id="sap-audio-{{ $audioId }}" src="{{ $blockAudio->publicUrl() }}" preload="none"></audio>
 </div>
 
 @endif
