@@ -243,12 +243,12 @@
             <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:9px; padding:13px; margin-bottom:8px;">
                 <div style="font-size:11px; font-weight:800; color:#6b7280; margin-bottom:8px; text-transform:uppercase; letter-spacing:.4px;">Slide {{ $si + 1 }}</div>
                 <input type="text" name="slide_title[]" class="fi"
-                       value="{{ $slide['title'] ?? '' }}"
+                       value="{{ $slide['title'] ?? $slide['heading'] ?? '' }}"
                        placeholder="Slide title" style="margin-bottom:7px;">
                 <textarea name="slide_text[]" class="fi" rows="3"
-                          placeholder="Slide body text (HTML ok)" style="margin-bottom:7px;">{{ $slide['text'] ?? '' }}</textarea>
+                          placeholder="Slide body text (HTML ok)" style="margin-bottom:7px;">{{ $slide['text'] ?? $slide['content'] ?? '' }}</textarea>
                 <input type="text" name="slide_image_url[]" class="fi"
-                       value="{{ $slide['image_url'] ?? '' }}"
+                       value="{{ $slide['image_url'] ?? $slide['image'] ?? '' }}"
                        placeholder="Optional image URL for this slide">
                 <button type="button" class="btn-rmv" onclick="this.parentElement.remove()" style="margin-top:8px; width:100%;">✕ Remove Slide</button>
             </div>

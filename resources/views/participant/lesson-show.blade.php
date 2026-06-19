@@ -884,16 +884,21 @@
                         <div class="lb-body">
                             <div id="{{ $slideId }}">
                                 @foreach($slideItems as $si => $slide)
+                                @php
+                                    $slideTitle = $slide['title']    ?? $slide['heading'] ?? '';
+                                    $slideText  = $slide['text']     ?? $slide['content'] ?? '';
+                                    $slideImg   = $slide['image_url'] ?? $slide['image']  ?? '';
+                                @endphp
                                 <div class="slide-panel {{ $si === 0 ? 'active' : '' }}" data-slide="{{ $si }}">
-                                    @if(!empty($slide['image_url']))
-                                        <img src="{{ $slide['image_url'] }}" alt="{{ $slide['title'] ?? '' }}"
+                                    @if(!empty($slideImg))
+                                        <img src="{{ $slideImg }}" alt="{{ $slideTitle }}"
                                              style="width:100%;max-height:340px;object-fit:contain;border-radius:10px;margin-bottom:16px;">
                                     @endif
-                                    @if(!empty($slide['title']))
-                                        <h3 style="font-size:20px;font-weight:800;color:#111827;margin:0 0 10px;">{{ $slide['title'] }}</h3>
+                                    @if(!empty($slideTitle))
+                                        <h3 style="font-size:20px;font-weight:800;color:#111827;margin:0 0 10px;">{{ $slideTitle }}</h3>
                                     @endif
-                                    @if(!empty($slide['text']))
-                                        <div style="font-size:15.5px;color:#374151;line-height:1.8;">{!! $slide['text'] !!}</div>
+                                    @if(!empty($slideText))
+                                        <div style="font-size:15.5px;color:#374151;line-height:1.8;">{!! $slideText !!}</div>
                                     @endif
                                 </div>
                                 @endforeach

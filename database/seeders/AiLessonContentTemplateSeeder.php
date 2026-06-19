@@ -64,7 +64,7 @@ rich_text — Flexible HTML block. Vary the content style each time:
   • LESSON SUMMARY: Final block. Bullet-point key takeaways with ✅ icons.
 
 [STRUCTURED PRESENTATION BLOCKS]
-slides    — Slide-style presentation. Use for: standard interpretation, clause-by-clause breakdowns, executive summaries, phased processes. Include 4–8 slides with short titles and focused content. Each slide must have: title (string), content (HTML string).
+slides    — Slide-style presentation. Use for: standard interpretation, clause-by-clause breakdowns, executive summaries, phased processes. Include 4–8 slides with short titles and focused content. Each slide must have: title (string), text (HTML string).
 accordion — Expandable FAQ / clause-by-clause reference. Use for: standard requirements, checklists, terminology reference, implementation phases. Include 4–8 items. Each item must have: heading (string), content (HTML string).
 matching  — Pair-matching activity. Use for: linking terms to definitions, requirements to clauses, tools to processes, auditor actions to criteria. Include 4–6 pairs. Each pair must have: left (string), right (string).
 
@@ -223,9 +223,9 @@ Return a SINGLE JSON object:
       "type": "slides",
       "title": "[Descriptive Presentation Title]",
       "slides": [
-        {"title": "Slide 1 Title — Short and focused", "content": "<p>Clear, concise slide content. Use bullet points or short paragraphs.</p>"},
-        {"title": "Slide 2 Title", "content": "<ul><li><strong>Key point:</strong> Explanation</li><li>Another key point</li></ul>"},
-        {"title": "Slide 3 Title", "content": "<p>Content for slide 3.</p>"}
+        {"title": "Slide 1 Title — Short and focused", "text": "<p>Clear, concise slide content. Use bullet points or short paragraphs.</p>"},
+        {"title": "Slide 2 Title", "text": "<ul><li><strong>Key point:</strong> Explanation</li><li>Another key point</li></ul>"},
+        {"title": "Slide 3 Title", "text": "<p>Content for slide 3.</p>"}
       ]
     },
 

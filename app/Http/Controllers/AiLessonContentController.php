@@ -376,7 +376,13 @@ class AiLessonContentController extends Controller
 
             'slides' => (function () use ($block): ?string {
                 if (empty($block['slides'])) return null;
-                return json_encode($block['slides']); // flat array, same format as buildSlidesJson
+                // Normalize AI field aliases to the canonical schema: title, text, image_url
+                $normalized = array_map(fn($s) => [
+                    'title'     => $s['title']     ?? $s['heading']   ?? '',
+                    'text'      => $s['text']       ?? $s['content']   ?? '',
+                    'image_url' => $s['image_url']  ?? $s['image']     ?? '',
+                ], $block['slides']);
+                return json_encode($normalized);
             })(),
 
             'accordion' => (function () use ($block): ?string {
