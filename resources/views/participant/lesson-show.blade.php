@@ -1399,12 +1399,6 @@
                         <span class="lfb lfb-dis">Complete Quiz First</span>
                     @endif
                 </form>
-                @if($requiresAudioCompletion)
-                <div id="audioGateMsg" style="font-size:11.5px;color:#d97706;font-weight:600;display:flex;align-items:center;gap:5px;margin-left:6px;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                    Listen to audio first
-                </div>
-                @endif
                 @elseif($isCompleted)
                 <span class="lfb lfb-done" id="doneChip" style="display:none;">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
