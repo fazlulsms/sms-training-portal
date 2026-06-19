@@ -387,7 +387,12 @@ class AiLessonContentController extends Controller
 
             'accordion' => (function () use ($block): ?string {
                 if (empty($block['items'])) return null;
-                return json_encode(['items' => $block['items']]);
+                // Normalize to canonical flat array with title/body keys (same as admin-created)
+                $normalized = array_map(fn($it) => [
+                    'title' => $it['title'] ?? $it['heading'] ?? '',
+                    'body'  => $it['body']  ?? $it['content'] ?? '',
+                ], $block['items']);
+                return json_encode($normalized);
             })(),
 
             'matching' => (function () use ($block): ?string {

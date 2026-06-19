@@ -175,7 +175,14 @@
         $acItems = [];
         if ($block) {
             $decoded = $block->getDecodedContent();
-            $acItems = is_array($decoded) ? $decoded : [];
+            if (is_array($decoded)) {
+                // Handle AI-generated {"items":[...]} wrapper and normalize keys
+                $raw = (isset($decoded['items']) && is_array($decoded['items'])) ? $decoded['items'] : $decoded;
+                $acItems = array_map(fn($it) => [
+                    'title' => $it['title'] ?? $it['heading'] ?? '',
+                    'body'  => $it['body']  ?? $it['content'] ?? '',
+                ], $raw);
+            }
         }
         if (empty($acItems)) {
             $acItems = [['title'=>'','body'=>''], ['title'=>'','body'=>'']];

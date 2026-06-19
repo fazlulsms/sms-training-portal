@@ -65,7 +65,7 @@ rich_text — Flexible HTML block. Vary the content style each time:
 
 [STRUCTURED PRESENTATION BLOCKS]
 slides    — Slide-style presentation. Use for: standard interpretation, clause-by-clause breakdowns, executive summaries, phased processes. Include 4–8 slides with short titles and focused content. Each slide must have: title (string), text (HTML string).
-accordion — Expandable FAQ / clause-by-clause reference. Use for: standard requirements, checklists, terminology reference, implementation phases. Include 4–8 items. Each item must have: heading (string), content (HTML string).
+accordion — Expandable FAQ / clause-by-clause reference. Use for: standard requirements, checklists, terminology reference, implementation phases. Include 4–8 items. Each item must have: title (string), body (HTML string).
 matching  — Pair-matching activity. Use for: linking terms to definitions, requirements to clauses, tools to processes, auditor actions to criteria. Include 4–6 pairs. Each pair must have: left (string), right (string).
 
 [ENGAGEMENT BLOCKS — select based on fit, not formula]
@@ -233,9 +233,9 @@ Return a SINGLE JSON object:
       "type": "accordion",
       "title": "[Descriptive Accordion Title — e.g. 'Clause-by-Clause Reference']",
       "items": [
-        {"heading": "Item 1 Heading", "content": "<p>Detailed explanation for item 1.</p>"},
-        {"heading": "Item 2 Heading", "content": "<p>Detailed explanation for item 2.</p>"},
-        {"heading": "Item 3 Heading", "content": "<p>Detailed explanation for item 3.</p>"}
+        {"title": "Item 1 Heading", "body": "<p>Detailed explanation for item 1.</p>"},
+        {"title": "Item 2 Heading", "body": "<p>Detailed explanation for item 2.</p>"},
+        {"title": "Item 3 Heading", "body": "<p>Detailed explanation for item 3.</p>"}
       ]
     },
 

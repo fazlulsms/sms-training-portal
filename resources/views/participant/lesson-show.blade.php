@@ -796,7 +796,11 @@
                     @break
 
                     @case('accordion')
-                    @php $acItems = $block->getDecodedContent(); @endphp
+                    @php
+                        $acRaw   = $block->getDecodedContent();
+                        // Handle AI-generated format: {"items":[...]} wrapper
+                        $acItems = (isset($acRaw['items']) && is_array($acRaw['items'])) ? $acRaw['items'] : (is_array($acRaw) ? $acRaw : []);
+                    @endphp
                     <div class="lb">
                         @if($block->title)
                         <div class="lb-head">
@@ -809,10 +813,10 @@
                             @foreach($acItems as $ai => $item)
                             <div class="acc-item" id="acc-{{ $block->id }}-{{ $ai }}">
                                 <button type="button" class="acc-header" onclick="toggleAcc('acc-{{ $block->id }}-{{ $ai }}')">
-                                    <span>{{ $item['title'] ?? '' }}</span>
+                                    <span>{{ $item['title'] ?? $item['heading'] ?? '' }}</span>
                                     <svg class="acc-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
                                 </button>
-                                <div class="acc-body" style="display:none;">{!! nl2br(e($item['body'] ?? '')) !!}</div>
+                                <div class="acc-body" style="display:none;">{!! $item['body'] ?? $item['content'] ?? '' !!}</div>
                             </div>
                             @endforeach
                         </div>
