@@ -218,7 +218,14 @@
         $slideItems = [];
         if ($block) {
             $decoded = $block->getDecodedContent();
-            $slideItems = is_array($decoded) ? $decoded : [];
+            if (is_array($decoded) && !empty($decoded)) {
+                // Single slide stored as flat assoc array (legacy) — wrap it
+                if (is_string(array_key_first($decoded))) {
+                    $slideItems = [$decoded];
+                } else {
+                    $slideItems = array_values($decoded); // ensure sequential int keys
+                }
+            }
         }
         if (empty($slideItems)) {
             $slideItems = [
