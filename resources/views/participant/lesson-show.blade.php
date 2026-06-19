@@ -683,7 +683,7 @@
             @foreach($lessonBlocks as $bi => $block)
             <div class="lf-panel" data-step="{{ $bi + 1 }}">
                 <div class="lf-inner">
-                    @if($block->isAudioEligible())
+                    @if($block->isAudioEligible() && $block->block_type !== 'slides')
                     @include('participant.partials.block-audio-player', [
                         'block'       => $block,
                         'blockAudio'  => ($blockAudioMap ?? collect())[$block->id] ?? null,
@@ -1762,6 +1762,9 @@ function slideSpeak(bid, idx) {
     const utter = new SpeechSynthesisUtterance(text);
     utter.rate  = 0.92;
     utter.lang  = 'en-US';
+
+    // Stop any block/lesson audio players before narrating
+    if (typeof window.lfAudioStopAll === 'function') window.lfAudioStopAll();
 
     const indicator = document.getElementById('slide-narrating-' + bid);
     if (indicator) indicator.style.display = 'flex';
