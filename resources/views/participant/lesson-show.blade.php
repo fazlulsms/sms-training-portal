@@ -635,6 +635,11 @@
                             Review Lesson
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                         </button>
+                        @elseif($lessonProgress && !$previewMode)
+                        <button onclick="nextStep()" class="lfb lfb-next" type="button" style="padding:12px 28px;font-size:15px;">
+                            Continue Lesson
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
                         @else
                         <button onclick="nextStep()" class="lfb lfb-next" type="button" style="padding:12px 28px;font-size:15px;">
                             Start Lesson
@@ -1868,6 +1873,11 @@ function markStepDone(n) {
 }
 
 renderUI();
+
+// Auto-advance to Step 1 when redirected from completing the previous lesson
+@if(session('success') && str_contains(session('success'), 'Lesson completed') && !$isCompleted)
+if (LAST > 0) setTimeout(() => goToStep(1), 100);
+@endif
 
 // Initialise slide nav buttons to correct visibility on first render
 document.querySelectorAll('[id^="slides-"]').forEach(el => {
