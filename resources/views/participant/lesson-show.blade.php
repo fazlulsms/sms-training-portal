@@ -1420,6 +1420,14 @@
                 </span>
                 @endif
 
+                @if(!$previewMode && $nextLesson)
+                <a href="{{ route('participant.lesson.show', [$enrollment->id, $nextLesson->id]) }}"
+                   class="lfb lfb-next" id="btnNextLesson" style="display:none;">
+                    Next Lesson
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+                @endif
+
                 <a href="{{ $previewMode ? route('elearning.lessons.index', $previewCourse) : route('participant.elearning-details', $enrollment->id) }}"
                    class="lfb lfb-teal" id="btnCourseOv" style="display:none;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
@@ -1562,13 +1570,23 @@ function renderUI() {
     if (tn) tn.disabled = locked || isLast;
 
     // Completion actions:
-    // - Completed lessons: always show doneChip + Next Lesson (revision browsing mode)
-    // - Incomplete lessons: show only on last unlocked step (original behaviour)
+    // - Completed lessons: always show doneChip + Course Overview (revision mode)
+    // - Incomplete lessons: show only on last unlocked step
     const showCompletion = IS_COMPLETED || (isLast && !locked);
     ['frmComplete','doneChip','previewChip','btnCourseOv'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = showCompletion ? '' : 'none';
     });
+
+    // On the Overview of a completed lesson: hide "Next >" (goes into lesson steps)
+    // and show "Next Lesson >" instead so the user can move forward immediately.
+    const nlBtn = document.getElementById('btnNextLesson');
+    if (IS_COMPLETED && cur === 0) {
+        if (fn) fn.style.display = 'none';
+        if (nlBtn) nlBtn.style.display = '';
+    } else {
+        if (nlBtn) nlBtn.style.display = 'none';
+    }
 
     // Dim dots beyond the current frontier
     const frontier = getFrontier();
