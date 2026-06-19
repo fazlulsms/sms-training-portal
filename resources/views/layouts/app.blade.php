@@ -225,15 +225,14 @@
         </a>
 
         <div class="sb-divider"></div>
-        <div class="sb-group sg-il" x-data="{ open: {{ request()->is('trainer/schedules*') || request()->is('trainer/enrollments*') ? 'true' : 'false' }} }">
-            <div class="sb-group-header" @click="open = !open">
+        <div class="sb-group sg-il">
+            <div class="sb-group-header" style="cursor:default;">
                 <div class="sb-group-label">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                     Instructor-Led
                 </div>
-                <svg class="sb-chevron" :class="{ open }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
-            <div class="sb-group-items" x-show="open" x-transition>
+            <div class="sb-group-items">
                 <a href="{{ route('trainer.schedules') }}"
                    class="sb-sub {{ request()->is('trainer/schedules*') ? 'active' : '' }}">
                     <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
@@ -294,52 +293,22 @@
         <div class="sb-divider"></div>
 
         {{-- B. E-Learning / Self-Paced ─ Blue ─────────── --}}
-        @php
-            $elActive = request()->is('elearning*');
-        @endphp
-        <div class="sb-group sg-el"
-             x-data="{ open: {{ $elActive ? 'true' : 'false' }} }">
+        <div class="sb-group sg-el">
 
-            <div class="sb-group-header" @click="open = !open">
+            <div class="sb-group-header" style="cursor:default;">
                 <div class="sb-group-label">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z"/></svg>
                     E-Learning
                     <span class="sb-group-pill">Self-Paced</span>
                 </div>
-                <svg class="sb-chevron" :class="{ open }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
 
-            <div class="sb-group-items" x-show="open" x-transition>
+            <div class="sb-group-items">
 
                 <a href="{{ route('elearning.courses.index') }}"
-                   class="sb-sub {{ request()->is('elearning/courses*') ? 'active' : '' }}">
+                   class="sb-sub {{ request()->is('elearning/courses*') || request()->is('elearning/*/lessons*') || request()->is('elearning/*/quizzes*') || request()->is('elearning/*/resources*') || request()->is('elearning/*/questions*') ? 'active' : '' }}">
                     <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
                     Courses
-                </a>
-
-                {{-- Lessons, Quizzes, Resources are nested under a course — link to courses index --}}
-                <a href="{{ route('elearning.courses.index') }}"
-                   class="sb-sub {{ request()->is('elearning/*/lessons*') ? 'active' : '' }}">
-                    <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>
-                    Lessons
-                </a>
-
-                <a href="{{ route('elearning.courses.index') }}"
-                   class="sb-sub {{ request()->is('elearning/*/resources*') ? 'active' : '' }}">
-                    <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></span>
-                    Resources
-                </a>
-
-                <a href="{{ route('elearning.courses.index') }}"
-                   class="sb-sub {{ request()->is('elearning/*/quizzes*') ? 'active' : '' }}">
-                    <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
-                    Quizzes
-                </a>
-
-                <a href="{{ route('elearning.courses.index') }}"
-                   class="sb-sub {{ request()->is('elearning/*/questions*') ? 'active' : '' }}">
-                    <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></span>
-                    Question Bank
                 </a>
 
                 <a href="{{ route('elearning.enrollments.index') }}"
@@ -348,15 +317,11 @@
                     Enrollments
                 </a>
 
-                {{-- Certificates: filter enrollments by certificate status --}}
                 <a href="{{ route('elearning.enrollments.index') }}?certificate=eligible"
                    class="sb-sub">
                     <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></span>
                     Certificates
                 </a>
-
-                {{-- Reports: TODO — route does not exist yet --}}
-                {{-- <a href="/admin/reports/elearning" class="sb-sub">Reports</a> --}}
 
             </div>
         </div>
@@ -364,26 +329,17 @@
         <div class="sb-divider"></div>
 
         {{-- C. Instructor-Led / Manual ─ Amber ──────────── --}}
-        @php
-            $ilActive = request()->is('admin/courses*') || request()->is('admin/trainers*')
-                     || request()->is('admin/training-schedules*') || request()->is('enrollments*')
-                     || request()->is('admin/invoices*') || request()->is('admin/certificates*')
-                     || request()->is('admin/question-sets*') || request()->is('admin/training-exams*')
-                     ;
-        @endphp
-        <div class="sb-group sg-il"
-             x-data="{ open: {{ $ilActive ? 'true' : 'false' }} }">
+        <div class="sb-group sg-il">
 
-            <div class="sb-group-header" @click="open = !open">
+            <div class="sb-group-header" style="cursor:default;">
                 <div class="sb-group-label">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     Instructor-Led
                     <span class="sb-group-pill">Manual</span>
                 </div>
-                <svg class="sb-chevron" :class="{ open }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
 
-            <div class="sb-group-items" x-show="open" x-transition>
+            <div class="sb-group-items">
 
                 <a href="/admin/courses"
                    class="sb-sub {{ request()->is('admin/courses*') ? 'active' : '' }}">
@@ -440,21 +396,16 @@
         <div class="sb-divider"></div>
 
         {{-- C2. Corporate Training ───────────────────────── --}}
-        @php
-            $corpActive = request()->is('corporate*');
-        @endphp
-        <div class="sb-group sg-corporate"
-             x-data="{ open: {{ $corpActive ? 'true' : 'false' }} }">
+        <div class="sb-group sg-corporate">
 
-            <div class="sb-group-header" @click="open = !open">
+            <div class="sb-group-header" style="cursor:default;">
                 <div class="sb-group-label">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
                     Corporate Training
                 </div>
-                <svg class="sb-chevron" :class="{ open }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
 
-            <div class="sb-group-items" x-show="open" x-transition>
+            <div class="sb-group-items">
 
                 <a href="{{ route('corporate.projects.index') }}"
                    class="sb-sub {{ request()->is('corporate/projects*') ? 'active' : '' }}">
@@ -474,19 +425,16 @@
         <div class="sb-divider"></div>
 
         {{-- C3. Reports & Analytics ─────────────────────── --}}
-        @php $rptActive = request()->is('reports*'); @endphp
-        <div class="sb-group sg-reports"
-             x-data="{ open: {{ $rptActive ? 'true' : 'false' }} }">
+        <div class="sb-group sg-reports">
 
-            <div class="sb-group-header" @click="open = !open">
+            <div class="sb-group-header" style="cursor:default;">
                 <div class="sb-group-label">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                     Reports & Analytics
                 </div>
-                <svg class="sb-chevron" :class="{ open }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
 
-            <div class="sb-group-items" x-show="open" x-transition>
+            <div class="sb-group-items">
                 <a href="{{ route('reports.index') }}"
                    class="sb-sub {{ request()->is('reports') ? 'active' : '' }}">
                     <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
@@ -523,19 +471,16 @@
         <div class="sb-divider"></div>
 
         {{-- C4. Feedback & Evaluations ─────────────────── --}}
-        @php $fbActive = request()->is('feedback*'); @endphp
-        <div class="sb-group sg-feedback"
-             x-data="{ open: {{ $fbActive ? 'true' : 'false' }} }">
+        <div class="sb-group sg-feedback">
 
-            <div class="sb-group-header" @click="open = !open">
+            <div class="sb-group-header" style="cursor:default;">
                 <div class="sb-group-label">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     Feedback
                 </div>
-                <svg class="sb-chevron" :class="{ open }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
 
-            <div class="sb-group-items" x-show="open" x-transition>
+            <div class="sb-group-items">
                 <a href="{{ route('feedback.templates.index') }}"
                    class="sb-sub {{ request()->is('feedback/templates*') ? 'active' : '' }}">
                     <span class="sb-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
@@ -552,19 +497,16 @@
         <div class="sb-divider"></div>
 
         {{-- C5. Content & Media ─────────────────────────── --}}
-        @php $contentActive = request()->is('admin/training-news*') || request()->is('admin/training-media*'); @endphp
-        <div class="sb-group" style="--sg-accent:#f472b6;"
-             x-data="{ open: {{ $contentActive ? 'true' : 'false' }} }">
+        <div class="sb-group" style="--sg-accent:#f472b6;">
 
-            <div class="sb-group-header" @click="open = !open">
+            <div class="sb-group-header" style="cursor:default;">
                 <div class="sb-group-label" style="color:#f472b6;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10l6 6v8a2 2 0 0 1-2 2z"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
                     Content & Media
                 </div>
-                <svg class="sb-chevron" :class="{ open }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
 
-            <div class="sb-group-items" x-show="open" x-transition>
+            <div class="sb-group-items">
                 <a href="{{ route('training-news.index') }}"
                    class="sb-sub {{ request()->is('admin/training-news*') ? 'active' : '' }}"
                    style="{{ request()->is('admin/training-news*') ? 'background:rgba(244,114,182,.12);color:#f9a8d4;' : '' }}">
@@ -585,19 +527,16 @@
         </div>
 
         {{-- C6. Promotions ─────────────────────────── --}}
-        @php $promoActive = request()->is('admin/coupons*'); @endphp
-        <div class="sb-group" style="--sg-accent:#f59e0b;"
-             x-data="{ open: {{ $promoActive ? 'true' : 'false' }} }">
+        <div class="sb-group" style="--sg-accent:#f59e0b;">
 
-            <div class="sb-group-header" @click="open = !open">
+            <div class="sb-group-header" style="cursor:default;">
                 <div class="sb-group-label" style="color:#f59e0b;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
                     Promotions
                 </div>
-                <svg class="sb-chevron" :class="{ open }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
 
-            <div class="sb-group-items" x-show="open" x-transition>
+            <div class="sb-group-items">
                 <a href="{{ route('admin.coupons.index') }}"
                    class="sb-sub {{ $promoActive ? 'active' : '' }}"
                    style="{{ $promoActive ? 'background:rgba(245,158,11,.12);color:#fcd34d;' : '' }}">
@@ -612,23 +551,16 @@
         <div class="sb-divider"></div>
 
         {{-- D. Administration ──────────────────────────── --}}
-        @php
-            $adminActive = request()->is('users*') || request()->is('settings*')
-                        || request()->is('profile*') || request()->is('admin/ai*')
-                        || request()->is('admin/setup*');
-        @endphp
-        <div class="sb-group sg-admin"
-             x-data="{ open: {{ $adminActive ? 'true' : 'false' }} }">
+        <div class="sb-group sg-admin">
 
-            <div class="sb-group-header" @click="open = !open">
+            <div class="sb-group-header" style="cursor:default;">
                 <div class="sb-group-label">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                     Administration
                 </div>
-                <svg class="sb-chevron" :class="{ open }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
 
-            <div class="sb-group-items" x-show="open" x-transition>
+            <div class="sb-group-items">
 
                 <a href="{{ route('users.index') }}"
                    class="sb-sub {{ request()->is('users*') ? 'active' : '' }}">
