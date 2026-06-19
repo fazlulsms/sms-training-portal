@@ -61,6 +61,7 @@ use App\Http\Controllers\AiTrainingNewsController;
 use App\Http\Controllers\TrainingMediaController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\LessonAudioController;
+use App\Http\Controllers\KnowledgeResourceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -125,6 +126,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
+    Route::prefix('knowledge-hub')->name('knowledge-hub.')->group(function () {
+        Route::get('/', [KnowledgeResourceController::class, 'index'])->name('index');
+        Route::get('/create', [KnowledgeResourceController::class, 'create'])->name('create');
+        Route::post('/', [KnowledgeResourceController::class, 'store'])->name('store');
+        Route::get('/{knowledgeResource}', [KnowledgeResourceController::class, 'show'])->name('show');
+        Route::get('/{knowledgeResource}/edit', [KnowledgeResourceController::class, 'edit'])->name('edit');
+        Route::put('/{knowledgeResource}', [KnowledgeResourceController::class, 'update'])->name('update');
+        Route::post('/{knowledgeResource}/archive', [KnowledgeResourceController::class, 'archive'])->name('archive');
+        Route::get('/{knowledgeResource}/file', [KnowledgeResourceController::class, 'viewFile'])->name('file');
+        Route::get('/{knowledgeResource}/download', [KnowledgeResourceController::class, 'download'])->name('download');
+    });
 
     /*
     |--------------------------------------------------------------------------

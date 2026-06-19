@@ -249,6 +249,12 @@
             My Courses
         </a>
 
+        <a href="{{ route('knowledge-hub.index') }}"
+           class="sb-item {{ request()->is('knowledge-hub*') ? 'active' : '' }}">
+            <span class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+            Knowledge Hub
+        </a>
+
         <a href="{{ route('profile.edit') }}"
            class="sb-item {{ request()->is('profile*') ? 'active' : '' }}">
             <span class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
@@ -502,7 +508,7 @@
             <div class="sb-group-header" style="cursor:default;">
                 <div class="sb-group-label" style="color:#f472b6;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10l6 6v8a2 2 0 0 1-2 2z"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
-                    Content & Media
+                    Training Content
                 </div>
             </div>
 
@@ -522,6 +528,14 @@
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                     </span>
                     Content Analytics
+                </a>
+                <a href="{{ route('knowledge-hub.index') }}"
+                   class="sb-sub {{ request()->is('knowledge-hub*') ? 'active' : '' }}"
+                   style="{{ request()->is('knowledge-hub*') ? 'background:rgba(244,114,182,.12);color:#f9a8d4;' : '' }}">
+                    <span class="sb-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    </span>
+                    Knowledge Hub
                 </a>
             </div>
         </div>
