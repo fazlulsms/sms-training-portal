@@ -527,6 +527,7 @@
         </div>
 
         {{-- C6. Promotions ─────────────────────────── --}}
+        @php $promoActive = request()->is('admin/coupons*'); @endphp
         <div class="sb-group" style="--sg-accent:#f59e0b;">
 
             <div class="sb-group-header" style="cursor:default;">
