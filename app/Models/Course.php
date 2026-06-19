@@ -19,10 +19,14 @@ class Course extends Model
         'cover_image', 'cover_thumbnail', 'cover_generated_by_ai', 'cover_prompt',
         'certificate_type', 'certification_info',
         'course_fee', 'public_price', 'access_days', 'passing_score',
+        'assessment_policy', 'module_check_max_attempts', 'final_exam_max_attempts',
+        'require_module_review', 'require_admin_approval',
         'certificate_template', 'lesson_count', 'certification_remarks',
         'is_public', 'is_featured', 'display_order', 'featured_order',
         'course_video_url', 'faq', 'seo_title', 'seo_description', 'seo_keywords',
         'ai_generated', 'ai_course_structure',
+        'ai_generation_version', 'blueprint_status', 'blueprint_approved_at', 'blueprint_approved_by',
+        'target_learning_minutes', 'estimated_learning_minutes', 'content_quality_score', 'content_quality_report',
         'gen_status', 'gen_progress', 'gen_started_at', 'gen_completed_at',
     ];
 
@@ -35,6 +39,8 @@ class Course extends Model
         'gen_progress'        => 'array',
         'gen_started_at'      => 'datetime',
         'gen_completed_at'    => 'datetime',
+        'blueprint_approved_at' => 'datetime',
+        'content_quality_report' => 'array',
     ];
 
     protected static function booted(): void
@@ -105,6 +111,21 @@ class Course extends Model
     public function elearningLessons()
     {
         return $this->hasMany(\App\Models\ElearningLesson::class, 'course_id', 'id');
+    }
+
+    public function knowledgeResources()
+    {
+        return $this->belongsToMany(KnowledgeResource::class, 'course_knowledge_resource')->withPivot('role')->withTimestamps();
+    }
+
+    public function blueprintModules()
+    {
+        return $this->hasMany(CourseBlueprintModule::class)->orderBy('module_order');
+    }
+
+    public function questionBank()
+    {
+        return $this->belongsToMany(AiQuestionBank::class, 'ai_question_bank_course')->withTimestamps();
     }
 
     public function trainingSchedules()

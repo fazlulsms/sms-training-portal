@@ -45,6 +45,7 @@
             use App\Models\LtfStandard;
             use App\Models\LtfIndustry;
             use App\Models\LtfAudienceType;
+            use App\Models\KnowledgeResource;
 
             $aiFrameworks    = LtfLearningFramework::active()->orderBy('display_order')->get(['id','name','ai_block_hint']);
             $aiDeliveries    = LtfDeliveryMethod::active()->orderBy('display_order')->get(['id','name']);
@@ -53,6 +54,11 @@
             $aiStandards     = LtfStandard::active()->orderBy('name')->get(['id','name']);
             $aiIndustries    = LtfIndustry::active()->orderBy('display_order')->get(['id','name']);
             $aiAudiences     = LtfAudienceType::active()->orderBy('display_order')->get(['id','name']);
+            $aiKnowledgeResources = KnowledgeResource::approved()
+                ->where('extraction_status', 'ready')
+                ->whereNotNull('extracted_text')
+                ->orderBy('standard_framework')->orderBy('clause_number')->orderBy('title')
+                ->get(['id','title','standard_framework','clause_number','version']);
 
             // Build purpose→framework map for JS
             $purposeToFramework = $aiPurposes->pluck('suggested_framework_id','id')->filter()->toArray();
@@ -283,6 +289,28 @@
                 </div>
                 <div id="aiContextPreviewBody" style="padding:12px 14px; display:grid; grid-template-columns:140px 1fr; gap:4px 10px; font-size:12px; align-items:start;"></div>
             </div>
+
+            @if(($aiCourseType ?? 'ilt') === 'elearning')
+            <div style="margin-bottom:20px;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#0f766e;border-bottom:1px solid #a7f3d0;padding-bottom:6px;margin-bottom:12px;">
+                    4 · Approved Knowledge Hub Sources
+                </div>
+                <div style="font-size:12px;color:#475569;margin-bottom:10px;">Required for Complete eLearning V2. AI is restricted to selected source text.</div>
+                <div style="max-height:210px;overflow:auto;border:1px solid #d1fae5;border-radius:9px;padding:8px;background:#f0fdf4;">
+                    @forelse($aiKnowledgeResources as $resource)
+                        <label style="display:flex;gap:9px;align-items:flex-start;padding:8px;border-bottom:1px solid #dcfce7;cursor:pointer;">
+                            <input type="checkbox" class="ai-knowledge-resource" value="{{ $resource->id }}" style="margin-top:3px;accent-color:#0f766e;">
+                            <span>
+                                <strong style="font-size:12.5px;color:#134e4a;">{{ $resource->title }}</strong>
+                                <span style="display:block;font-size:11px;color:#64748b;">{{ $resource->standard_framework }}{{ $resource->clause_number ? ' · Clause '.$resource->clause_number : '' }}{{ $resource->version ? ' · '.$resource->version : '' }}</span>
+                            </span>
+                        </label>
+                    @empty
+                        <div style="padding:14px;font-size:12px;color:#b45309;">No Approved resources with reviewed source text are available.</div>
+                    @endforelse
+                </div>
+            </div>
+            @endif
 
             {{-- ═══ Additional Instructions ══════════════════════════════════ --}}
             <div style="margin-bottom:20px;">
@@ -667,9 +695,13 @@ async function submitAiGenerate() {
     const ltfCompetency = document.getElementById('ai_ltf_competency').value;
     const modeBEl       = document.getElementById('modeB');
     const generationMode = (modeBEl && modeBEl.checked) ? 'complete' : 'structure';
+    const knowledgeResourceIds = Array.from(document.querySelectorAll('.ai-knowledge-resource:checked')).map(el => parseInt(el.value));
 
     if (!courseName) { showAiError('Course Name is required.'); return; }
     if (!duration)   { showAiError('Duration is required.'); return; }
+    if (generationMode === 'complete' && knowledgeResourceIds.length === 0) {
+        showAiError('Select at least one Approved Knowledge Hub source for Complete eLearning V2.'); return;
+    }
 
     // Show loading
     document.getElementById('aiModalForm').style.display    = 'none';
@@ -688,6 +720,7 @@ async function submitAiGenerate() {
             instructions:     instructions,
             course_type:      AI_COURSE_TYPE,
             generation_mode:  generationMode,
+            knowledge_resource_ids: knowledgeResourceIds,
         };
 
         // LTF taxonomy — only include if selected

@@ -48,6 +48,11 @@
             </div>
 
             <div class="kh-field">
+                <label for="subcategory">Subcategory</label>
+                <input id="subcategory" name="subcategory" type="text" value="{{ $value('subcategory') }}" maxlength="120">
+            </div>
+
+            <div class="kh-field">
                 <label for="standard_framework">Standard / Framework <span>*</span></label>
                 <input id="standard_framework" name="standard_framework" type="text"
                        value="{{ $value('standard_framework') }}" required maxlength="150"
@@ -58,6 +63,20 @@
                 <label for="version">Version</label>
                 <input id="version" name="version" type="text" value="{{ $value('version') }}"
                        maxlength="50" placeholder="e.g. 2024 or Rev. 2">
+            </div>
+
+            <div class="kh-field">
+                <label for="clause_number">Clause Number</label>
+                <input id="clause_number" name="clause_number" type="text" value="{{ $value('clause_number') }}" maxlength="80" placeholder="e.g. 4.1–4.4">
+            </div>
+
+            <div class="kh-field">
+                <label for="difficulty_level">Difficulty Level <span>*</span></label>
+                <select id="difficulty_level" name="difficulty_level" required>
+                    @foreach(['beginner','intermediate','advanced','expert'] as $level)
+                        <option value="{{ $level }}" @selected($value('difficulty_level', 'intermediate') === $level)>{{ ucfirst($level) }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="kh-field">
@@ -86,6 +105,22 @@
                 <label for="notes">Notes / Remarks</label>
                 <textarea id="notes" name="notes" rows="6" maxlength="10000"
                           placeholder="Add context, intended use, source details, or review notes.">{{ $value('notes') }}</textarea>
+            </div>
+
+            <div class="kh-field kh-span-2">
+                <label for="learning_objectives">Learning Objectives</label>
+                <textarea id="learning_objectives" name="learning_objectives" rows="4">{{ $value('learning_objectives') }}</textarea>
+            </div>
+
+            <div class="kh-field kh-span-2">
+                <label for="source_references">Source References</label>
+                <textarea id="source_references" name="source_references" rows="3">{{ $value('source_references') }}</textarea>
+            </div>
+
+            <div class="kh-field kh-span-2">
+                <label for="extracted_text">Machine-Readable Source Text</label>
+                <textarea id="extracted_text" name="extracted_text" rows="10" placeholder="Automatically extracted from supported documents. For images or video, enter an approved transcript or source text here.">{{ $value('extracted_text') }}</textarea>
+                <small>V2 generation uses this text only. Review it before approving the resource.</small>
             </div>
         </div>
     </div>

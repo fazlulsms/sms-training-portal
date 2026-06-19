@@ -62,6 +62,7 @@ class ElearningLessonController extends Controller
 
     public function edit(Course $course, ElearningLesson $lesson)
     {
+        $lesson->load('knowledgeResources');
         $blocks    = $lesson->allBlocks()->get();
         $types     = LessonBlock::TYPES;
         $rules     = ElearningLesson::completionRules();

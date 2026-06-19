@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\CourseCategory;
 use Illuminate\Http\Request;
+use App\Services\CourseQualityService;
 
 class ElearningCourseController extends Controller
 {
@@ -115,6 +116,19 @@ class ElearningCourseController extends Controller
         $data['require_admin_approval'] = $request->boolean('require_admin_approval');
         $data['is_public']     = $request->boolean('is_public');
         $data['is_featured']   = $request->boolean('is_featured');
+
+        if ($course->ai_generation_version === 2 && (int) $request->input('status') === 1) {
+            $report = app(CourseQualityService::class)->evaluate($course);
+            $course->update([
+                'content_quality_score' => $report['score'],
+                'content_quality_report' => $report['checks'],
+            ]);
+            if ($course->gen_status !== 'completed' || !$report['publishable']) {
+                return back()->withInput()->withErrors([
+                    'status' => 'V2 course cannot be published until the blueprint is approved, generation is complete, and the quality score reaches at least 90%.',
+                ]);
+            }
+        }
 
         if ($request->hasFile('banner_image')) {
             $data['banner_image'] = $request->file('banner_image')->store('courses', 'public');

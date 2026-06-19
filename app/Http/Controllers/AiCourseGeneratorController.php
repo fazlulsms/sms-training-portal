@@ -10,6 +10,9 @@ use App\Models\ElearningLesson;
 use App\Models\ElearningQuiz;
 use App\Models\ElearningQuizQuestion;
 use App\Models\LessonBlock;
+use App\Models\KnowledgeResource;
+use App\Models\CourseBlueprintModule;
+use App\Services\CourseQualityService;
 use App\Models\LtfAudienceType;
 use App\Models\LtfIndustry;
 use App\Models\LtfStandard;
@@ -35,6 +38,11 @@ class AiCourseGeneratorController extends Controller
         }
     }
 
+    private function guardAdmin(): void
+    {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+    }
+
     // ── Step 1: Generate ─────────────────────────────────────────
     // POST /admin/ai/course-generator/generate
 
@@ -53,6 +61,8 @@ class AiCourseGeneratorController extends Controller
             'instructions'                => 'nullable|string|max:3000',
             'course_type'                 => 'required|in:ilt,elearning',
             'generation_mode'             => 'nullable|in:structure,complete',
+            'knowledge_resource_ids'      => 'nullable|array',
+            'knowledge_resource_ids.*'    => 'integer|exists:knowledge_resources,id',
             // LTF taxonomy — all optional; existing courses work without them
             'ltf_learning_framework_id'   => 'nullable|integer|exists:ltf_learning_frameworks,id',
             'ltf_program_purpose_id'      => 'nullable|integer|exists:ltf_program_purposes,id',
@@ -69,6 +79,18 @@ class AiCourseGeneratorController extends Controller
 
         $data['generation_mode'] = $data['generation_mode'] ?? 'structure';
         $data['learning_level']  = $data['learning_level']  ?? 'Intermediate';
+        $knowledgeResources = KnowledgeResource::approved()
+            ->whereIn('id', $data['knowledge_resource_ids'] ?? [])
+            ->where('extraction_status', 'ready')
+            ->whereNotNull('extracted_text')
+            ->get();
+
+        if ($data['generation_mode'] === 'complete' && $knowledgeResources->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Knowledge Hub Powered generation requires at least one Approved resource with reviewed source text.',
+            ], 422);
+        }
 
         // Derive industry from LTF Industries if not supplied directly
         if (empty($data['industry'])) {
@@ -127,6 +149,19 @@ class AiCourseGeneratorController extends Controller
         }
         if (! empty($data['instructions'])) {
             $input .= "Additional Instructions: {$data['instructions']}\n";
+        }
+        if ($knowledgeResources->isNotEmpty()) {
+            $input .= "\nKNOWLEDGE HUB GROUNDING RULES:\n";
+            $input .= "- Use ONLY the approved sources below. Do not add external facts or unstated standard requirements.\n";
+            $input .= "- Every module and lesson must include a resource_ids array using only the IDs shown below.\n";
+            $input .= "- Organize clauses and source topics into a coherent blueprint with proportional learning time.\n\n";
+            foreach ($knowledgeResources as $resource) {
+                $source = Str::limit($resource->extracted_text, 16000, "\n[truncated]");
+                $input .= "[RESOURCE {$resource->id}] {$resource->title}\n";
+                $input .= "Framework: {$resource->standard_framework}; Clause: ".($resource->clause_number ?: 'N/A')."; Version: ".($resource->version ?: 'N/A')."\n";
+                $input .= "Learning objectives: ".($resource->learning_objectives ?: 'Not specified')."\n";
+                $input .= "SOURCE TEXT:\n{$source}\n[/RESOURCE {$resource->id}]\n\n";
+            }
         }
 
         $result = $this->ai->generateFromTemplate($template, $input, auth()->id());
@@ -298,7 +333,7 @@ class AiCourseGeneratorController extends Controller
                 $editedSeoTitle, $editedSeoDesc, $courseOutline,
                 $editedCourseCode, $editedCategoryText, $editedCpdHours, $matchedCategoryId,
                 $editedCertInfo, $editedSeoKeywords, $editedFaqJson, $editedTargetMarket,
-                $ltfStandardIds, $ltfIndustryIds, $ltfAudienceIds,
+                $ltfStandardIds, $ltfIndustryIds, $ltfAudienceIds, $generationMode,
                 &$course
             ) {
                 $course = Course::create([
@@ -335,6 +370,9 @@ class AiCourseGeneratorController extends Controller
                     'is_public'                   => false,
                     'is_featured'                 => false,
                     'ai_generated'                => true,
+                    'ai_generation_version'       => !empty($formData['knowledge_resource_ids']) ? 2 : 1,
+                    'blueprint_status'            => !empty($formData['knowledge_resource_ids']) && $generationMode === 'complete' ? 'awaiting_approval' : 'not_required',
+                    'target_learning_minutes'     => $this->durationToMinutes($formData['duration']),
                     'ai_course_structure'         => $aiOutput,
                     // ── LTF Taxonomy ──────────────────────────────
                     'ltf_learning_framework_id'   => $formData['ltf_learning_framework_id']  ?? null,
@@ -354,13 +392,16 @@ class AiCourseGeneratorController extends Controller
                 if (!empty($ltfAudienceIds)) {
                     $course->ltfAudiences()->sync($ltfAudienceIds);
                 }
+                if (!empty($formData['knowledge_resource_ids'])) {
+                    $course->knowledgeResources()->sync($formData['knowledge_resource_ids']);
+                }
 
                 if ($courseType === 'elearning') {
                     $lessonOrder = 1;
                     $courseName  = $formData['course_name'];
 
                     // Course Introduction shell — content generated by background job
-                    ElearningLesson::create([
+                    $introLesson = ElearningLesson::create([
                         'course_id'         => $course->id,
                         'title'             => 'Course Introduction: ' . $courseName,
                         'short_description' => 'Welcome to this course. An overview of what you will learn and how to get the most from it.',
@@ -369,12 +410,31 @@ class AiCourseGeneratorController extends Controller
                         'lesson_type'       => 'mixed',
                         'completion_rule'   => 'manual',
                     ]);
+                    if (!empty($formData['knowledge_resource_ids'])) {
+                        $introLesson->knowledgeResources()->sync($formData['knowledge_resource_ids']);
+                    }
 
-                    foreach ($aiOutput['modules'] ?? [] as $module) {
+                    foreach ($aiOutput['modules'] ?? [] as $moduleIndex => $module) {
+                        $blueprintModule = CourseBlueprintModule::create([
+                            'course_id' => $course->id,
+                            'title' => $module['title'] ?? 'Module '.($moduleIndex + 1),
+                            'learning_outcomes' => is_array($module['learning_outcomes'] ?? null)
+                                ? implode("\n", $module['learning_outcomes'])
+                                : ($module['learning_outcomes'] ?? null),
+                            'module_order' => $moduleIndex + 1,
+                            'estimated_minutes' => (int) ($module['estimated_minutes'] ?? 0),
+                        ]);
+                        $moduleSourceIds = array_values(array_intersect(
+                            array_map('intval', $module['resource_ids'] ?? []),
+                            array_map('intval', $formData['knowledge_resource_ids'] ?? [])
+                        )) ?: ($formData['knowledge_resource_ids'] ?? []);
+                        $blueprintModule->knowledgeResources()->sync($moduleSourceIds);
+
                         foreach ($module['lessons'] ?? [] as $lessonData) {
                             $rawObjs = $lessonData['learning_objectives'] ?? null;
-                            ElearningLesson::create([
+                            $lesson = ElearningLesson::create([
                                 'course_id'           => $course->id,
+                                'blueprint_module_id' => $blueprintModule->id,
                                 'title'               => $lessonData['title'] ?? 'Untitled Lesson',
                                 'short_description'   => $lessonData['description'] ?? null,
                                 'learning_objectives' => $rawObjs
@@ -388,11 +448,16 @@ class AiCourseGeneratorController extends Controller
                                 'lesson_type'         => 'mixed',
                                 'completion_rule'     => 'manual',
                             ]);
+                            $lessonSourceIds = array_values(array_intersect(
+                                array_map('intval', $lessonData['resource_ids'] ?? []),
+                                $moduleSourceIds
+                            )) ?: $moduleSourceIds;
+                            $lesson->knowledgeResources()->sync($lessonSourceIds);
                         }
                     }
 
                     // Course Conclusion shell — content generated by background job
-                    ElearningLesson::create([
+                    $conclusionLesson = ElearningLesson::create([
                         'course_id'         => $course->id,
                         'title'             => 'Course Conclusion: ' . $courseName,
                         'short_description' => 'Congratulations on completing this course. A summary of your achievement and next steps.',
@@ -401,12 +466,19 @@ class AiCourseGeneratorController extends Controller
                         'lesson_type'       => 'mixed',
                         'completion_rule'   => 'manual',
                     ]);
+                    if (!empty($formData['knowledge_resource_ids'])) {
+                        $conclusionLesson->knowledgeResources()->sync($formData['knowledge_resource_ids']);
+                    }
                 }
             });
 
             session()->forget(self::SESSION_KEY);
 
             // Mode B — dispatch background job; admin can close browser
+            if ($courseType === 'elearning' && $generationMode === 'complete' && $course->ai_generation_version === 2) {
+                return redirect()->route('ai.course-generator.blueprint', $course);
+            }
+
             if ($courseType === 'elearning' && $generationMode === 'complete') {
                 $contentLevel = match ($formData['learning_level']) {
                     'Beginner' => 'Awareness',
@@ -455,6 +527,65 @@ class AiCourseGeneratorController extends Controller
         }
     }
 
+    public function blueprint(Course $course, CourseQualityService $qualityService)
+    {
+        $this->guardAdmin();
+        abort_unless($course->ai_generation_version === 2, 404);
+        $course->load(['blueprintModules.knowledgeResources', 'blueprintModules.lessons.knowledgeResources', 'knowledgeResources']);
+        if ($course->gen_status === 'completed') {
+            $report = $qualityService->evaluate($course);
+            $course->update(['content_quality_score' => $report['score'], 'content_quality_report' => $report['checks']]);
+            $course->refresh();
+        }
+        return view('ai.course-generator.blueprint', compact('course'));
+    }
+
+    public function approveBlueprint(Request $request, Course $course)
+    {
+        $this->guardSuperAdmin();
+        abort_unless($course->ai_generation_version === 2 && $course->blueprint_status === 'awaiting_approval', 422);
+        abort_if($course->blueprintModules()->doesntExist(), 422, 'Blueprint has no modules.');
+        abort_if($course->blueprintModules()->whereDoesntHave('knowledgeResources')->exists(), 422, 'Every module must have an approved source.');
+        abort_if($course->elearningLessons()->where('lesson_type', '!=', 'assessment')->whereDoesntHave('knowledgeResources')->exists(), 422, 'Every lesson must have a permanent source reference.');
+        $invalidSources = $course->knowledgeResources()
+            ->where(fn ($query) => $query->where('status', '!=', 'approved')
+                ->orWhere('extraction_status', '!=', 'ready')
+                ->orWhereNull('extracted_text'))
+            ->exists();
+        abort_if($invalidSources, 422, 'Every source must still be Approved with reviewed machine-readable text.');
+
+        $level = match ($course->ltf_competency_level) {
+            'beginner' => 'Awareness',
+            'advanced', 'expert' => 'Advanced',
+            default => 'Professional',
+        };
+        $course->update([
+            'blueprint_status' => 'approved',
+            'blueprint_approved_at' => now(),
+            'blueprint_approved_by' => $request->user()->id,
+            'gen_status' => 'pending',
+            'gen_started_at' => now(),
+        ]);
+        GenerateModeBCourseJob::dispatch($course->id, $level);
+        return redirect()->route('ai.course-generator.progress', ['course' => $course, 'level' => $level]);
+    }
+
+    public function quality(Course $course, CourseQualityService $qualityService)
+    {
+        $this->guardAdmin();
+        $report = $qualityService->evaluate($course);
+        $course->update(['content_quality_score' => $report['score'], 'content_quality_report' => $report['checks']]);
+        return response()->json($report);
+    }
+
+    private function durationToMinutes(?string $duration): ?int
+    {
+        if (!$duration) return null;
+        if (preg_match('/(\d+(?:\.\d+)?)\s*(hour|hr)/i', $duration, $m)) return (int) round((float) $m[1] * 60);
+        if (preg_match('/(\d+(?:\.\d+)?)\s*day/i', $duration, $m)) return (int) round((float) $m[1] * 8 * 60);
+        return null;
+    }
+
     // ── Mode B: Progress Page (polling UI) ──────────────────────
     // GET /admin/ai/course-generator/{course}/progress?level=Professional
 
@@ -495,6 +626,7 @@ class AiCourseGeneratorController extends Controller
     public function generateNext(Request $request, Course $course)
     {
         $this->guardSuperAdmin();
+        $this->ensureV2BlueprintApproved($course);
 
         $lessonId     = (int) $request->input('lesson_id');
         $level        = $request->input('level', 'Professional');
@@ -537,6 +669,8 @@ class AiCourseGeneratorController extends Controller
     public function generateModuleQuiz(Request $request, Course $course)
     {
         $this->guardSuperAdmin();
+        $this->ensureV2BlueprintApproved($course);
+        abort_if($course->ai_generation_version === 2, 409, 'V2 module checks are generated only by the approved background workflow.');
 
         if (!config('ai.enabled', false)) {
             return response()->json(['success' => false, 'error' => 'AI disabled'], 403);
@@ -687,6 +821,8 @@ USR;
     public function generateFinalAssessment(Request $request, Course $course)
     {
         $this->guardSuperAdmin();
+        $this->ensureV2BlueprintApproved($course);
+        abort_if($course->ai_generation_version === 2, 409, 'V2 final exams are generated only by the approved background workflow.');
 
         if (!config('ai.enabled', false)) {
             return response()->json(['success' => false, 'error' => 'AI disabled'], 403);
@@ -769,6 +905,7 @@ Return ONLY a valid JSON object (no markdown, no code fences):
       "correct_answer": "a",
       "explanation": "..."
     }
+
   ]
 }
 USR;
@@ -861,6 +998,15 @@ USR;
 
     // ── Cancel: clear session ────────────────────────────────────
     // POST /admin/ai/course-generator/cancel
+
+    private function ensureV2BlueprintApproved(Course $course): void
+    {
+        abort_if(
+            $course->ai_generation_version === 2 && $course->blueprint_status !== 'approved',
+            422,
+            'Approve the Knowledge Hub course blueprint before generating lessons or assessments.'
+        );
+    }
 
     public function cancel(Request $request)
     {

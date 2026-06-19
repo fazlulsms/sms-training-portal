@@ -7,6 +7,9 @@ use App\Models\Course;
 use App\Models\ElearningLesson;
 use App\Models\ElearningQuiz;
 use App\Models\ElearningQuizQuestion;
+use App\Models\AiQuestionBank;
+use App\Services\CourseQualityService;
+use App\Services\AiQuestionBankService;
 use App\Services\OpenAIService;
 use App\Support\LtfContextBuilder;
 use App\Support\LtfGenerationContext;
@@ -41,6 +44,9 @@ class GenerateModeBCourseJob implements ShouldQueue
         set_time_limit(0);
 
         $course = Course::findOrFail($this->courseId);
+        if ($course->ai_generation_version === 2 && $course->blueprint_status !== 'approved') {
+            throw new \RuntimeException('V2 generation is blocked until the course blueprint is approved.');
+        }
 
         $this->snap($course, 'running', 'Starting course generation…', [
             'phase'            => 'starting',
@@ -218,6 +224,16 @@ class GenerateModeBCourseJob implements ShouldQueue
 
         $finalQs = $this->generateFinalAssessment($course, $ltfContext);
 
+        $estimatedMinutes = (int) ElearningLesson::where('course_id', $course->id)->sum('estimated_learning_minutes');
+        $course->update(['estimated_learning_minutes' => $estimatedMinutes]);
+        if ($course->ai_generation_version === 2) {
+            $quality = app(CourseQualityService::class)->evaluate($course->refresh());
+            $course->update([
+                'content_quality_score' => $quality['score'],
+                'content_quality_report' => $quality['checks'],
+            ]);
+        }
+
         // ── Done ─────────────────────────────────────────────────────
         $doneProgress = json_encode([
             'phase'            => 'completed',
@@ -276,6 +292,14 @@ class GenerateModeBCourseJob implements ShouldQueue
             $moduleList = collect(($course->ai_course_structure ?? [])['modules'] ?? [])
                 ->map(fn($m, $i) => 'Module ' . ($i + 1) . ': ' . ($m['title'] ?? ''))
                 ->implode(' | ');
+            $sourceContext = '';
+            if ($course->ai_generation_version === 2) {
+                $sources = $lesson->knowledgeResources()->where('status', 'approved')->whereNotNull('extracted_text')->get();
+                if ($sources->isEmpty()) return 0;
+                $sourceContext = "\nUse ONLY these approved Knowledge Hub sources:\n".$sources->map(
+                    fn ($source) => "[RESOURCE {$source->id}] {$source->title}\n".\Illuminate\Support\Str::limit($source->extracted_text, 12000)."\n[/RESOURCE]"
+                )->implode("\n");
+            }
 
             if ($isIntro) {
                 $prompt = <<<PROMPT
@@ -288,6 +312,7 @@ Level: {$this->level}
 Target Audience: {$course->who_should_attend}
 Learning Objectives: {$objectives}
 Modules: {$moduleList}
+{$sourceContext}
 
 Create 8–10 blocks that welcome learners, explain why this course matters, overview the modules,
 set expectations, and include a pre-assessment reflection. Tone: professional, encouraging, motivating.
@@ -306,6 +331,7 @@ Level: {$this->level}
 Certificate: {$certInfo}
 Learning Objectives achieved: {$objectives}
 Modules completed: {$moduleList}
+{$sourceContext}
 
 Create 8–10 blocks that congratulate learners, recap skills gained, explain real-world application,
 describe the certificate, and provide clear next professional development steps. Tone: celebratory, motivating, professional.
@@ -354,12 +380,17 @@ PROMPT;
             $moduleLessons = ElearningLesson::where('course_id', $course->id)
                 ->whereIn('id', $lessonIds)
                 ->orderBy('lesson_order')
-                ->get(['id', 'title', 'learning_objectives']);
+                ->get(['id', 'title', 'learning_objectives', 'blueprint_module_id']);
 
             // Build lesson summaries for the AI prompt
             $summaries = $moduleLessons
                 ->map(fn($l) => "- {$l->title}" . ($l->learning_objectives ? ": {$l->learning_objectives}" : ''))
                 ->implode("\n");
+            $sourceResources = $moduleLessons->flatMap(fn ($lesson) => $lesson->knowledgeResources)
+                ->unique('id')->where('status', 'approved')->values();
+            $sourceText = $sourceResources->map(
+                fn ($source) => "[RESOURCE {$source->id}] {$source->title}\n".\Illuminate\Support\Str::limit($source->extracted_text, 10000)."\n[/RESOURCE]"
+            )->implode("\n");
 
             $qCount = match ($this->level) { 'Awareness' => 3, 'Advanced' => 5, default => 4 };
 
@@ -390,7 +421,7 @@ PROMPT;
                 "ROLE: eLearning assessment designer. Output ONLY valid JSON (no markdown fences).\n\n" .
                 "Generate {$qCount} quiz questions for Module {$modIndex}: {$moduleTitle}.\n" .
                 "Course: {$course->name} | Level: {$this->level}\n" .
-                "Lessons covered:\n{$summaries}{$ltfAssessment}\n\n" .
+                "Lessons covered:\n{$summaries}{$ltfAssessment}\n\nAPPROVED SOURCE TEXT:\n{$sourceText}\n\n" .
                 "CONTENT INTEGRITY RULE (mandatory): Generate questions ONLY from concepts explicitly taught " .
                 "within the lesson content listed above. Do not introduce concepts, clauses, requirements, " .
                 "terminology, or facts that were not covered in these specific lessons. Every question must " .
@@ -398,7 +429,8 @@ PROMPT;
                 "QUESTION DISTRIBUTION:\n{$distLine}\n{$auditorGuidance}\n\n" .
                 "Each question MUST include 'question_type': 'mcq' | 'truefalse' | 'scenario'.\n" .
                 "For True/False: options c and d must be null. Correct answer is 'a' (True) or 'b' (False).\n\n" .
-                "Return ONLY: {\"questions\":[{\"question_text\":\"...\",\"question_type\":\"mcq\",\"options\":{\"a\":\"...\",\"b\":\"...\",\"c\":\"...\",\"d\":\"...\"},\"correct_answer\":\"a\",\"explanation\":\"...\"}]}",
+                "Each question must include source_resource_id using one of these IDs: ".$sourceResources->pluck('id')->implode(', ').".\n" .
+                "Return ONLY: {\"questions\":[{\"question_text\":\"...\",\"question_type\":\"mcq\",\"source_resource_id\":1,\"options\":{\"a\":\"...\",\"b\":\"...\",\"c\":\"...\",\"d\":\"...\"},\"correct_answer\":\"a\",\"explanation\":\"...\"}]}",
                 'module_quiz', null, 2000
             );
 
@@ -449,8 +481,27 @@ PROMPT;
                 // Best-effort source: distribute questions across module lessons proportionally
                 $srcIdx      = count($lessonIds) > 0 ? (int) floor($idx / max(1, $qCount / count($lessonIds))) : 0;
                 $sourceLsnId = $lessonIdByIndex->get(min($srcIdx, count($lessonIds) - 1));
-                ElearningQuizQuestion::create([
-                    'quiz_id'          => $quiz->id,
+                $resourceId = (int) ($q['source_resource_id'] ?? 0);
+                if (!$sourceResources->contains('id', $resourceId)) {
+                    $resourceId = $sourceResources->count() === 1 ? $sourceResources->first()->id : null;
+                }
+                if (!$resourceId && $course->ai_generation_version === 2) continue;
+                $bank = $resourceId ? app(AiQuestionBankService::class)->store([
+                    'course_id' => $course->id,
+                    'blueprint_module_id' => $moduleLessons->first()?->blueprint_module_id,
+                    'lesson_id' => $sourceLsnId,
+                    'knowledge_resource_id' => $resourceId,
+                    'question_text' => $q['question_text'],
+                    'question_type' => $qType,
+                    'difficulty' => 'medium',
+                    'options' => $q['options'],
+                    'correct_answer' => strtolower($q['correct_answer'] ?? 'a'),
+                    'explanation' => $q['explanation'] ?? null,
+                    'status' => 'approved',
+                ]) : null;
+                if ($course->ai_generation_version === 2 && !$bank) continue;
+                if ($bank) $course->questionBank()->syncWithoutDetaching([$bank->id]);
+                $questionData = [
                     'question_text'    => $q['question_text'],
                     'question_type'    => $qType,
                     'option_a'         => $q['options']['a'] ?? '',
@@ -462,9 +513,13 @@ PROMPT;
                     'difficulty'       => 'medium',
                     'module_index'     => $modIndex,
                     'source_lesson_id' => $sourceLsnId,
+                    'knowledge_resource_id' => $resourceId,
                     'marks'            => 1,
                     'status'           => 'active',
-                ]);
+                ];
+                $bank
+                    ? ElearningQuizQuestion::firstOrCreate(['quiz_id' => $quiz->id, 'question_bank_id' => $bank->id], $questionData)
+                    : ElearningQuizQuestion::create(['quiz_id' => $quiz->id, ...$questionData]);
             }
 
         } catch (\Throwable $e) {
@@ -488,13 +543,25 @@ PROMPT;
         }
 
         try {
-            $qCount = match ($this->level) { 'Awareness' => 15, 'Advanced' => 25, default => 20 };
+            $qCount = $course->assessment_policy === 'auditor'
+                ? 40
+                : match ($this->level) { 'Awareness' => 15, 'Advanced' => 20, default => 20 };
+            $blueprintModules = $course->blueprintModules()->orderBy('module_order')->get();
+            $basePerModule = $blueprintModules->isNotEmpty() ? intdiv($qCount, $blueprintModules->count()) : 0;
+            $remainder = $blueprintModules->isNotEmpty() ? $qCount % $blueprintModules->count() : 0;
+            $moduleDistribution = $blueprintModules->map(
+                fn ($module, $index) => "Module {$module->module_order}: ".($basePerModule + ($index < $remainder ? 1 : 0))." questions"
+            )->implode("\n");
 
             $aiStructure = $course->ai_course_structure ?? [];
             $modulesText = collect($aiStructure['modules'] ?? [])
                 ->map(fn($m, $i) => 'Module ' . ($i + 1) . ': ' . ($m['title'] ?? '') .
                     ' — ' . collect($m['lessons'] ?? [])->pluck('title')->implode('; '))
                 ->implode("\n") ?: 'All course modules';
+            $courseSources = $course->knowledgeResources()->where('status', 'approved')->whereNotNull('extracted_text')->get();
+            $sourceText = $courseSources->map(
+                fn ($source) => "[RESOURCE {$source->id}] {$source->title}\n".\Illuminate\Support\Str::limit($source->extracted_text, 10000)."\n[/RESOURCE]"
+            )->implode("\n");
 
             $objectives = collect(preg_split('/[\n,]+/', $course->learning_objectives ?? ''))
                 ->map(fn($s) => trim($s))->filter()->implode('; ') ?: 'Not specified';
@@ -534,16 +601,18 @@ PROMPT;
                 "ROLE: Expert eLearning assessment designer. Output ONLY valid JSON (no markdown).\n\n" .
                 "Generate a final assessment with EXACTLY {$qCount} questions for: {$course->name}\n" .
                 "Level: {$this->level} | Objectives: {$objectives}\n" .
-                "Modules:\n{$modulesText}{$ltfFinalExam}\n\n" .
+                "Modules:\n{$modulesText}{$ltfFinalExam}\n\nAPPROVED SOURCE TEXT:\n{$sourceText}\n\n" .
                 "Distribution: {$mcq} MCQ | {$tf} True/False (a=True, b=False; c and d null) | {$scenario} Scenario MCQ\n" .
                 "Difficulty: ~30% easy, ~50% medium, ~20% hard. Cover ALL modules proportionally.\n" .
+                "MANDATORY MODULE DISTRIBUTION:\n{$moduleDistribution}\n" .
                 "{$styleGuidance}\n" .
                 "{$dedupContext}\n\n" .
                 "CONTENT INTEGRITY RULE (mandatory): Generate questions ONLY from concepts, examples, scenarios, " .
                 "and explanations explicitly taught within the course modules listed above. Do not introduce " .
                 "standard clauses, requirements, terminology, or facts that were not covered in the course content. " .
                 "Every correct answer must be traceable to the course lessons.\n\n" .
-                "Return: {\"questions\":[{\"question_text\":\"...\",\"question_type\":\"mcq|truefalse|scenario\",\"difficulty\":\"easy|medium|hard\",\"module_index\":1,\"options\":{\"a\":\"...\",\"b\":\"...\",\"c\":\"...\",\"d\":\"...\"},\"correct_answer\":\"a\",\"explanation\":\"...\"}]}",
+                "Each question must include a valid module_index and source_resource_id. Source IDs: ".$courseSources->pluck('id')->implode(', ').".\n" .
+                "Return: {\"questions\":[{\"question_text\":\"...\",\"question_type\":\"mcq|truefalse|scenario\",\"difficulty\":\"easy|medium|hard\",\"module_index\":1,\"source_resource_id\":1,\"options\":{\"a\":\"...\",\"b\":\"...\",\"c\":\"...\",\"d\":\"...\"},\"correct_answer\":\"a\",\"explanation\":\"...\"}]}",
                 'final_assessment', null, 6000
             );
 
@@ -553,15 +622,16 @@ PROMPT;
             $decoded = json_decode($raw, true);
             if (!is_array($decoded) || empty($decoded['questions'])) return 0;
 
+            $passMark = (int) ($course->passing_score ?: 70);
             $finalLesson = ElearningLesson::create([
                 'course_id'              => $course->id,
                 'title'                  => 'Final Course Assessment: ' . $course->name,
-                'short_description'      => "Comprehensive final assessment. Pass mark: 70%.",
+                'short_description'      => "Comprehensive final assessment. Pass mark: {$passMark}%.",
                 'lesson_order'           => ElearningLesson::where('course_id', $course->id)->max('lesson_order') + 1,
                 'status'                 => 'draft',
                 'lesson_type'            => 'assessment',
                 'completion_rule'        => 'pass_quiz',
-                'required_passing_score' => 70,
+                'required_passing_score' => $passMark,
             ]);
 
             $finalMaxAttempts = $course->final_exam_max_attempts ?? 3;
@@ -569,18 +639,39 @@ PROMPT;
             $quiz = ElearningQuiz::create([
                 'lesson_id'   => $finalLesson->id,
                 'title'       => 'Final Assessment — ' . $course->name,
-                'description' => "{$qCount}-question assessment covering all modules. Pass mark 70%, {$finalMaxAttempts} attempts.",
-                'pass_mark'   => 70,
+                'description' => "{$qCount}-question assessment covering all modules. Pass mark {$passMark}%, {$finalMaxAttempts} attempts.",
+                'pass_mark'   => $passMark,
                 'max_attempt' => $finalMaxAttempts,
                 'status'      => 'active',
             ]);
 
             $created = 0;
-            foreach ($decoded['questions'] as $q) {
+            foreach ($decoded['questions'] as $idx => $q) {
                 if (empty($q['question_text']) || empty($q['options'])) continue;
                 $qType = $q['question_type'] ?? 'mcq';
-                ElearningQuizQuestion::create([
-                    'quiz_id'        => $quiz->id,
+                $moduleIndex = (int) ($q['module_index'] ?? 0);
+                $blueprintModule = $blueprintModules->firstWhere('module_order', $moduleIndex);
+                if ($course->ai_generation_version === 2 && !$blueprintModule) continue;
+                $resourceId = (int) ($q['source_resource_id'] ?? 0);
+                if (!$courseSources->contains('id', $resourceId)) {
+                    $resourceId = $courseSources->count() === 1 ? $courseSources->first()->id : null;
+                }
+                if (!$resourceId && $course->ai_generation_version === 2) continue;
+                $bank = $resourceId ? app(AiQuestionBankService::class)->store([
+                    'course_id' => $course->id,
+                    'blueprint_module_id' => $blueprintModule?->id,
+                    'knowledge_resource_id' => $resourceId,
+                    'question_text' => $q['question_text'],
+                    'question_type' => $qType,
+                    'difficulty' => in_array($q['difficulty'] ?? '', ['easy','medium','hard']) ? $q['difficulty'] : 'medium',
+                    'options' => $q['options'],
+                    'correct_answer' => strtolower($q['correct_answer'] ?? 'a'),
+                    'explanation' => $q['explanation'] ?? null,
+                    'status' => 'approved',
+                ]) : null;
+                if ($course->ai_generation_version === 2 && !$bank) continue;
+                if ($bank) $course->questionBank()->syncWithoutDetaching([$bank->id]);
+                $questionData = [
                     'question_text'  => $q['question_text'],
                     'question_type'  => $qType,
                     'option_a'       => $q['options']['a'] ?? '',
@@ -590,11 +681,15 @@ PROMPT;
                     'correct_answer' => strtolower($q['correct_answer'] ?? 'a'),
                     'explanation'    => $q['explanation'] ?? null,
                     'difficulty'     => in_array($q['difficulty'] ?? '', ['easy', 'medium', 'hard']) ? $q['difficulty'] : 'medium',
-                    'module_index'   => isset($q['module_index']) ? (int) $q['module_index'] : null,
+                    'module_index'   => $moduleIndex ?: null,
+                    'knowledge_resource_id' => $resourceId,
                     'marks'          => 1,
                     'status'         => 'active',
-                ]);
-                $created++;
+                ];
+                $bank
+                    ? ElearningQuizQuestion::firstOrCreate(['quiz_id' => $quiz->id, 'question_bank_id' => $bank->id], $questionData)
+                    : ElearningQuizQuestion::create(['quiz_id' => $quiz->id, ...$questionData]);
+                $created = $quiz->questions()->count();
             }
 
             return $created;

@@ -246,6 +246,27 @@ textarea.fi { resize: vertical; }
     <span class="lb-order-pill">Lesson {{ $lesson->lesson_order }}</span>
 </div>
 
+@if($course->ai_generation_version === 2)
+<div class="card" style="margin-bottom:16px;border-left:4px solid #0f766e;">
+    <div class="card-body" style="padding:14px 18px;">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+            <div>
+                <div style="font-size:12px;font-weight:800;color:#0f766e;text-transform:uppercase;letter-spacing:.5px;">Knowledge Hub Traceability</div>
+                <div style="font-size:12px;color:#64748b;margin-top:3px;">This lesson is permanently grounded in these approved sources.</div>
+            </div>
+            <a class="btn btn-view btn-sm" href="{{ route('ai.course-generator.blueprint', $course) }}">V2 Quality Review</a>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+            @forelse($lesson->knowledgeResources as $source)
+                <a class="badge badge-teal" style="text-decoration:none;" target="_blank" href="{{ route('knowledge-hub.show', $source) }}">{{ $source->clause_number ?: $source->title }}</a>
+            @empty
+                <span class="badge badge-danger">Missing source — this lesson cannot pass V2 quality review</span>
+            @endforelse
+        </div>
+    </div>
+</div>
+@endif
+
 <div class="builder-grid">
 
     {{-- ═══ LEFT: Lesson Settings ═════════════════════════════════════ --}}

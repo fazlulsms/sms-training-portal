@@ -37,10 +37,19 @@ class KnowledgeHubTest extends TestCase
             $table->string('title');
             $table->string('resource_type');
             $table->string('category');
+            $table->string('subcategory')->nullable();
             $table->string('standard_framework');
+            $table->string('clause_number')->nullable();
             $table->string('version')->nullable();
+            $table->string('difficulty_level')->default('intermediate');
             $table->string('status')->default('draft');
             $table->text('notes')->nullable();
+            $table->text('learning_objectives')->nullable();
+            $table->text('source_references')->nullable();
+            $table->longText('extracted_text')->nullable();
+            $table->string('extraction_status')->default('pending');
+            $table->text('extraction_error')->nullable();
+            $table->timestamp('extracted_at')->nullable();
             $table->string('file_disk')->default('local');
             $table->string('file_path');
             $table->string('original_file_name');
@@ -193,6 +202,7 @@ class KnowledgeHubTest extends TestCase
             'category' => 'ISO Standards',
             'standard_framework' => 'ISO 9001:2015',
             'version' => '1.0',
+            'difficulty_level' => 'intermediate',
             'status' => 'draft',
             'notes' => 'Approved source notes for future course development.',
         ];

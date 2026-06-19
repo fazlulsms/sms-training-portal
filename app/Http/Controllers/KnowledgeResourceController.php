@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\KnowledgeResource;
+use App\Services\KnowledgeResourceTextExtractor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -58,7 +59,7 @@ class KnowledgeResourceController extends Controller
         $file = $request->file('file');
         $path = $file->store('knowledge-hub/'.now()->format('Y/m'), 'local');
 
-        KnowledgeResource::create([
+        $resource = KnowledgeResource::create([
             ...$validated,
             'file_disk' => 'local',
             'file_path' => $path,
@@ -70,6 +71,9 @@ class KnowledgeResourceController extends Controller
             'uploaded_by' => $request->user()->id,
             'updated_by' => $request->user()->id,
         ]);
+        if (!app()->environment('testing')) {
+            app(KnowledgeResourceTextExtractor::class)->extract($resource);
+        }
 
         return redirect()->route('knowledge-hub.index')
             ->with('success', 'Knowledge resource created successfully.');
@@ -117,6 +121,9 @@ class KnowledgeResourceController extends Controller
         $validated['updated_by'] = $request->user()->id;
 
         $knowledgeResource->update($validated);
+        if (!app()->environment('testing') && ($request->hasFile('file') || $knowledgeResource->extraction_status === 'pending')) {
+            app(KnowledgeResourceTextExtractor::class)->extract($knowledgeResource->refresh());
+        }
 
         return redirect()->route('knowledge-hub.show', $knowledgeResource)
             ->with('success', 'Knowledge resource updated successfully.');
@@ -165,10 +172,16 @@ class KnowledgeResourceController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'resource_type' => ['required', Rule::in(KnowledgeResource::RESOURCE_TYPES)],
             'category' => ['required', Rule::in(KnowledgeResource::CATEGORIES)],
+            'subcategory' => ['nullable', 'string', 'max:120'],
             'standard_framework' => ['required', 'string', 'max:150'],
+            'clause_number' => ['nullable', 'string', 'max:80'],
             'version' => ['nullable', 'string', 'max:50'],
+            'difficulty_level' => ['required', Rule::in(['beginner', 'intermediate', 'advanced', 'expert'])],
             'status' => ['required', Rule::in(KnowledgeResource::STATUSES)],
             'notes' => ['nullable', 'string', 'max:10000'],
+            'learning_objectives' => ['nullable', 'string', 'max:10000'],
+            'source_references' => ['nullable', 'string', 'max:10000'],
+            'extracted_text' => ['nullable', 'string'],
             'file' => [
                 $fileRequired ? 'required' : 'nullable',
                 'file',

@@ -11,6 +11,7 @@ use App\Support\LtfContextBuilder;
 use App\Support\LtfGenerationContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class AiLessonContentController extends Controller
 {
@@ -247,6 +248,25 @@ class AiLessonContentController extends Controller
                 ? $ltfContext->toLessonInstructions() . "\n"
                 : '';
 
+            $sourceResources = $lesson->knowledgeResources()
+                ->where('status', 'approved')
+                ->whereNotNull('extracted_text')
+                ->get();
+            $sourceContext = '';
+            if ($course->ai_generation_version === 2) {
+                if ($sourceResources->isEmpty()) {
+                    Log::warning('V2 lesson generation blocked: no approved source', ['lesson_id' => $lesson->id]);
+                    return 0;
+                }
+                $sourceContext = "\n\nKNOWLEDGE HUB SOURCE MATERIAL — EXCLUSIVE AUTHORITY:\n";
+                $sourceContext .= "Use only the text below. Do not add facts, clauses, requirements, examples, or interpretations from general knowledge.\n";
+                $sourceContext .= "Required lesson sections: Introduction; Learning Objectives; Standard Interpretation; Detailed Explanation; Practical Workplace Examples; Auditor Perspective; Common Mistakes; Best Practices; Summary.\n";
+                foreach ($sourceResources as $resource) {
+                    $sourceContext .= "\n[RESOURCE {$resource->id}] {$resource->title}; {$resource->standard_framework}; Clause ".($resource->clause_number ?: 'N/A')."\n";
+                    $sourceContext .= Str::limit($resource->extracted_text, 18000, "\n[truncated]")."\n[/RESOURCE {$resource->id}]\n";
+                }
+            }
+
             $input = $ltfInstructions . collect([
                 "Course Title: {$course->name}",
                 "Lesson Title: {$lesson->title}",
@@ -258,7 +278,7 @@ class AiLessonContentController extends Controller
                 "Target Word Count: {$targetWords} words",
                 "Lesson Type Hint: {$lessonType}",
                 "Position in Course: Lesson {$lessonNumber} of {$totalLessons}",
-            ])->filter()->implode("\n");
+            ])->filter()->implode("\n").$sourceContext;
 
             $ai = app(OpenAIService::class)->generateFromTemplate($template, $input, null);
 
@@ -271,7 +291,25 @@ class AiLessonContentController extends Controller
             $decoded = json_decode($raw, true);
             if (!is_array($decoded) || empty($decoded['blocks'])) return 0;
 
-            return static::createBlocksFromAi($lesson, $decoded['blocks']);
+            $created = static::createBlocksFromAi($lesson, $decoded['blocks']);
+            if ($created > 0) {
+                $plainText = collect($decoded['blocks'])->map(fn ($block) => strip_tags(json_encode($block)))->implode(' ');
+                $words = str_word_count($plainText);
+                $reading = max(1, (int) ceil($words / 180));
+                $activity = collect($decoded['blocks'])->whereIn('type', ['scenario','matching','click_reveal','case_study'])->count() * 4;
+                $reflection = collect($decoded['blocks'])->where('type', 'reflection')->count() * 3;
+                $quiz = collect($decoded['blocks'])->where('type', 'knowledge_check')->count() * 2;
+                $estimated = $reading + $activity + $reflection + $quiz;
+                $lesson->update([
+                    'reading_minutes' => $reading,
+                    'activity_minutes' => $activity,
+                    'reflection_minutes' => $reflection,
+                    'quiz_minutes' => $quiz,
+                    'estimated_learning_minutes' => $estimated,
+                    'duration_minutes' => max((int) $lesson->duration_minutes, $estimated),
+                ]);
+            }
+            return $created;
         } catch (\Throwable $e) {
             Log::error('AiLessonContent generateAndSaveBlocks failed', [
                 'lesson_id' => $lesson->id,

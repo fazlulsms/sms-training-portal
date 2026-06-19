@@ -537,6 +537,13 @@
                     </span>
                     Knowledge Hub
                 </a>
+                @if(auth()->user()?->isAdmin())
+                <a href="{{ route('ai.question-bank.index') }}"
+                   class="sb-sub {{ request()->is('admin/ai/question-bank*') ? 'active' : '' }}">
+                    <span class="sb-icon">?</span>
+                    Question Bank
+                </a>
+                @endif
             </div>
         </div>
 

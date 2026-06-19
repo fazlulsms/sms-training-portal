@@ -34,10 +34,18 @@
 <div style="background:#fff; padding:28px; border-radius:14px; box-shadow:0 4px 16px rgba(0,0,0,.07);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
         <h2 style="font-size:24px; font-weight:800; color:#111827; margin:0;">Edit eLearning Course</h2>
+        <div style="display:flex;gap:8px;">
+        @if($course->ai_generation_version === 2)
+        <a href="{{ route('ai.course-generator.blueprint', $course) }}"
+           style="background:#0f766e;color:#fff;padding:9px 18px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13.5px;">
+            V2 Sources &amp; Quality
+        </a>
+        @endif
         <a href="{{ route('elearning.lessons.index', $course) }}"
            style="background:#0ea5e9; color:#fff; padding:9px 18px; border-radius:8px; text-decoration:none; font-weight:700; font-size:13.5px;">
             Manage Lessons →
         </a>
+        </div>
     </div>
 
     @if($errors->any())

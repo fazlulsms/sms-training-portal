@@ -62,6 +62,7 @@ use App\Http\Controllers\TrainingMediaController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\LessonAudioController;
 use App\Http\Controllers\KnowledgeResourceController;
+use App\Http\Controllers\AiQuestionBankController;
 
 /*
 |--------------------------------------------------------------------------
@@ -449,11 +450,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get( '/ai/course-generator/preview',                    [AiCourseGeneratorController::class, 'preview'])          ->name('ai.course-generator.preview');
     Route::post('/ai/course-generator/save',                       [AiCourseGeneratorController::class, 'save'])             ->name('ai.course-generator.save');
     Route::post('/ai/course-generator/cancel',                     [AiCourseGeneratorController::class, 'cancel'])           ->name('ai.course-generator.cancel');
+    Route::get( '/ai/course-generator/{course}/blueprint',         [AiCourseGeneratorController::class, 'blueprint'])        ->name('ai.course-generator.blueprint');
+    Route::post('/ai/course-generator/{course}/blueprint/approve', [AiCourseGeneratorController::class, 'approveBlueprint']) ->name('ai.course-generator.blueprint.approve');
+    Route::get( '/ai/course-generator/{course}/quality',           [AiCourseGeneratorController::class, 'quality'])          ->name('ai.course-generator.quality');
     Route::get( '/ai/course-generator/{course}/progress',          [AiCourseGeneratorController::class, 'generationProgress'])->name('ai.course-generator.progress');
     Route::post('/ai/course-generator/{course}/generate-next',     [AiCourseGeneratorController::class, 'generateNext'])     ->name('ai.course-generator.generate-next');
     Route::post('/ai/course-generator/{course}/generate-module-quiz',      [AiCourseGeneratorController::class, 'generateModuleQuiz'])      ->name('ai.course-generator.generate-module-quiz');
     Route::post('/ai/course-generator/{course}/generate-final-assessment', [AiCourseGeneratorController::class, 'generateFinalAssessment']) ->name('ai.course-generator.generate-final-assessment');
     Route::get( '/ai/course-generator/{course}/generation-status',        [AiCourseGeneratorController::class, 'generationStatus'])          ->name('ai.course-generator.generation-status');
+    Route::get('/ai/question-bank', [AiQuestionBankController::class, 'index'])->name('ai.question-bank.index');
+    Route::patch('/ai/question-bank/{question}/status', [AiQuestionBankController::class, 'updateStatus'])->name('ai.question-bank.status');
 
     // ── Training Feedback & Evaluation ────────────────────────
     Route::prefix('feedback')->name('feedback.')->group(function () {

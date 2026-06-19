@@ -49,10 +49,19 @@ class KnowledgeResource extends Model
         'title',
         'resource_type',
         'category',
+        'subcategory',
         'standard_framework',
+        'clause_number',
         'version',
+        'difficulty_level',
         'status',
         'notes',
+        'learning_objectives',
+        'source_references',
+        'extracted_text',
+        'extraction_status',
+        'extraction_error',
+        'extracted_at',
         'file_disk',
         'file_path',
         'original_file_name',
@@ -71,6 +80,7 @@ class KnowledgeResource extends Model
             'metadata' => 'array',
             'approved_at' => 'datetime',
             'archived_at' => 'datetime',
+            'extracted_at' => 'datetime',
         ];
     }
 
@@ -88,6 +98,9 @@ class KnowledgeResource extends Model
     {
         return $query->where('status', 'approved');
     }
+
+    public function courses() { return $this->belongsToMany(Course::class, 'course_knowledge_resource'); }
+    public function lessons() { return $this->belongsToMany(ElearningLesson::class, 'elearning_lesson_knowledge_resource'); }
 
     public function getFileSizeHumanAttribute(): string
     {

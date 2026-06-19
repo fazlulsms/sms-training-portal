@@ -10,6 +10,7 @@ class ElearningLesson extends Model
 {
     protected $fillable = [
         'course_id',
+        'blueprint_module_id',
         'title',
         'short_description',
         'learning_objectives',
@@ -17,6 +18,8 @@ class ElearningLesson extends Model
         'video_url',
         'lesson_content',
         'duration_minutes',
+        'reading_minutes', 'activity_minutes', 'exercise_minutes', 'quiz_minutes',
+        'reflection_minutes', 'estimated_learning_minutes',
         'lesson_type',
         'completion_rule',
         'require_audio_completion',
@@ -51,6 +54,16 @@ class ElearningLesson extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function blueprintModule(): BelongsTo
+    {
+        return $this->belongsTo(CourseBlueprintModule::class, 'blueprint_module_id');
+    }
+
+    public function knowledgeResources()
+    {
+        return $this->belongsToMany(KnowledgeResource::class, 'elearning_lesson_knowledge_resource');
     }
 
     public function resources(): HasMany

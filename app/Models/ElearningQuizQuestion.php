@@ -8,6 +8,7 @@ class ElearningQuizQuestion extends Model
 {
     protected $fillable = [
         'quiz_id',
+        'question_bank_id',
         'question_text',
         'question_type',
         'option_a',
@@ -20,10 +21,17 @@ class ElearningQuizQuestion extends Model
         'module_index',
         'marks',
         'status',
+        'source_lesson_id',
+        'knowledge_resource_id',
     ];
 
     public function quiz()
     {
         return $this->belongsTo(ElearningQuiz::class);
+    }
+
+    public function knowledgeResource()
+    {
+        return $this->belongsTo(KnowledgeResource::class);
     }
 }
