@@ -184,6 +184,32 @@
 @media(max-width:900px){ .cd-layout{grid-template-columns:1fr;} }
 .cd-layout > div,
 .cd-layout > aside { min-width: 0; }
+
+/* ── FAQ accordion ───────────────────────────────────────────── */
+.faq-item {
+    border: 1px solid #e9ecf0; border-radius: 12px;
+    margin-bottom: 10px; overflow: hidden;
+    transition: box-shadow .15s;
+}
+.faq-item:hover { box-shadow: 0 4px 16px rgba(15,23,42,.07); }
+.faq-q {
+    display: flex; justify-content: space-between; align-items: center; gap: 14px;
+    padding: 16px 20px; cursor: pointer; user-select: none;
+    font-size: 15px; font-weight: 700; color: #111827;
+    background: #f8fafc; border: none; width: 100%;
+    text-align: left; font-family: inherit;
+    transition: background .12s;
+}
+.faq-q:hover { background: #f0f6ff; }
+.faq-item.open .faq-q { background: #eff6ff; color: #042C53; }
+.faq-chevron { flex-shrink: 0; transition: transform .2s; color: #9ca3af; }
+.faq-item.open .faq-chevron { transform: rotate(180deg); color: #042C53; }
+.faq-a {
+    display: none; padding: 14px 20px 18px;
+    font-size: 14.5px; color: #374151; line-height: 1.75;
+    border-top: 1px solid #e9ecf0;
+}
+.faq-item.open .faq-a { display: block; }
 </style>
 
 {{-- Course Hero --}}
@@ -323,6 +349,12 @@
             <button class="cd-tab" onclick="showTab('reviews', this)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                 Reviews <span style="background:#042C53;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:2px;">{{ $course->testimonials->count() }}</span>
+            </button>
+            @endif
+            @if($course->faq)
+            <button class="cd-tab" onclick="showTab('faq', this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                FAQ
             </button>
             @endif
         </div>
@@ -546,6 +578,61 @@
         </div>
         @endif
 
+        {{-- FAQ tab --}}
+        @if($course->faq)
+        <div class="cd-tab-panel" id="tab-panel-faq">
+            <div class="cd-panel-heading">Frequently Asked Questions</div>
+            @php
+                $faqItems = [];
+                $raw = trim($course->faq);
+
+                // Try JSON first
+                if (str_starts_with($raw, '[')) {
+                    $decoded = json_decode($raw, true);
+                    if (is_array($decoded)) {
+                        foreach ($decoded as $item) {
+                            if (!empty($item['question'])) {
+                                $faqItems[] = ['q' => $item['question'], 'a' => $item['answer'] ?? ''];
+                            }
+                        }
+                    }
+                }
+
+                // Fall back: parse Q:/A: plain text
+                if (empty($faqItems)) {
+                    $lines   = array_filter(array_map('trim', explode("\n", $raw)));
+                    $current = null;
+                    foreach ($lines as $line) {
+                        if (preg_match('/^Q\s*[:\-]\s*/i', $line)) {
+                            if ($current) $faqItems[] = $current;
+                            $current = ['q' => preg_replace('/^Q\s*[:\-]\s*/i', '', $line), 'a' => ''];
+                        } elseif (preg_match('/^A\s*[:\-]\s*/i', $line) && $current) {
+                            $current['a'] .= preg_replace('/^A\s*[:\-]\s*/i', '', $line);
+                        } elseif ($current) {
+                            $current['a'] .= ' ' . $line;
+                        }
+                    }
+                    if ($current) $faqItems[] = $current;
+                }
+
+                // Last resort: treat each non-empty paragraph as a standalone item
+                if (empty($faqItems) && $raw) {
+                    $faqItems = [['q' => 'FAQ', 'a' => $raw]];
+                }
+            @endphp
+
+            @foreach($faqItems as $fi => $faq)
+            <div class="faq-item" id="faq-{{ $fi }}">
+                <button class="faq-q" onclick="toggleFaq('faq-{{ $fi }}')">
+                    <span>{{ $faq['q'] }}</span>
+                    <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-a">{!! nl2br(e(trim($faq['a']))) !!}</div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+
         {{-- Reviews tab --}}
         @if($course->testimonials->count())
         <div class="cd-tab-panel" id="tab-panel-reviews">
@@ -692,6 +779,11 @@ window.addEventListener('load', function() {
 function toggleModule(id) {
     const mod = document.getElementById(id);
     if (mod) mod.classList.toggle('open');
+}
+
+function toggleFaq(id) {
+    const item = document.getElementById(id);
+    if (item) item.classList.toggle('open');
 }
 </script>
 
