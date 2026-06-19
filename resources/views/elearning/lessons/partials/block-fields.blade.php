@@ -219,9 +219,10 @@
         if ($block) {
             $decoded = $block->getDecodedContent();
             if (is_array($decoded) && !empty($decoded)) {
-                // Single slide stored as flat assoc array (legacy) — wrap it
-                if (is_string(array_key_first($decoded))) {
-                    $slideItems = [$decoded];
+                if (isset($decoded['slides']) && is_array($decoded['slides'])) {
+                    $slideItems = array_values($decoded['slides']); // AI wrapper format
+                } elseif (is_string(array_key_first($decoded))) {
+                    $slideItems = [$decoded]; // single flat slide (legacy)
                 } else {
                     $slideItems = array_values($decoded); // ensure sequential int keys
                 }

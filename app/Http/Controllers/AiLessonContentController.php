@@ -376,7 +376,7 @@ class AiLessonContentController extends Controller
 
             'slides' => (function () use ($block): ?string {
                 if (empty($block['slides'])) return null;
-                return json_encode(['slides' => $block['slides']]);
+                return json_encode($block['slides']); // flat array, same format as buildSlidesJson
             })(),
 
             'accordion' => (function () use ($block): ?string {

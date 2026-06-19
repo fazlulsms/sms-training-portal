@@ -862,7 +862,19 @@
                     @break
 
                     @case('slides')
-                    @php $slideItems = $block->getDecodedContent(); $slideId = 'slides-' . $block->id; @endphp
+                    @php
+                        $slideId = 'slides-' . $block->id;
+                        $_raw = $block->getDecodedContent();
+                        if (!is_array($_raw) || empty($_raw)) {
+                            $slideItems = [];
+                        } elseif (isset($_raw['slides']) && is_array($_raw['slides'])) {
+                            $slideItems = array_values($_raw['slides']); // AI wrapper format
+                        } elseif (is_string(array_key_first($_raw))) {
+                            $slideItems = [$_raw]; // single flat slide
+                        } else {
+                            $slideItems = array_values($_raw);
+                        }
+                    @endphp
                     <div class="lb">
                         <div class="lb-head">
                             <div class="lb-head-icon lh-slide">🖥️</div>
