@@ -48,6 +48,21 @@
         }
     }
 
+    // Slide blocks — track step index and slide count for TTS narration lock
+    $slideBlocksData = [];
+    foreach ($lessonBlocks as $bi => $block) {
+        if ($block->block_type === 'slides') {
+            $raw = $block->getDecodedContent();
+            $items = [];
+            if (is_array($raw) && !empty($raw)) {
+                if (isset($raw['slides']) && is_array($raw['slides'])) { $items = array_values($raw['slides']); }
+                elseif (is_string(array_key_first($raw)))               { $items = [$raw]; }
+                else                                                     { $items = array_values($raw); }
+            }
+            $slideBlocksData[$block->id] = ['step' => $bi + 1, 'total' => count($items)];
+        }
+    }
+
     $stepTypes = array_merge(
         ['overview'],
         $lessonBlocks->map(fn($b) => $b->block_type)->values()->all(),
@@ -251,6 +266,23 @@
 .slide-panel.active { display:block; }
 .slide-nav { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:18px; padding-top:18px; border-top:1px solid #f0f2f5; }
 .slide-counter { font-size:13px; font-weight:700; color:#6b7280; }
+.slide-narrating {
+    display:none; align-items:center; gap:8px;
+    background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px;
+    padding:7px 14px; margin-bottom:12px;
+    font-size:12.5px; font-weight:700; color:#1d4ed8;
+}
+.slide-wave { display:inline-flex; gap:3px; align-items:center; }
+.slide-wave span {
+    width:4px; height:14px; border-radius:2px; background:#3b82f6; display:block;
+    animation:slideWave .7s ease-in-out infinite;
+}
+.slide-wave span:nth-child(2) { animation-delay:.15s; }
+.slide-wave span:nth-child(3) { animation-delay:.3s; }
+@keyframes slideWave {
+    0%,100% { transform:scaleY(.4); opacity:.5; }
+    50%      { transform:scaleY(1.3); opacity:1; }
+}
 .sc-scenario-text { background:#f8fafc; border-left:4px solid #1e3a8a; padding:16px 20px; border-radius:0 10px 10px 0; font-size:15.5px; line-height:1.75; color:#374151; margin-bottom:20px; }
 .sc-opt { margin-bottom:10px; }
 .sc-opt-btn { width:100%; background:#f8fafc; border:1.5px solid #e5e7eb; border-radius:12px; padding:14px 16px; cursor:pointer; font-family:inherit; font-size:15px; font-weight:600; color:#374151; text-align:left; display:flex; align-items:center; gap:12px; transition:border-color .14s,background .14s; }
@@ -882,6 +914,11 @@
                             <span class="lb-head-title">{{ $block->title ?: 'Presentation' }}</span>
                         </div>
                         <div class="lb-body">
+                            {{-- Narrating indicator (hidden audio, shown while TTS plays) --}}
+                            <div class="slide-narrating" id="slide-narrating-{{ $block->id }}">
+                                <span class="slide-wave"><span></span><span></span><span></span></span>
+                                Narrating slide…
+                            </div>
                             <div id="{{ $slideId }}">
                                 @foreach($slideItems as $si => $slide)
                                 @php
@@ -895,23 +932,25 @@
                                              style="width:100%;max-height:340px;object-fit:contain;border-radius:10px;margin-bottom:16px;">
                                     @endif
                                     @if(!empty($slideTitle))
-                                        <h3 style="font-size:20px;font-weight:800;color:#111827;margin:0 0 10px;">{{ $slideTitle }}</h3>
+                                        <h3 style="font-size:20px;font-weight:800;color:#111827;margin:0 0 10px;" data-slide-title>{{ $slideTitle }}</h3>
                                     @endif
                                     @if(!empty($slideText))
-                                        <div style="font-size:15.5px;color:#374151;line-height:1.8;">{!! $slideText !!}</div>
+                                        <div data-slide-text style="font-size:15.5px;color:#374151;line-height:1.8;">{!! $slideText !!}</div>
                                     @endif
                                 </div>
                                 @endforeach
                             </div>
                             <div class="slide-nav">
-                                <button type="button" onclick="slidePrev('{{ $slideId }}')"
-                                        style="display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:9px 16px;border-radius:9px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg> Prev
+                                <button type="button" id="slide-prev-{{ $block->id }}" onclick="slidePrev('{{ $slideId }}')"
+                                        style="display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:9px 16px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                                    Prev Slide
                                 </button>
                                 <span class="slide-counter" id="{{ $slideId }}-counter">1 / {{ count($slideItems) }}</span>
-                                <button type="button" onclick="slideNext('{{ $slideId }}', {{ count($slideItems) }})"
-                                        style="display:inline-flex;align-items:center;gap:6px;background:#1e3a8a;color:#fff;border:none;padding:9px 16px;border-radius:9px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;">
-                                    Next <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                <button type="button" id="slide-next-{{ $block->id }}" onclick="slideNext('{{ $slideId }}', {{ count($slideItems) }})"
+                                        style="display:inline-flex;align-items:center;gap:6px;background:#1e3a8a;color:#fff;border:none;padding:9px 16px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;transition:opacity .15s;">
+                                    Next Slide
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                                 </button>
                             </div>
                         </div>
@@ -1441,7 +1480,15 @@ const STEP_LABELS = {!! json_encode(array_merge(['Overview'], $lessonBlocks->map
 const LAST        = {{ $lastPanel }};
 const HAS_ACT     = {{ $hasActivities ? 'true' : 'false' }};
 const STEP_TYPES  = {!! json_encode($stepTypes) !!};
-const AUTO_DONE   = new Set(['overview','rich_text','audio','image','gallery','pdf','download','slides','accordion','activities','fun_fact','reflection','click_reveal','myth_fact','workplace_example','case_study']);
+// 'slides' removed — it uses mandatory TTS narration, not auto-done
+const AUTO_DONE   = new Set(['overview','rich_text','audio','image','gallery','pdf','download','accordion','activities','fun_fact','reflection','click_reveal','myth_fact','workplace_example','case_study']);
+const SLIDE_BLOCKS = {!! json_encode($slideBlocksData) !!};
+
+// Per-block slide state: which slides have been narrated, current index
+const slideState = {};
+Object.keys(SLIDE_BLOCKS).forEach(bid => {
+    slideState[bid] = { cur: 0, listened: new Set() };
+});
 
 function toggleReveal(id) {
     const el = document.getElementById(id);
@@ -1477,6 +1524,8 @@ function goToStep(n) {
     if (n > getFrontier()) return; // block jumping ahead of the furthest reached step
     // Stop all audio whenever the learner changes section
     if (typeof window.lfAudioStopAll === 'function') window.lfAudioStopAll();
+    // Cancel any slide TTS in progress
+    slidesCancelSpeech();
     // Pause any YT video on the panel we're leaving
     const leavingBid = currentYtBlockId();
     if (leavingBid && ytStates[leavingBid]?.player?.pauseVideo) {
@@ -1493,14 +1542,23 @@ function goToStep(n) {
     if (AUTO_DONE.has(STEP_TYPES[n])) stepDone[n] = true;
     renderUI();
     document.querySelector('.lf-panel.lf-active')?.scrollTo({ top: 0 });
+    // Auto-narrate slide step (delayed so panel is visible first)
+    if (!IS_COMPLETED && STEP_TYPES[n] === 'slides') {
+        const bid = currentSlideBlockId();
+        if (bid) setTimeout(() => slideSpeakCurrent(bid), 300);
+    }
 }
 function prevStep() { goToStep(cur - 1); }
 function nextStep() {
     if (isCurrentPanelLocked()) {
-        const bid = currentYtBlockId();
-        if (bid) {
-            const msg = document.getElementById('yt-lock-msg-' + bid);
+        const ytBid    = currentYtBlockId();
+        const slideBid = currentSlideBlockId();
+        if (ytBid) {
+            const msg = document.getElementById('yt-lock-msg-' + ytBid);
             if (msg) { msg.style.display = 'flex'; setTimeout(() => { msg.style.display = 'none'; }, 3500); }
+        } else if (slideBid) {
+            // Re-start narration if it somehow stopped
+            slideSpeakCurrent(slideBid);
         } else {
             const msg = document.getElementById('block-lock-' + cur);
             if (msg) { msg.style.display = 'flex'; setTimeout(() => { msg.style.display = 'none'; }, 3500); }
@@ -1542,13 +1600,16 @@ function renderUI() {
         if (fn.style.display !== 'none') {
             fn.className = 'lfb ' + (locked ? 'lfb-locked' : 'lfb-next');
             const t = STEP_TYPES[cur];
-            const lockLabel = t === 'video' ? '🔒 Watch First'
-                : t === 'knowledge_check' ? '❓ Answer First'
-                : t === 'scenario'        ? '✋ Choose First'
-                : t === 'matching'        ? '🔗 Match First'
+            const lockLabel = t === 'video'          ? '🔒 Watch First'
+                : t === 'slides'                     ? '🔊 Listen First'
+                : t === 'knowledge_check'            ? '❓ Answer First'
+                : t === 'scenario'                   ? '✋ Choose First'
+                : t === 'matching'                   ? '🔗 Match First'
                 : '🔒 Complete First';
-            // Use "Finish" only on the step before last for incomplete lessons
-            const nextLabel = (cur > 0 && cur === LAST - 1 && !IS_COMPLETED) ? 'Finish' : 'Next';
+            // Slides step unlabelled differently; Finish only on penultimate content step
+            const nextLabel = (t === 'slides' && !IS_COMPLETED) ? 'Next Section'
+                : (cur > 0 && cur === LAST - 1 && !IS_COMPLETED) ? 'Finish'
+                : 'Next';
             fn.innerHTML = (locked ? lockLabel : nextLabel) +
                 ' <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
         }
@@ -1595,20 +1656,106 @@ function toggleAcc(id) {
     item.querySelector('.acc-body').style.display = item.classList.toggle('open') ? 'block' : 'none';
 }
 
-// Slides
+// ── Slide navigation + TTS narration ─────────────────────────
+function slideBidFromId(id) { return id.replace(/^slides-/, ''); }
+
 function slidePrev(id) {
-    const ps = document.getElementById(id).querySelectorAll('.slide-panel');
+    slidesCancelSpeech();
+    const bid = slideBidFromId(id);
+    const ps  = document.getElementById(id).querySelectorAll('.slide-panel');
     let c = [...ps].findIndex(p => p.classList.contains('active'));
     if (c > 0) { ps[c].classList.remove('active'); ps[--c].classList.add('active'); }
-    const el = document.getElementById(id + '-counter');
-    if (el) el.textContent = (c + 1) + ' / ' + ps.length;
+    document.getElementById(id + '-counter').textContent = (c + 1) + ' / ' + ps.length;
+    if (slideState[bid]) slideState[bid].cur = c;
+    if (!IS_COMPLETED) slideSpeakCurrent(bid);
 }
+
 function slideNext(id, total) {
-    const ps = document.getElementById(id).querySelectorAll('.slide-panel');
+    slidesCancelSpeech();
+    const bid = slideBidFromId(id);
+    const ps  = document.getElementById(id).querySelectorAll('.slide-panel');
     let c = [...ps].findIndex(p => p.classList.contains('active'));
     if (c < ps.length - 1) { ps[c].classList.remove('active'); ps[++c].classList.add('active'); }
-    const el = document.getElementById(id + '-counter');
-    if (el) el.textContent = (c + 1) + ' / ' + ps.length;
+    document.getElementById(id + '-counter').textContent = (c + 1) + ' / ' + ps.length;
+    if (slideState[bid]) slideState[bid].cur = c;
+    if (!IS_COMPLETED) slideSpeakCurrent(bid);
+}
+
+function currentSlideBlockId() {
+    for (const [bid, info] of Object.entries(SLIDE_BLOCKS)) {
+        if (info.step === cur) return bid;
+    }
+    return null;
+}
+
+function slideAllListened(bid) {
+    const total = SLIDE_BLOCKS[bid]?.total || 0;
+    if (total === 0) return true;
+    return (slideState[bid]?.listened.size || 0) >= total;
+}
+
+function slidesCancelSpeech() {
+    if (typeof window.speechSynthesis !== 'undefined') window.speechSynthesis.cancel();
+    // Hide all narrating indicators
+    document.querySelectorAll('.slide-narrating').forEach(el => el.style.display = 'none');
+    // Re-enable all Next Slide buttons
+    document.querySelectorAll('[id^="slide-next-"]').forEach(btn => {
+        btn.disabled = false; btn.style.opacity = '';
+    });
+}
+
+function slideSpeakCurrent(bid) {
+    const state = slideState[bid];
+    if (!state) return;
+    const idx = state.cur;
+    if (state.listened.has(idx)) return; // already heard, skip
+    slideSpeak(bid, idx);
+}
+
+function slideSpeak(bid, idx) {
+    if (!window.speechSynthesis) { onSlideAudioDone(bid, idx); return; }
+
+    const panel = document.querySelector(`#slides-${bid} .slide-panel[data-slide="${idx}"]`);
+    if (!panel) { onSlideAudioDone(bid, idx); return; }
+
+    const titleEl = panel.querySelector('[data-slide-title]');
+    const textEl  = panel.querySelector('[data-slide-text]');
+    const title   = titleEl?.textContent?.trim() || '';
+    const body    = textEl?.textContent?.trim()  || '';
+    const text    = [title, body].filter(Boolean).join('. ').replace(/\s+/g, ' ');
+
+    if (!text) { onSlideAudioDone(bid, idx); return; }
+
+    const utter  = new SpeechSynthesisUtterance(text);
+    utter.rate   = 0.92;
+    utter.lang   = 'en-US';
+
+    // Show narrating indicator, lock Next Slide
+    const indicator = document.getElementById('slide-narrating-' + bid);
+    const nextBtn   = document.getElementById('slide-next-' + bid);
+    if (indicator) indicator.style.display = 'flex';
+    if (nextBtn)   { nextBtn.disabled = true; nextBtn.style.opacity = '0.35'; }
+
+    const done = () => {
+        if (indicator) indicator.style.display = 'none';
+        if (nextBtn)   { nextBtn.disabled = false; nextBtn.style.opacity = ''; }
+        onSlideAudioDone(bid, idx);
+    };
+    utter.onend   = done;
+    utter.onerror = done;
+
+    window.speechSynthesis.speak(utter);
+}
+
+function onSlideAudioDone(bid, idx) {
+    const state = slideState[bid];
+    if (!state) return;
+    state.listened.add(idx);
+
+    if (slideAllListened(bid)) {
+        const step = SLIDE_BLOCKS[bid]?.step;
+        if (step !== undefined) markStepDone(step);
+    }
 }
 
 // Knowledge check
@@ -1842,6 +1989,10 @@ function isCurrentPanelLocked() {
     if (t === 'video') {
         const bid = currentYtBlockId();
         return bid ? !(ytStates[bid]?.done) : false;
+    }
+    if (t === 'slides') {
+        const bid = currentSlideBlockId();
+        return bid ? !slideAllListened(bid) : false;
     }
     return t === 'knowledge_check' || t === 'scenario' || t === 'matching';
 }
