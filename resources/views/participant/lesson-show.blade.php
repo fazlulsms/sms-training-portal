@@ -1398,19 +1398,11 @@
                 </span>
                 @endif
 
-                @if($nextLesson)
-                <a href="{{ $previewMode ? route('elearning.lessons.preview', [$previewCourse, $nextLesson]) : route('participant.lesson.show', [$enrollment->id, $nextLesson->id]) }}"
-                   class="lfb lfb-blue" id="btnNextLesson" style="display:none;">
-                    Next Lesson
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                </a>
-                @else
                 <a href="{{ $previewMode ? route('elearning.lessons.index', $previewCourse) : route('participant.elearning-details', $enrollment->id) }}"
                    class="lfb lfb-teal" id="btnCourseOv" style="display:none;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                     {{ $previewMode ? 'All Lessons' : 'Course Overview' }}
                 </a>
-                @endif
             </div>
 
         </div>
@@ -1539,7 +1531,7 @@ function renderUI() {
                 : t === 'matching'        ? '🔗 Match First'
                 : '🔒 Complete First';
             // Use "Finish" only on the step before last for incomplete lessons
-            const nextLabel = (cur === LAST - 1 && !IS_COMPLETED) ? 'Finish' : 'Next';
+            const nextLabel = (cur > 0 && cur === LAST - 1 && !IS_COMPLETED) ? 'Finish' : 'Next';
             fn.innerHTML = (locked ? lockLabel : nextLabel) +
                 ' <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
         }
@@ -1550,7 +1542,7 @@ function renderUI() {
     // - Completed lessons: always show doneChip + Next Lesson (revision browsing mode)
     // - Incomplete lessons: show only on last unlocked step (original behaviour)
     const showCompletion = IS_COMPLETED || (isLast && !locked);
-    ['frmComplete','doneChip','previewChip','btnNextLesson','btnCourseOv'].forEach(id => {
+    ['frmComplete','doneChip','previewChip','btnCourseOv'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = showCompletion ? '' : 'none';
     });
