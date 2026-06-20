@@ -284,6 +284,7 @@ class PptElearningBuilderController extends Controller
 
         // ── AI explanation block ─────────────────────────────
         $explanationText = $slide->ai_explanation ?: $slide->content_text;
+        $richTextBlockId = null;
         if ($explanationText) {
             $html = '<p>' . nl2br(e($explanationText)) . '</p>';
 
@@ -296,22 +297,23 @@ class PptElearningBuilderController extends Controller
                 $html .= '</ul>';
             }
 
-            LessonBlock::create([
+            $richTextBlock = LessonBlock::create([
                 'lesson_id'    => $lesson->id,
                 'block_type'   => 'rich_text',
                 'title'        => null,
                 'content'      => $html,
                 'sort_order'   => $blockOrder++,
                 'status'       => 'active',
-                'audio_enabled'=> false,
+                'audio_enabled'=> $hasAudio, // enable audio on this block if audio exists
             ]);
+            $richTextBlockId = $richTextBlock->id;
         }
 
-        // ── Narration audio ──────────────────────────────────
+        // ── Narration audio — linked to the rich_text block ──
         if ($hasAudio) {
             LessonAudio::create([
                 'lesson_id'        => $lesson->id,
-                'block_id'         => null,
+                'block_id'         => $richTextBlockId, // links audio to the content block
                 'audio_type'       => 'ai_coach',
                 'voice'            => 'nova',
                 'language'         => 'en',
