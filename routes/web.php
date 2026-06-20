@@ -219,6 +219,9 @@ Route::middleware(['auth', 'admin'])->prefix('ppt-builder')->name('ppt-builder.'
 
     // Publish
     Route::post('/{pptCourse}/publish',                            [PptElearningBuilderController::class, 'publish'])       ->name('publish');
+
+    // Sync individual slide → lesson
+    Route::post('/{pptCourse}/slides/{pptSlide}/sync',             [PptElearningBuilderController::class, 'syncSlide'])     ->name('slides.sync');
 });
 
 /*

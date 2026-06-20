@@ -12,6 +12,7 @@ class PptSlide extends Model
     protected $fillable = [
         'ppt_course_id',
         'ppt_module_id',
+        'lesson_id',
         'slide_number',
         'slide_order',
         'title',

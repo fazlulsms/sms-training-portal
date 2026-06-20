@@ -171,6 +171,179 @@ class PptElearningBuilderController extends Controller
         }
     }
 
+    // ──────────────────────────────────────────────────────────
+    // Sync one slide → its published lesson
+    // ──────────────────────────────────────────────────────────
+
+    public function syncSlide(Request $request, PptCourse $pptCourse, PptSlide $pptSlide): JsonResponse
+    {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+        $this->assertBelongs($pptCourse, $pptSlide);
+
+        if (!$pptCourse->course_id) {
+            return response()->json(['error' => 'This PPT course has not been published yet.'], 422);
+        }
+
+        // Find the linked lesson (by stored lesson_id or fall back to lesson_order match)
+        $lesson = $pptSlide->lesson_id
+            ? ElearningLesson::find($pptSlide->lesson_id)
+            : ElearningLesson::where('course_id', $pptCourse->course_id)
+                ->where('lesson_order', $pptSlide->slide_order)
+                ->first();
+
+        if (!$lesson) {
+            return response()->json(['error' => 'Could not find the matching lesson for this slide.'], 404);
+        }
+
+        // Save lesson_id if we found it by fallback
+        if (!$pptSlide->lesson_id) {
+            $pptSlide->update(['lesson_id' => $lesson->id]);
+        }
+
+        try {
+            DB::transaction(function () use ($pptSlide, $lesson) {
+                $this->syncSlideToLesson($pptSlide, $lesson);
+            });
+
+            return response()->json([
+                'success'    => true,
+                'lesson_url' => url("/admin/courses/edit/{$lesson->course_id}"),
+                'message'    => 'Slide synced to lesson successfully.',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('PptBuilder syncSlide failed', [
+                'slide_id'  => $pptSlide->id,
+                'lesson_id' => $lesson->id,
+                'error'     => $e->getMessage(),
+            ]);
+            return response()->json(['error' => 'Sync failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    private function syncSlideToLesson(PptSlide $slide, ElearningLesson $lesson): void
+    {
+        $hasAudio   = $slide->isAudioReady();
+        $hasContent = !empty($slide->ai_explanation) || !empty($slide->content_text);
+
+        // ── Update lesson meta ────────────────────────────────
+        $lesson->update([
+            'title'                    => $slide->title ?: "Slide {$slide->slide_number}",
+            'short_description'        => $hasContent
+                ? Str::limit(strip_tags($slide->ai_explanation ?? $slide->content_text ?? ''), 200)
+                : null,
+            'lesson_type'              => $hasAudio ? 'audio' : 'mixed',
+            'require_audio_completion' => $hasAudio,
+            'duration_minutes'         => $slide->audio_duration ? (int) ceil($slide->audio_duration / 60) : 1,
+        ]);
+
+        // ── Remove old PPT-sourced blocks and audio ───────────
+        $existingBlocks = LessonBlock::where('lesson_id', $lesson->id)
+            ->whereIn('block_type', ['image', 'rich_text'])
+            ->get();
+
+        $existingBlockIds = $existingBlocks->pluck('id');
+
+        // Remove PPT-sourced audio (only those linked to these blocks or with ppt paths)
+        LessonAudio::where('lesson_id', $lesson->id)
+            ->where(function ($q) use ($existingBlockIds) {
+                $q->whereIn('block_id', $existingBlockIds)
+                  ->orWhere('file_path', 'like', 'ppt-builder/%');
+            })
+            ->delete();
+
+        // Remove old image + rich_text blocks
+        $existingBlocks->each->delete();
+
+        // ── Re-create blocks ──────────────────────────────────
+        $blockOrder      = 1;
+        $richTextBlockId = null;
+
+        if ($slide->image_path) {
+            LessonBlock::create([
+                'lesson_id'  => $lesson->id,
+                'block_type' => 'image',
+                'title'      => $slide->title ?: null,
+                'content'    => $slide->image_path,
+                'media_path' => $slide->image_path,
+                'sort_order' => $blockOrder++,
+                'status'     => 'active',
+            ]);
+        }
+
+        $explanationText = $slide->ai_explanation ?: $slide->content_text;
+        if ($explanationText) {
+            $html = '<p>' . nl2br(e($explanationText)) . '</p>';
+            if (!empty($slide->ai_key_points)) {
+                $html .= '<ul>';
+                foreach ($slide->ai_key_points as $kp) {
+                    $html .= '<li>' . e($kp) . '</li>';
+                }
+                $html .= '</ul>';
+            }
+
+            $richTextBlock = LessonBlock::create([
+                'lesson_id'    => $lesson->id,
+                'block_type'   => 'rich_text',
+                'title'        => null,
+                'content'      => $html,
+                'sort_order'   => $blockOrder++,
+                'status'       => 'active',
+                'audio_enabled'=> $hasAudio,
+            ]);
+            $richTextBlockId = $richTextBlock->id;
+        }
+
+        // ── Re-create audio ───────────────────────────────────
+        if ($hasAudio) {
+            LessonAudio::create([
+                'lesson_id'        => $lesson->id,
+                'block_id'         => $richTextBlockId,
+                'audio_type'       => 'ai_coach',
+                'voice'            => 'nova',
+                'language'         => 'en',
+                'file_path'        => $slide->audio_path,
+                'duration_seconds' => $slide->audio_duration,
+                'status'           => 'ready',
+                'generated_at'     => $slide->audio_generated_at ?? now(),
+            ]);
+        }
+
+        // ── Re-create knowledge check ─────────────────────────
+        if (!empty($slide->knowledge_check)) {
+            // Only add if lesson has no existing quizzes
+            $existingQuiz = \App\Models\ElearningQuiz::where('lesson_id', $lesson->id)->first();
+            if (!$existingQuiz) {
+                $kc      = $slide->knowledge_check;
+                $type    = $kc['type'] ?? 'multiple_choice';
+                $options = $kc['options'] ?? [];
+
+                $quiz = ElearningQuiz::create([
+                    'lesson_id'   => $lesson->id,
+                    'title'       => 'Check: ' . ($slide->title ?: "Slide {$slide->slide_number}"),
+                    'description' => 'Knowledge check for this slide.',
+                    'pass_mark'   => 70,
+                    'max_attempt' => 3,
+                    'status'      => 'active',
+                ]);
+
+                ElearningQuizQuestion::create([
+                    'quiz_id'       => $quiz->id,
+                    'question_text' => $kc['question'] ?? 'Answer the following:',
+                    'question_type' => $type === 'true_false' ? 'truefalse' : ($type === 'reflection' ? 'truefalse' : 'mcq'),
+                    'option_a'      => $options[0] ?? 'True',
+                    'option_b'      => $options[1] ?? 'False',
+                    'option_c'      => $options[2] ?? null,
+                    'option_d'      => $options[3] ?? null,
+                    'correct_answer'=> $this->mapCorrectAnswer($kc['correct'] ?? 'A', $options),
+                    'explanation'   => $kc['explanation'] ?? null,
+                    'difficulty'    => 'medium',
+                    'marks'         => 1,
+                    'status'        => 'active',
+                ]);
+            }
+        }
+    }
+
     private function buildCourse(PptCourse $pptCourse, $slides, array $validated): Course
     {
         // ── 1. Resolve category ──────────────────────────────
@@ -266,6 +439,9 @@ class PptElearningBuilderController extends Controller
             'require_audio_completion'=> $hasAudio,
             'duration_minutes'        => $slide->audio_duration ? (int) ceil($slide->audio_duration / 60) : 1,
         ]);
+
+        // Track which lesson this slide maps to
+        $slide->update(['lesson_id' => $lesson->id]);
 
         $blockOrder = 1;
 

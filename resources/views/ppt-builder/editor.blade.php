@@ -131,6 +131,9 @@
 .voice-opt-name { font-size:12px; font-weight:700; color:#374151; }
 .voice-opt-desc { font-size:10px; color:#6b7280; margin-top:1px; }
 
+/* ── Spin animation ─────────────────────────────── */
+@keyframes spin { to { transform:rotate(360deg); } }
+
 /* ── Scrollbar ──────────────────────────────────── */
 .slide-list::-webkit-scrollbar, .tab-content::-webkit-scrollbar { width:4px; }
 .slide-list::-webkit-scrollbar-thumb, .tab-content::-webkit-scrollbar-thumb { background:#d1d5db; border-radius:4px; }
@@ -309,6 +312,20 @@
                             <option :value="mod.id" x-text="mod.title"></option>
                         </template>
                     </select>
+                    {{-- Sync to lesson (only when published) --}}
+                    @if($pptCourse->course_id)
+                    <button @click="syncToLesson()"
+                            :disabled="syncLoading"
+                            style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:5px 12px;border-radius:7px;border:1px solid #a5b4fc;background:#eff6ff;color:#1e3a8a;cursor:pointer;transition:all .12s;flex-shrink:0;"
+                            :style="syncLoading ? 'opacity:.6;cursor:wait;' : ''"
+                            title="Push this slide's latest content, audio & AI to its lesson">
+                        <svg x-show="!syncLoading" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>
+                        <svg x-show="syncLoading" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                        <span x-text="syncLoading ? 'Syncing…' : 'Sync to Lesson'"></span>
+                    </button>
+                    <span x-show="syncMsg" x-text="syncMsg"
+                          style="font-size:11px;font-weight:700;color:#16a34a;white-space:nowrap;"></span>
+                    @endif
                     {{-- Remove / Restore --}}
                     <button @click="toggleRemove()"
                             :class="selectedSlide.is_removed ? 'remove-btn active' : 'remove-btn inactive'">
@@ -704,6 +721,8 @@ function pptEditor() {
         audioVoice: 'nova',
         checkType: 'multiple_choice',
         moduleLoading: false,
+        syncLoading: false,
+        syncMsg: '',
         editForm: {},
         moduleForm: { title: '', description: '' },
         showPublish: false,
@@ -870,6 +889,20 @@ function pptEditor() {
             if (resp.success) {
                 this.selectedSlide.knowledge_check = null;
                 this.updateSlideInList(this.selectedSlide);
+            }
+        },
+
+        async syncToLesson() {
+            this.syncLoading = true;
+            this.syncMsg = '';
+            const resp = await this.post(`{{ route('ppt-builder.slides.sync', [$pptCourse, ':id']) }}`.replace(':id', this.selectedSlide.id), {});
+            this.syncLoading = false;
+            if (resp.success) {
+                this.syncMsg = '✓ Synced!';
+                setTimeout(() => this.syncMsg = '', 3000);
+            } else {
+                this.syncMsg = '✗ ' + (resp.error || 'Sync failed');
+                setTimeout(() => this.syncMsg = '', 4000);
             }
         },
 
