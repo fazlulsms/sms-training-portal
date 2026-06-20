@@ -63,6 +63,7 @@ use App\Http\Controllers\CouponController;
 use App\Http\Controllers\LessonAudioController;
 use App\Http\Controllers\KnowledgeResourceController;
 use App\Http\Controllers\AiQuestionBankController;
+use App\Http\Controllers\PptElearningBuilderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -181,6 +182,44 @@ Route::middleware('auth')->group(function () {
         ->name('participant.my-certificates');
 });
 
+/*
+|--------------------------------------------------------------------------
+| PPT eLearning Builder Routes (auth + admin)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'admin'])->prefix('ppt-builder')->name('ppt-builder.')->group(function () {
+
+    Route::get('/',           [PptElearningBuilderController::class, 'index'])   ->name('index');
+    Route::get('/create',     [PptElearningBuilderController::class, 'create'])  ->name('create');
+    Route::post('/',          [PptElearningBuilderController::class, 'store'])   ->name('store');
+    Route::get('/{pptCourse}/editor', [PptElearningBuilderController::class, 'editor'])  ->name('editor');
+    Route::delete('/{pptCourse}',     [PptElearningBuilderController::class, 'destroy']) ->name('destroy');
+
+    // Slide AJAX
+    Route::get('/{pptCourse}/slides/{pptSlide}',                   [PptElearningBuilderController::class, 'getSlide'])       ->name('slides.get');
+    Route::put('/{pptCourse}/slides/{pptSlide}',                   [PptElearningBuilderController::class, 'updateSlide'])    ->name('slides.update');
+    Route::post('/{pptCourse}/slides/{pptSlide}/remove',           [PptElearningBuilderController::class, 'removeSlide'])    ->name('slides.remove');
+    Route::post('/{pptCourse}/slides/{pptSlide}/assign',           [PptElearningBuilderController::class, 'assignSlide'])    ->name('slides.assign');
+    Route::post('/{pptCourse}/slides/reorder',                     [PptElearningBuilderController::class, 'reorderSlides'])  ->name('slides.reorder');
+
+    // AI AJAX
+    Route::post('/{pptCourse}/slides/{pptSlide}/ai-explain',       [PptElearningBuilderController::class, 'aiExplain'])        ->name('slides.ai-explain');
+    Route::post('/{pptCourse}/slides/{pptSlide}/ai-check',         [PptElearningBuilderController::class, 'aiKnowledgeCheck']) ->name('slides.ai-check');
+
+    // Audio AJAX
+    Route::post('/{pptCourse}/slides/{pptSlide}/audio',            [PptElearningBuilderController::class, 'generateAudio']) ->name('slides.audio.generate');
+    Route::post('/{pptCourse}/slides/{pptSlide}/audio/upload',     [PptElearningBuilderController::class, 'uploadAudio'])   ->name('slides.audio.upload');
+    Route::delete('/{pptCourse}/slides/{pptSlide}/audio',          [PptElearningBuilderController::class, 'deleteAudio'])   ->name('slides.audio.delete');
+
+    // Module AJAX
+    Route::post('/{pptCourse}/modules',                            [PptElearningBuilderController::class, 'storeModule'])   ->name('modules.store');
+    Route::put('/{pptCourse}/modules/{pptModule}',                 [PptElearningBuilderController::class, 'updateModule'])  ->name('modules.update');
+    Route::delete('/{pptCourse}/modules/{pptModule}',              [PptElearningBuilderController::class, 'destroyModule']) ->name('modules.destroy');
+    Route::post('/{pptCourse}/modules/reorder',                    [PptElearningBuilderController::class, 'reorderModules'])->name('modules.reorder');
+
+    // Publish
+    Route::post('/{pptCourse}/publish',                            [PptElearningBuilderController::class, 'publish'])       ->name('publish');
+});
 
 /*
 |--------------------------------------------------------------------------

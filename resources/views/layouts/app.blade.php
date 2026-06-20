@@ -538,6 +538,16 @@
                     Knowledge Hub
                 </a>
                 @if(auth()->user()?->isAdmin())
+                <a href="{{ route('ppt-builder.index') }}"
+                   class="sb-sub {{ request()->is('ppt-builder*') ? 'active' : '' }}"
+                   style="{{ request()->is('ppt-builder*') ? 'background:rgba(244,114,182,.12);color:#f9a8d4;' : '' }}">
+                    <span class="sb-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="13" y2="12"/></svg>
+                    </span>
+                    PPT eLearning Builder
+                </a>
+                @endif
+                @if(auth()->user()?->isAdmin())
                 <a href="{{ route('ai.question-bank.index') }}"
                    class="sb-sub {{ request()->is('admin/ai/question-bank*') ? 'active' : '' }}">
                     <span class="sb-icon">?</span>
