@@ -186,6 +186,16 @@
 .lb-head-label { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:#6b7280; }
 .lb-head-title { font-size:14.5px; font-weight:700; color:#111827; margin-left:4px; }
 .lb-body { padding:26px 28px; font-size:16px; line-height:1.85; color:#374151; }
+/* ── Image block ──────────────────────────────────────────── */
+.lb-img-wrap { position:relative; overflow:hidden; background:#0f172a; min-height:60px; }
+.lb-img-main { display:block; width:100%; max-height:540px; object-fit:contain; cursor:zoom-in; transition:transform .25s; }
+.lb-img-main:hover { transform:scale(1.015); }
+.lb-img-broken { display:none; padding:48px 24px; text-align:center; font-size:14px; color:rgba(255,255,255,.4); }
+.lb-img-wrap.lb-img-err .lb-img-main { display:none; }
+.lb-img-wrap.lb-img-err .lb-img-broken { display:block; }
+.lb-img-caption { padding:10px 22px 14px; font-size:13.5px; color:#6b7280; font-style:italic; border-top:1px solid #f0f2f5; background:#fafbfc; }
+.lb-img-title-bar { padding:10px 22px; display:flex; align-items:center; gap:8px; background:rgba(0,0,0,.55); position:absolute; bottom:0; left:0; right:0; }
+.lb-img-title-bar span { font-size:13px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .lb-body.rt-body h1,.lb-body.rt-body h2,.lb-body.rt-body h3 { color:#111827; margin-top:1.5em; margin-bottom:.5em; }
 .lb-body.rt-body p  { margin:0 0 1.2em; }
 .lb-body.rt-body ul,.lb-body.rt-body ol { padding-left:1.5em; margin:0 0 1.2em; }
@@ -755,23 +765,32 @@
                     @break
 
                     @case('image')
+                    @php
+                        $imgSrc = $block->content ?? '';
+                        if ($imgSrc && !Str::startsWith($imgSrc, ['http://', 'https://', '/', 'data:'])) {
+                            $imgSrc = asset('storage/' . $imgSrc);
+                        }
+                        $imgCaption = $block->settings_json['caption'] ?? null;
+                        $imgAlt     = $imgCaption ?? $block->title ?? '';
+                    @endphp
                     <div class="lb">
-                        @if($block->title)
-                        <div class="lb-head">
-                            <div class="lb-head-icon lh-image">🖼️</div>
-                            <span class="lb-head-label">Image</span>
-                            <span class="lb-head-title">{{ $block->title }}</span>
-                        </div>
-                        @endif
-                        <div class="lb-body" style="text-align:center;padding:24px;">
-                            <img src="{{ $block->content }}"
-                                 alt="{{ $block->settings_json['caption'] ?? $block->title ?? '' }}"
-                                 style="max-width:100%;border-radius:10px;cursor:zoom-in;box-shadow:0 2px 12px rgba(15,23,42,.10);"
-                                 onclick="openLightbox(this.src, this.alt)">
-                            @if(!empty($block->settings_json['caption']))
-                                <p style="font-size:13.5px;color:#6b7280;margin-top:10px;font-style:italic;">{{ $block->settings_json['caption'] }}</p>
+                        <div class="lb-img-wrap">
+                            <img src="{{ $imgSrc }}"
+                                 alt="{{ $imgAlt }}"
+                                 class="lb-img-main"
+                                 onerror="this.closest('.lb-img-wrap').classList.add('lb-img-err')"
+                                 onclick="openLightbox(this.src, '{{ addslashes($imgAlt) }}')">
+                            @if($block->title)
+                            <div class="lb-img-title-bar">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                <span>{{ $block->title }}</span>
+                            </div>
                             @endif
+                            <div class="lb-img-broken">🖼️ Image not available</div>
                         </div>
+                        @if($imgCaption)
+                        <div class="lb-img-caption">{{ $imgCaption }}</div>
+                        @endif
                     </div>
                     @break
 
@@ -2161,25 +2180,46 @@ document.querySelectorAll('[id^="slides-"]').forEach(el => {
     const SOUND_ICON= '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
     const MUTE_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
 
+    function sapFmt(s) {
+        const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+        return m + ':' + String(sec).padStart(2, '0');
+    }
     function sapSetWave(id, playing) {
         const w = document.getElementById('sap-wave-' + id);
         if (w) w.classList.toggle('paused', !playing);
     }
     function sapSetPlayIcon(id, playing) {
-        const b = document.getElementById('sap-play-' + id);
-        if (b) b.innerHTML = playing ? PAUSE_ICON : PLAY_ICON;
+        const pi = document.getElementById('sap-play-icon-'  + id);
+        const pa = document.getElementById('sap-pause-icon-' + id);
+        if (pi) pi.style.display = playing ? 'none'  : '';
+        if (pa) pa.style.display = playing ? ''      : 'none';
+    }
+    function sapUpdateProgress(id, audio) {
+        const bar  = document.getElementById('sap-bar-'  + id);
+        const time = document.getElementById('sap-time-' + id);
+        if (!audio || !audio.duration) return;
+        const pct = (audio.currentTime / audio.duration) * 100;
+        if (bar)  bar.style.width = pct + '%';
+        if (time) time.textContent = sapFmt(audio.currentTime) + ' / ' + sapFmt(audio.duration);
     }
 
     window.sapToggle = function(id) {
         const audio = document.getElementById('sap-audio-' + id);
         if (!audio) return;
         if (audio.paused) {
-            // Stop all other audio (bap + sap)
             if (typeof window.lfAudioStopAll === 'function') window.lfAudioStopAll();
             audio.play().catch(() => {});
         } else {
             audio.pause();
         }
+    };
+
+    window.sapSeek = function(id, e) {
+        const audio = document.getElementById('sap-audio-' + id);
+        const wrap  = e.currentTarget;
+        if (!audio || !audio.duration) return;
+        const rect = wrap.getBoundingClientRect();
+        audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
     };
 
     window.sapMute = function(id) {
@@ -2198,10 +2238,10 @@ document.querySelectorAll('[id^="slides-"]').forEach(el => {
             const id = audio.id.replace('sap-audio-', '');
             sapSetWave(id, false);
             sapSetPlayIcon(id, false);
+            sapUpdateProgress(id, audio);
         });
     };
 
-    // Auto-play the SAP audio for the panel at step n (if any)
     window.sapAutoPlay = function(n) {
         const panel = document.querySelector('.lf-panel[data-step="' + n + '"]');
         if (!panel) return;
@@ -2215,9 +2255,11 @@ document.querySelectorAll('[id^="slides-"]').forEach(el => {
     // Wire up events on all SAP audio elements
     document.querySelectorAll('audio[id^="sap-audio-"]').forEach(audio => {
         const id = audio.id.replace('sap-audio-', '');
-        audio.addEventListener('play',  () => { sapSetWave(id, true);  sapSetPlayIcon(id, true);  });
-        audio.addEventListener('pause', () => { sapSetWave(id, false); sapSetPlayIcon(id, false); });
-        audio.addEventListener('ended', () => { sapSetWave(id, false); sapSetPlayIcon(id, false); audio.currentTime = 0; });
+        audio.addEventListener('play',        () => { sapSetWave(id, true);  sapSetPlayIcon(id, true); });
+        audio.addEventListener('pause',       () => { sapSetWave(id, false); sapSetPlayIcon(id, false); });
+        audio.addEventListener('ended',       () => { sapSetWave(id, false); sapSetPlayIcon(id, false); audio.currentTime = 0; sapUpdateProgress(id, audio); });
+        audio.addEventListener('timeupdate',  () => sapUpdateProgress(id, audio));
+        audio.addEventListener('loadedmetadata', () => sapUpdateProgress(id, audio));
     });
 })();
 </script>
