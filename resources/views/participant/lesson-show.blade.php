@@ -1289,11 +1289,11 @@
                                 $bestAttempt  = $quiz->attempts->sortByDesc('score')->first();
                                 $quizPassed   = $bestAttempt && $bestAttempt->score >= $quiz->pass_mark;
                                 $attemptsUsed = $quiz->attempts->count();
-                                $quizOverride  = \App\Models\QuizAttemptOverride::where('enrollment_id', $enrollment->id)->where('quiz_id', $quiz->id)->first();
+                                $quizOverride  = $enrollment ? \App\Models\QuizAttemptOverride::where('enrollment_id', $enrollment->id)->where('quiz_id', $quiz->id)->first() : null;
                                 $effectiveMax  = $quiz->max_attempt + ($quizOverride?->extra_attempts ?? 0);
                                 $attemptsLeft  = $effectiveMax > 0 ? max(0, $effectiveMax - $attemptsUsed) : PHP_INT_MAX;
-                                $pendingGate   = \App\Models\QuizReviewGate::where('enrollment_id', $enrollment->id)
-                                    ->where('quiz_id', $quiz->id)->where('status', 'pending')->latest()->first();
+                                $pendingGate   = $enrollment ? \App\Models\QuizReviewGate::where('enrollment_id', $enrollment->id)
+                                    ->where('quiz_id', $quiz->id)->where('status', 'pending')->latest()->first() : null;
                             @endphp
                             <div class="quiz-row">
                                 <div class="quiz-name">{{ $quiz->title }}</div>
