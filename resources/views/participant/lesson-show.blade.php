@@ -1158,7 +1158,6 @@
                             </button>
                         </div>
                         </div>
-                    </div>
                     @break
 
                     @case('knowledge_check')
