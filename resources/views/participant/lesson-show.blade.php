@@ -64,7 +64,7 @@
 /* ── Step bar ─────────────────────────────────────────────── */
 .lf-stepbar {
     flex-shrink:0; background:#fff; border-bottom:1px solid #e5e7eb;
-    display:flex; align-items:stretch; height:52px; position:relative; z-index:30;
+    display:flex; align-items:stretch; height:52px; position:relative; z-index:2;
 }
 .lf-sb-info {
     display:flex; align-items:center; gap:9px; padding:0 18px; flex-shrink:0;
@@ -110,14 +110,18 @@
 }
 
 /* ── Viewport & panels ────────────────────────────────────── */
-.lf-viewport { flex:1; overflow:hidden; position:relative; }
+.lf-viewport { flex:1; overflow:hidden; position:relative; z-index:0; }
 .lf-panel {
     position:absolute; inset:0; overflow-y:auto; overflow-x:hidden; display:none;
+    z-index:1;
 }
 .lf-panel::-webkit-scrollbar { width:5px; }
 .lf-panel::-webkit-scrollbar-thumb { background:#d1d5db; border-radius:10px; }
 .lf-panel.lf-active { display:block; }
-.lf-inner { max-width:860px; margin:0 auto; padding:28px 32px; width:100%; }
+.lf-inner { max-width:860px; margin:0 auto; padding:28px 32px; width:100%; min-height:100%; box-sizing:border-box; }
+/* Focal panel — interaction blocks fill + centre the viewport */
+.lf-focal { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100%; padding:32px; }
+.lf-focal-card { width:100%; max-width:700px; }
 
 /* ── Footer ───────────────────────────────────────────────── */
 .lf-footer {
@@ -325,6 +329,40 @@
 .kc-result { padding:12px 16px; border-radius:10px; font-size:14px; font-weight:600; margin-top:14px; line-height:1.5; }
 .kc-result-pass { background:#dcfce7; color:#166534; }
 .kc-result-fail { background:#fee2e2; color:#991b1b; }
+/* ══ FOCAL INTERACTION BLOCKS ═══════════════════════════════ */
+/* Click-to-Reveal */
+.cr-wrap { background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%); border:1.5px solid #bae6fd; border-radius:20px; overflow:hidden; }
+.cr-header { background:linear-gradient(90deg,#0369a1,#0284c7); padding:12px 24px; display:flex; align-items:center; gap:10px; }
+.cr-header-icon { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.cr-header-title { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:rgba(255,255,255,.85); }
+.cr-header-sub { font-size:12px; color:rgba(255,255,255,.6); font-weight:500; margin-left:2px; }
+.cr-body { padding:32px 36px; }
+.cr-question-label { font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:#0369a1; margin-bottom:14px; display:flex; align-items:center; gap:7px; }
+.cr-question-text { font-size:22px; font-weight:800; color:#0c4a6e; line-height:1.45; margin-bottom:32px; }
+.cr-btn { display:inline-flex; align-items:center; gap:10px; padding:14px 28px; border-radius:12px; background:linear-gradient(135deg,#0284c7,#0369a1); color:#fff; border:none; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .2s; box-shadow:0 4px 16px rgba(2,132,199,.3); }
+.cr-btn:hover { transform:translateY(-1px); box-shadow:0 6px 22px rgba(2,132,199,.38); }
+.cr-answer-wrap { margin-top:24px; border-radius:14px; overflow:hidden; border:1.5px solid #86efac; animation:crFadeIn .35s ease; }
+@keyframes crFadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.cr-answer-head { background:linear-gradient(90deg,#15803d,#16a34a); padding:12px 20px; display:flex; align-items:center; gap:8px; }
+.cr-answer-head span { font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:#fff; }
+.cr-answer-body { background:#f0fdf4; padding:20px 24px; }
+.cr-answer-text { font-size:17px; font-weight:700; color:#14532d; line-height:1.6; margin:0 0 10px; }
+.cr-explanation { font-size:14px; color:#166534; font-style:italic; line-height:1.65; border-top:1px solid #bbf7d0; padding-top:12px; margin-top:0; }
+.cr-tip { margin-top:24px; padding:12px 18px; background:rgba(2,132,199,.07); border-radius:10px; font-size:13px; color:#0369a1; display:flex; align-items:center; gap:9px; font-weight:500; }
+/* Reflection */
+.rf-wrap { background:linear-gradient(135deg,#faf5ff 0%,#ede9fe 100%); border:1.5px solid #c4b5fd; border-radius:20px; overflow:hidden; }
+.rf-header { background:linear-gradient(90deg,#7c3aed,#6d28d9); padding:12px 24px; display:flex; align-items:center; gap:10px; }
+.rf-header-icon { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.rf-header-title { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:rgba(255,255,255,.9); }
+.rf-header-sub { font-size:12px; color:rgba(255,255,255,.6); margin-left:2px; }
+.rf-body { padding:32px 36px; }
+.rf-prompt { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:#7c3aed; margin-bottom:12px; }
+.rf-prompt-text { font-size:20px; font-weight:800; color:#4c1d95; line-height:1.5; margin-bottom:28px; border-left:4px solid #7c3aed; padding-left:18px; }
+.rf-questions { display:flex; flex-direction:column; gap:12px; margin-bottom:24px; }
+.rf-q { display:flex; align-items:flex-start; gap:14px; background:#fff; border:1px solid #ddd6fe; border-radius:14px; padding:16px 20px; }
+.rf-q-num { flex-shrink:0; width:28px; height:28px; background:linear-gradient(135deg,#7c3aed,#6d28d9); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; margin-top:1px; }
+.rf-q-text { font-size:15.5px; color:#4c1d95; line-height:1.65; font-weight:500; }
+.rf-tip { padding:12px 18px; background:rgba(109,40,217,.07); border-radius:10px; font-size:13px; color:#6d28d9; display:flex; align-items:center; gap:9px; font-weight:500; }
 /* ══ SLIDE VIEWER ═══════════════════════════════════════════ */
 .sv-wrap { border-radius:14px; overflow:hidden; border:1px solid #e9ecf0; box-shadow:0 4px 20px rgba(15,23,42,.08); }
 /* Top bar */
@@ -1258,72 +1296,80 @@
                     {{-- ── Reflection ─────────────────────────── --}}
                     @case('reflection')
                     @php $refD = $block->getDecodedContent(); @endphp
-                    <div class="lb" style="border:none; overflow:visible; background:transparent; box-shadow:none;">
-                        <div style="background:linear-gradient(135deg,#faf5ff,#ede9fe); border:2px solid #c4b5fd; border-radius:16px; overflow:hidden; box-shadow:0 4px 16px rgba(109,40,217,.12);">
-                            <div style="background:linear-gradient(90deg,#7c3aed,#6d28d9); padding:10px 20px; display:flex; align-items:center; gap:10px;">
-                                <span style="font-size:18px;">🤔</span>
-                                <span style="font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#fff;">Reflection</span>
-                                @if($block->title)
-                                <span style="font-size:13px; color:rgba(255,255,255,.85); margin-left:4px;">— {{ $block->title }}</span>
-                                @endif
-                            </div>
-                            <div style="padding:20px 24px;">
-                                @if(!empty($refD['prompt']))
-                                <p style="font-size:15.5px; font-weight:700; color:#4c1d95; margin:0 0 16px; line-height:1.6; border-left:4px solid #7c3aed; padding-left:14px; background:rgba(124,58,237,.06); padding:12px 14px; border-radius:0 8px 8px 0;">{{ $refD['prompt'] }}</p>
-                                @endif
-                                @if(!empty($refD['questions']))
-                                <div style="display:flex; flex-direction:column; gap:8px;">
-                                    @foreach($refD['questions'] as $qi => $rq)
-                                    <div style="display:flex; gap:10px; align-items:flex-start; background:#fff; border:1px solid #ddd6fe; border-radius:10px; padding:12px 16px;">
-                                        <div style="flex-shrink:0; width:24px; height:24px; background:#7c3aed; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; margin-top:1px;">{{ $qi + 1 }}</div>
-                                        <p style="font-size:14.5px; color:#4c1d95; margin:0; line-height:1.65;">{{ $rq }}</p>
-                                    </div>
-                                    @endforeach
-                                </div>
-                                @endif
-                                <div style="margin-top:14px; padding:10px 14px; background:rgba(109,40,217,.07); border-radius:8px; font-size:12.5px; color:#6d28d9; font-style:italic; display:flex; align-items:center; gap:8px;">
-                                    <span>💭</span><span>Pause here and think about this before continuing to the next section.</span>
-                                </div>
-                            </div>
+                    <div class="lf-focal">
+                    <div class="lf-focal-card">
+                    <div class="rf-wrap">
+                        <div class="rf-header">
+                            <div class="rf-header-icon">🤔</div>
+                            <span class="rf-header-title">Reflection</span>
+                            @if($block->title)<span class="rf-header-sub">— {{ $block->title }}</span>@endif
                         </div>
-                    </div>
+                        <div class="rf-body">
+                            @if(!empty($refD['prompt']))
+                            <div class="rf-prompt">💭 Reflection Prompt</div>
+                            <p class="rf-prompt-text">{{ $refD['prompt'] }}</p>
+                            @endif
+                            @if(!empty($refD['questions']))
+                            <div class="rf-questions">
+                                @foreach($refD['questions'] as $qi => $rq)
+                                <div class="rf-q">
+                                    <div class="rf-q-num">{{ $qi + 1 }}</div>
+                                    <p class="rf-q-text">{{ $rq }}</p>
+                                </div>
+                                @endforeach
+                            </div>
+                            @endif
+                            <div class="rf-tip">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                                Pause here and think about this before continuing to the next section.
+                            </div>
+                        </div>{{-- rf-body --}}
+                    </div>{{-- rf-wrap --}}
+                    </div>{{-- lf-focal-card --}}
+                    </div>{{-- lf-focal --}}
                     @break
 
                     {{-- ── Click to Reveal ─────────────────────── --}}
                     @case('click_reveal')
                     @php $crD = $block->getDecodedContent(); $crId = 'cr-' . $bi; @endphp
-                    <div class="lb">
-                        <div style="background:linear-gradient(90deg,#0369a1,#0284c7); padding:10px 22px; display:flex; align-items:center; gap:10px;">
-                            <span style="font-size:16px;">👁</span>
-                            <span style="font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#fff;">Think First, Then Reveal</span>
-                            @if($block->title)
-                            <span style="font-size:13px; color:rgba(255,255,255,.8); margin-left:4px;">— {{ $block->title }}</span>
-                            @endif
+                    <div class="lf-focal">
+                    <div class="lf-focal-card">
+                    <div class="cr-wrap">
+                        <div class="cr-header">
+                            <div class="cr-header-icon">👁</div>
+                            <span class="cr-header-title">Think First, Then Reveal</span>
+                            @if($block->title)<span class="cr-header-sub">— {{ $block->title }}</span>@endif
                         </div>
-                        <div style="padding:22px 26px;">
-                            <div style="background:#f0f9ff; border:1.5px solid #bae6fd; border-radius:12px; padding:16px 20px; margin-bottom:18px;">
-                                <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#0369a1; margin-bottom:8px;">❓ Question</div>
-                                <p style="font-size:16px; font-weight:600; color:#0c4a6e; margin:0; line-height:1.6;">{{ $crD['question'] ?? '' }}</p>
+                        <div class="cr-body">
+                            <div class="cr-question-label">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0369a1" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                Question
                             </div>
-                            <button onclick="toggleReveal('{{ $crId }}')"
-                                    id="{{ $crId }}-btn"
-                                    style="background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; border:none; border-radius:10px; padding:12px 24px; font-size:14px; font-weight:700; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:8px; box-shadow:0 3px 10px rgba(14,165,233,.35);">
-                                <span>👁</span><span>Reveal Answer</span>
+                            <p class="cr-question-text">{{ $crD['question'] ?? '' }}</p>
+                            <button onclick="toggleReveal('{{ $crId }}')" id="{{ $crId }}-btn" class="cr-btn" type="button">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                Reveal Answer
                             </button>
-                            <div id="{{ $crId }}" style="display:none; margin-top:16px; border-radius:12px; overflow:hidden; border:1.5px solid #86efac; box-shadow:0 3px 12px rgba(22,163,74,.12);">
-                                <div style="background:#16a34a; padding:9px 18px; display:flex; align-items:center; gap:8px;">
-                                    <span style="font-size:14px;">✅</span>
-                                    <span style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#fff;">Answer</span>
+                            <div id="{{ $crId }}" style="display:none;" class="cr-answer-wrap">
+                                <div class="cr-answer-head">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                    <span>Answer</span>
                                 </div>
-                                <div style="background:#f0fdf4; padding:16px 20px;">
-                                    <p style="font-size:15.5px; font-weight:700; color:#14532d; margin:0 0 {{ !empty($crD['explanation']) ? '10px' : '0' }}; line-height:1.6;">{{ $crD['answer'] ?? '' }}</p>
+                                <div class="cr-answer-body">
+                                    <p class="cr-answer-text">{{ $crD['answer'] ?? '' }}</p>
                                     @if(!empty($crD['explanation']))
-                                    <p style="font-size:14px; color:#166534; margin:0; font-style:italic; line-height:1.6; padding-top:10px; border-top:1px solid #bbf7d0;">{{ $crD['explanation'] }}</p>
+                                    <p class="cr-explanation">{{ $crD['explanation'] }}</p>
                                     @endif
                                 </div>
+                            </div>{{-- cr-answer-wrap --}}
+                            <div class="cr-tip">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                                Think first before revealing — the act of guessing improves retention.
                             </div>
-                        </div>
-                    </div>
+                        </div>{{-- cr-body --}}
+                    </div>{{-- cr-wrap --}}
+                    </div>{{-- lf-focal-card --}}
+                    </div>{{-- lf-focal --}}
                     @break
 
                     {{-- ── Myth vs Fact ────────────────────────── --}}
