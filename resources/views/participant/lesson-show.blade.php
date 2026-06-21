@@ -325,6 +325,53 @@
 .kc-result { padding:12px 16px; border-radius:10px; font-size:14px; font-weight:600; margin-top:14px; line-height:1.5; }
 .kc-result-pass { background:#dcfce7; color:#166534; }
 .kc-result-fail { background:#fee2e2; color:#991b1b; }
+/* ══ SLIDE VIEWER ═══════════════════════════════════════════ */
+.sv-wrap { border-radius:14px; overflow:hidden; border:1px solid #e9ecf0; box-shadow:0 4px 20px rgba(15,23,42,.08); }
+/* Top bar */
+.sv-topbar { display:flex; align-items:center; justify-content:space-between; padding:10px 18px; background:#0f172a; gap:12px; }
+.sv-topbar-icon { width:26px; height:26px; border-radius:7px; background:rgba(255,255,255,.08); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px; }
+.sv-topbar-title { font-size:12px; font-weight:700; color:rgba(255,255,255,.7); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; }
+.sv-topbar-dots { display:flex; gap:5px; align-items:center; flex-shrink:0; }
+.sv-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.2); border:none; cursor:pointer; padding:0; transition:all .2s; flex-shrink:0; }
+.sv-dot.sv-dot-active { width:22px; border-radius:4px; background:#6366f1; }
+/* Slide viewport */
+.sv-viewport { position:relative; }
+.sv-slide { display:none; }
+.sv-slide.sv-active { display:block; animation:svIn .28s ease; }
+@keyframes svIn { from{opacity:.1;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+/* Slide header */
+.sv-header { padding:26px 30px 22px; position:relative; overflow:hidden; }
+.sv-header::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,.04); pointer-events:none; }
+.sv-header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.sv-slide-badge { font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:rgba(255,255,255,.5); background:rgba(255,255,255,.08); padding:3px 10px; border-radius:20px; }
+.sv-slide-counter-label { font-size:10px; font-weight:700; color:rgba(255,255,255,.4); }
+.sv-subtitle { font-size:12px; font-weight:600; color:rgba(255,255,255,.6); margin-bottom:7px; text-transform:uppercase; letter-spacing:.05em; }
+.sv-title { font-size:22px; font-weight:900; color:#fff; line-height:1.25; margin:0; letter-spacing:-.3px; }
+.sv-accent-line { height:3px; border-radius:2px; margin-top:18px; width:48px; }
+/* Slide body */
+.sv-body { padding:22px 28px 26px; background:#fff; }
+/* Points */
+.sv-points { display:flex; flex-direction:column; gap:9px; }
+.sv-point { display:flex; align-items:flex-start; gap:13px; padding:13px 16px; border-radius:12px; }
+.sv-pnum { flex-shrink:0; width:26px; height:26px; border-radius:8px; text-align:center; line-height:26px; font-size:10px; font-weight:900; background:rgba(0,0,0,.09); margin-top:1px; }
+.sv-ptext { font-size:14.5px; line-height:1.65; font-weight:500; padding-top:3px; }
+.sv-ptext strong { font-weight:700; }
+/* Image */
+.sv-img-wrap { margin-bottom:18px; border-radius:10px; overflow:hidden; background:#0f172a; }
+.sv-img { display:block; width:100%; max-height:300px; object-fit:contain; }
+/* Prose fallback */
+.sv-prose { font-size:15px; line-height:1.8; color:#374151; }
+.sv-prose p { margin:0 0 1em; }
+/* Navigation */
+.sv-nav { display:flex; align-items:center; justify-content:space-between; padding:13px 20px 15px; background:#f8fafc; border-top:1px solid #f0f2f5; }
+.sv-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 18px; border-radius:9px; font-size:12.5px; font-weight:700; font-family:inherit; cursor:pointer; transition:all .14s; border:none; }
+.sv-btn-prev { background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; }
+.sv-btn-prev:hover { background:#e9ecf0; }
+.sv-btn-next { background:#1e3a8a; color:#fff; }
+.sv-btn-next:hover { background:#1d4ed8; }
+.sv-btn:disabled { opacity:.35; cursor:not-allowed; }
+.sv-counter-label { font-size:12px; font-weight:800; color:#9ca3af; letter-spacing:.04em; }
+/* Legacy compat */
 .slide-panel { display:none; }
 .slide-panel.active { display:block; }
 .slide-nav { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:18px; padding-top:18px; border-top:1px solid #f0f2f5; }
@@ -964,54 +1011,110 @@
                         if (!is_array($_raw) || empty($_raw)) {
                             $slideItems = [];
                         } elseif (isset($_raw['slides']) && is_array($_raw['slides'])) {
-                            $slideItems = array_values($_raw['slides']); // AI wrapper format
+                            $slideItems = array_values($_raw['slides']);
                         } elseif (is_string(array_key_first($_raw))) {
-                            $slideItems = [$_raw]; // single flat slide
+                            $slideItems = [$_raw];
                         } else {
                             $slideItems = array_values($_raw);
                         }
+                        $svThemes = [
+                            ['bg'=>'linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 100%)','accent'=>'#60a5fa'],
+                            ['bg'=>'linear-gradient(135deg,#312e81 0%,#4338ca 100%)','accent'=>'#a78bfa'],
+                            ['bg'=>'linear-gradient(135deg,#065f46 0%,#059669 100%)','accent'=>'#34d399'],
+                            ['bg'=>'linear-gradient(135deg,#7c2d12 0%,#c2410c 100%)','accent'=>'#fb923c'],
+                            ['bg'=>'linear-gradient(135deg,#6b21a8 0%,#7e22ce 100%)','accent'=>'#c084fc'],
+                            ['bg'=>'linear-gradient(135deg,#0f766e 0%,#0d9488 100%)','accent'=>'#2dd4bf'],
+                        ];
+                        $svPtColors = [
+                            ['bg'=>'#eff6ff','bd'=>'#bfdbfe','tx'=>'#1e40af'],
+                            ['bg'=>'#f5f3ff','bd'=>'#ddd6fe','tx'=>'#5b21b6'],
+                            ['bg'=>'#ecfdf5','bd'=>'#a7f3d0','tx'=>'#065f46'],
+                            ['bg'=>'#fff7ed','bd'=>'#fed7aa','tx'=>'#9a3412'],
+                            ['bg'=>'#fdf4ff','bd'=>'#e9d5ff','tx'=>'#6b21a8'],
+                            ['bg'=>'#f0fdfa','bd'=>'#99f6e4','tx'=>'#134e4a'],
+                        ];
                     @endphp
-                    <div class="lb">
-                        <div class="lb-head">
-                            <div class="lb-head-icon lh-slide">🖥️</div>
-                            <span class="lb-head-label">Slides</span>
-                            <span class="lb-head-title">{{ $block->title ?: 'Presentation' }}</span>
-                        </div>
-                        <div class="lb-body">
-                            <div id="{{ $slideId }}">
-                                @foreach($slideItems as $si => $slide)
-                                @php
-                                    $slideTitle = $slide['title']    ?? $slide['heading'] ?? '';
-                                    $slideText  = $slide['text']     ?? $slide['content'] ?? '';
-                                    $slideImg   = $slide['image_url'] ?? $slide['image']  ?? '';
-                                @endphp
-                                <div class="slide-panel {{ $si === 0 ? 'active' : '' }}" data-slide="{{ $si }}">
-                                    @if(!empty($slideImg))
-                                        <img src="{{ $slideImg }}" alt="{{ $slideTitle }}"
-                                             style="width:100%;max-height:340px;object-fit:contain;border-radius:10px;margin-bottom:16px;">
-                                    @endif
-                                    @if(!empty($slideTitle))
-                                        <h3 style="font-size:20px;font-weight:800;color:#111827;margin:0 0 10px;" data-slide-title>{{ $slideTitle }}</h3>
-                                    @endif
-                                    @if(!empty($slideText))
-                                        <div data-slide-text style="font-size:15.5px;color:#374151;line-height:1.8;">{!! $slideText !!}</div>
-                                    @endif
-                                </div>
+                    <div class="sv-wrap">
+                        {{-- Top bar --}}
+                        <div class="sv-topbar">
+                            <div class="sv-topbar-icon">🖥️</div>
+                            <span class="sv-topbar-title">{{ $block->title ?: 'Presentation' }}</span>
+                            <div class="sv-topbar-dots" id="sv-dots-{{ $block->id }}">
+                                @foreach($slideItems as $_si => $_)
+                                <button class="sv-dot {{ $_si===0?'sv-dot-active':'' }}"
+                                        onclick="svGoto('{{ $slideId }}',{{ $_si }})"
+                                        type="button" title="Slide {{ $_si+1 }}"></button>
                                 @endforeach
                             </div>
-                            <div class="slide-nav">
-                                <button type="button" id="slide-prev-{{ $block->id }}" onclick="slidePrev('{{ $slideId }}')"
-                                        style="display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:9px 16px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-                                    Prev Slide
-                                </button>
-                                <span class="slide-counter" id="{{ $slideId }}-counter">1 / {{ count($slideItems) }}</span>
-                                <button type="button" id="slide-next-{{ $block->id }}" onclick="slideNext('{{ $slideId }}', {{ count($slideItems) }})"
-                                        style="display:inline-flex;align-items:center;gap:6px;background:#1e3a8a;color:#fff;border:none;padding:9px 16px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;transition:opacity .15s;">
-                                    Next Slide
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                                </button>
+                        </div>
+
+                        {{-- Slides --}}
+                        <div id="{{ $slideId }}" class="sv-viewport">
+                            @foreach($slideItems as $si => $slide)
+                            @php
+                                $svTitle   = $slide['title']    ?? $slide['heading']  ?? '';
+                                $svText    = $slide['text']     ?? $slide['content']  ?? '';
+                                $svImg     = $slide['image_url']?? $slide['image']    ?? '';
+                                $svSub     = $slide['subtitle'] ?? $slide['category'] ?? $slide['badge'] ?? '';
+                                $svBullets = $slide['bullets']  ?? $slide['points']   ?? $slide['items'] ?? null;
+                                $svLines   = [];
+                                if (is_array($svBullets) && !empty($svBullets)) {
+                                    $svLines = array_map(fn($b) => is_array($b) ? ($b['text'] ?? '') : (string)$b, $svBullets);
+                                } elseif ($svText) {
+                                    $svParts = preg_split('/<br\s*\/?>/i', $svText);
+                                    $svLines = array_values(array_filter(array_map('trim', $svParts), fn($l) => trim(strip_tags($l)) !== ''));
+                                }
+                                $svT = $svThemes[$si % 6];
+                            @endphp
+                            <div class="sv-slide {{ $si===0?'sv-active':'' }}" data-slide="{{ $si }}">
+                                {{-- Coloured header --}}
+                                <div class="sv-header" style="background:{{ $svT['bg'] }};">
+                                    <div class="sv-header-row">
+                                        <span class="sv-slide-badge">Slide {{ $si+1 }}</span>
+                                        <span class="sv-slide-counter-label">{{ $si+1 }} / {{ count($slideItems) }}</span>
+                                    </div>
+                                    @if($svSub)<div class="sv-subtitle">{{ $svSub }}</div>@endif
+                                    @if($svTitle)<h2 class="sv-title">{{ $svTitle }}</h2>@endif
+                                    <div class="sv-accent-line" style="background:{{ $svT['accent'] }};"></div>
+                                </div>
+                                {{-- Body --}}
+                                <div class="sv-body">
+                                    @if($svImg)
+                                    <div class="sv-img-wrap">
+                                        @php $svImgSrc = Str::startsWith($svImg,['http','/','data:']) ? $svImg : asset('storage/'.$svImg); @endphp
+                                        <img src="{{ $svImgSrc }}" alt="{{ $svTitle }}" class="sv-img">
+                                    </div>
+                                    @endif
+                                    @if(!empty($svLines))
+                                    <div class="sv-points">
+                                        @foreach($svLines as $pi => $pt)
+                                        @php $ptC = $svPtColors[$pi % 6]; @endphp
+                                        <div class="sv-point" style="background:{{ $ptC['bg'] }};border:1px solid {{ $ptC['bd'] }};">
+                                            <div class="sv-pnum" style="color:{{ $ptC['tx'] }};">{{ str_pad($pi+1,2,'0',STR_PAD_LEFT) }}</div>
+                                            <div class="sv-ptext" style="color:{{ $ptC['tx'] }};">{!! $pt !!}</div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                    @elseif($svText)
+                                    <div class="sv-prose">{!! $svText !!}</div>
+                                    @endif
+                                </div>
                             </div>
+                            @endforeach
+                        </div>
+
+                        {{-- Navigation --}}
+                        <div class="sv-nav">
+                            <button type="button" id="sv-prev-{{ $block->id }}" class="sv-btn sv-btn-prev" onclick="svPrev('{{ $slideId }}')" {{ count($slideItems)<=1?'disabled':'' }}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                                Prev
+                            </button>
+                            <span class="sv-counter-label" id="{{ $slideId }}-counter">1 / {{ count($slideItems) }}</span>
+                            <button type="button" id="sv-next-{{ $block->id }}" class="sv-btn sv-btn-next" onclick="svNext('{{ $slideId }}')" {{ count($slideItems)<=1?'disabled':'' }}>
+                                Next
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                            </button>
+                        </div>
                         </div>
                     </div>
                     @break
@@ -1706,36 +1809,55 @@ function toggleAcc(id) {
     item.querySelector('.acc-body').style.display = item.classList.toggle('open') ? 'block' : 'none';
 }
 
-// ── Slide navigation ─────────────────────────────────────────
-function slideBidFromId(id) { return id.replace(/^slides-/, ''); }
+// ── Slide viewer ─────────────────────────────────────────────
+function svBid(id) { return id.replace(/^slides-/, ''); }
 
-function updateSlideNavButtons(bid) {
-    const ps    = document.querySelectorAll('#slides-' + bid + ' .slide-panel');
-    const total = ps.length;
-    const c     = [...ps].findIndex(p => p.classList.contains('active'));
+function svUpdate(id) {
+    const bid   = svBid(id);
+    const vp    = document.getElementById(id);
+    if (!vp) return;
+    const slides = vp.querySelectorAll('.sv-slide');
+    const total  = slides.length;
+    const cur    = [...slides].findIndex(s => s.classList.contains('sv-active'));
 
-    const prevBtn = document.getElementById('slide-prev-' + bid);
-    const nextBtn = document.getElementById('slide-next-' + bid);
-    const counter = document.getElementById('slides-' + bid + '-counter');
+    const prevBtn = document.getElementById('sv-prev-' + bid);
+    const nextBtn = document.getElementById('sv-next-' + bid);
+    const counter = document.getElementById(id + '-counter');
+    const dots    = document.querySelectorAll('#sv-dots-' + bid + ' .sv-dot');
 
-    if (prevBtn) prevBtn.style.visibility = c === 0 ? 'hidden' : 'visible';
-    if (nextBtn) nextBtn.style.display    = c >= total - 1 ? 'none' : '';
-    if (counter) counter.textContent      = (c + 1) + ' / ' + total;
+    if (prevBtn) prevBtn.disabled = cur === 0;
+    if (nextBtn) nextBtn.disabled = cur >= total - 1;
+    if (counter) counter.textContent = (cur + 1) + ' / ' + total;
+    dots.forEach((d, i) => d.classList.toggle('sv-dot-active', i === cur));
 }
 
-function slidePrev(id) {
-    const ps = document.getElementById(id).querySelectorAll('.slide-panel');
-    let c = [...ps].findIndex(p => p.classList.contains('active'));
-    if (c > 0) { ps[c].classList.remove('active'); ps[--c].classList.add('active'); }
-    updateSlideNavButtons(slideBidFromId(id));
+function svGoto(id, idx) {
+    const slides = document.getElementById(id)?.querySelectorAll('.sv-slide');
+    if (!slides) return;
+    slides.forEach(s => s.classList.remove('sv-active'));
+    if (slides[idx]) slides[idx].classList.add('sv-active');
+    svUpdate(id);
 }
 
-function slideNext(id, total) {
-    const ps = document.getElementById(id).querySelectorAll('.slide-panel');
-    let c = [...ps].findIndex(p => p.classList.contains('active'));
-    if (c < ps.length - 1) { ps[c].classList.remove('active'); ps[++c].classList.add('active'); }
-    updateSlideNavButtons(slideBidFromId(id));
+function svPrev(id) {
+    const slides = document.getElementById(id)?.querySelectorAll('.sv-slide');
+    if (!slides) return;
+    const cur = [...slides].findIndex(s => s.classList.contains('sv-active'));
+    if (cur > 0) svGoto(id, cur - 1);
 }
+
+function svNext(id) {
+    const slides = document.getElementById(id)?.querySelectorAll('.sv-slide');
+    if (!slides) return;
+    const cur = [...slides].findIndex(s => s.classList.contains('sv-active'));
+    if (cur < slides.length - 1) svGoto(id, cur + 1);
+}
+
+// Legacy compat
+function slideBidFromId(id) { return svBid(id); }
+function slidePrev(id) { svPrev(id); }
+function slideNext(id) { svNext(id); }
+function updateSlideNavButtons(bid) { svUpdate('slides-' + bid); }
 
 // Knowledge check
 function kcCheck() {}
