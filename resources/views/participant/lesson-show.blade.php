@@ -121,9 +121,11 @@
 .lf-inner { max-width:860px; margin:0 auto; padding:28px 32px; width:100%; min-height:100%; box-sizing:border-box; }
 /* Focal wrapper — used for click_reveal / reflection so the card fills and centres the panel */
 .lf-inner--focal { padding:0 !important; min-height:100%; display:flex; flex-direction:column; max-width:100%; }
-/* Focal panel — interaction blocks fill + centre the viewport */
-.lf-focal { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; }
-.lf-focal-card { width:100%; max-width:700px; }
+/* Focal panel — do NOT use justify-content:center; it overflows the card UPWARD when the
+   card is taller than the viewport, clipping the header and preventing scroll-to-top.
+   Use margin:auto on the card instead — centers when space allows, starts at top when tight. */
+.lf-focal { flex:1; display:flex; flex-direction:column; align-items:center; padding:40px 32px; }
+.lf-focal-card { width:100%; max-width:700px; margin-top:auto; margin-bottom:auto; }
 
 /* ── Footer ───────────────────────────────────────────────── */
 .lf-footer {
