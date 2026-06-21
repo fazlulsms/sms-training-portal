@@ -196,11 +196,79 @@
 .lb-img-caption { padding:10px 22px 14px; font-size:13.5px; color:#6b7280; font-style:italic; border-top:1px solid #f0f2f5; background:#fafbfc; }
 .lb-img-title-bar { padding:10px 22px; display:flex; align-items:center; gap:8px; background:rgba(0,0,0,.55); position:absolute; bottom:0; left:0; right:0; }
 .lb-img-title-bar span { font-size:13px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.lb-body.rt-body h1,.lb-body.rt-body h2,.lb-body.rt-body h3 { color:#111827; margin-top:1.5em; margin-bottom:.5em; }
-.lb-body.rt-body p  { margin:0 0 1.2em; }
-.lb-body.rt-body ul,.lb-body.rt-body ol { padding-left:1.5em; margin:0 0 1.2em; }
-.lb-body.rt-body li { margin-bottom:.4em; }
-.lb-body.rt-body strong { color:#111827; }
+/* ── Rich text — card layout ──────────────────────────────── */
+.lb-body.rt-body { padding:22px 24px; background:#fdfdff; }
+/* Paragraph → tinted reading block */
+.lb-body.rt-body p {
+    background:linear-gradient(135deg,#f0f4ff 0%,#f7f9ff 100%);
+    border-left:4px solid #4f46e5;
+    border-radius:0 12px 12px 0;
+    padding:18px 22px; margin:0 0 20px;
+    font-size:15.5px; line-height:1.88; color:#374151;
+}
+.lb-body.rt-body p:first-child::before {
+    content:'📖  Overview';
+    display:block; font-size:10px; font-weight:800;
+    text-transform:uppercase; letter-spacing:.09em;
+    color:#6366f1; margin-bottom:9px;
+}
+/* Unordered list → colorful key-point cards grid */
+.lb-body.rt-body ul {
+    list-style:none; padding:0; margin:0;
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:10px; counter-reset:rt-kp;
+}
+.lb-body.rt-body ul::before {
+    content:'💡  Key Points';
+    grid-column:1/-1;
+    font-size:10.5px; font-weight:800; text-transform:uppercase;
+    letter-spacing:.08em; color:#6b7280;
+    padding-bottom:8px; border-bottom:2px solid #f0f2f5;
+    margin-bottom:2px;
+}
+.lb-body.rt-body ul li {
+    counter-increment:rt-kp;
+    display:flex; align-items:flex-start; gap:11px;
+    padding:13px 15px; border-radius:12px;
+    font-size:13.5px; line-height:1.62; font-weight:500; margin:0;
+}
+.lb-body.rt-body ul li::before {
+    content:counter(rt-kp,decimal-leading-zero);
+    flex-shrink:0; width:24px; height:24px; border-radius:8px;
+    text-align:center; line-height:24px; font-size:10px; font-weight:900;
+    background:rgba(0,0,0,.1); margin-top:1px;
+}
+/* 6-color rotation */
+.lb-body.rt-body ul li:nth-child(6n+1){ background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; }
+.lb-body.rt-body ul li:nth-child(6n+2){ background:#f5f3ff; border:1px solid #ddd6fe; color:#5b21b6; }
+.lb-body.rt-body ul li:nth-child(6n+3){ background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; }
+.lb-body.rt-body ul li:nth-child(6n+4){ background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; }
+.lb-body.rt-body ul li:nth-child(6n+5){ background:#fdf4ff; border:1px solid #e9d5ff; color:#6b21a8; }
+.lb-body.rt-body ul li:nth-child(6n+6){ background:#f0fdfa; border:1px solid #99f6e4; color:#134e4a; }
+/* Ordered list → numbered step cards */
+.lb-body.rt-body ol {
+    list-style:none; padding:0; margin:0;
+    display:flex; flex-direction:column; gap:8px; counter-reset:rt-ol;
+}
+.lb-body.rt-body ol li {
+    counter-increment:rt-ol;
+    display:flex; align-items:flex-start; gap:14px;
+    padding:14px 18px; background:#f8faff;
+    border:1px solid #e0e7ff; border-radius:12px;
+    font-size:15px; line-height:1.65; color:#374151; margin:0;
+}
+.lb-body.rt-body ol li::before {
+    content:counter(rt-ol); flex-shrink:0;
+    width:28px; height:28px; border-radius:50%;
+    background:#4f46e5; color:#fff;
+    font-size:12px; font-weight:800;
+    text-align:center; line-height:28px; margin-top:1px;
+}
+/* Headings, inline */
+.lb-body.rt-body h1,.lb-body.rt-body h2,.lb-body.rt-body h3 { color:#111827; font-weight:800; margin-top:1.4em; margin-bottom:.55em; }
+.lb-body.rt-body h2 { font-size:18px; }
+.lb-body.rt-body h3 { font-size:16px; }
+.lb-body.rt-body strong { color:#111827; font-weight:700; }
 .lb-body.rt-body code  { background:#f1f5f9; color:#be185d; padding:2px 6px; border-radius:4px; font-size:14px; }
 .video-wrap { position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; background:#000; }
 .video-wrap iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
