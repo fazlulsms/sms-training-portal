@@ -119,8 +119,10 @@
 .lf-panel::-webkit-scrollbar-thumb { background:#d1d5db; border-radius:10px; }
 .lf-panel.lf-active { display:block; }
 .lf-inner { max-width:860px; margin:0 auto; padding:28px 32px; width:100%; min-height:100%; box-sizing:border-box; }
+/* Focal wrapper — used for click_reveal / reflection so the card fills and centres the panel */
+.lf-inner--focal { padding:0 !important; min-height:100%; display:flex; flex-direction:column; max-width:100%; }
 /* Focal panel — interaction blocks fill + centre the viewport */
-.lf-focal { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100%; padding:32px; }
+.lf-focal { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; }
 .lf-focal-card { width:100%; max-width:700px; }
 
 /* ── Footer ───────────────────────────────────────────────── */
@@ -817,8 +819,9 @@
 
             {{-- Block panels (1..N) --}}
             @foreach($lessonBlocks as $bi => $block)
+            @php $isFocalBlock = in_array($block->block_type, ['click_reveal','reflection']); @endphp
             <div class="lf-panel" data-step="{{ $bi + 1 }}">
-                <div class="lf-inner">
+                <div class="{{ $isFocalBlock ? 'lf-inner--focal' : 'lf-inner' }}">
                     @if($block->isAudioEligible())
                     @include('participant.partials.block-audio-player', [
                         'block'       => $block,
