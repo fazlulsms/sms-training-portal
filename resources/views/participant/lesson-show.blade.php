@@ -117,7 +117,7 @@
 .lf-panel::-webkit-scrollbar { width:5px; }
 .lf-panel::-webkit-scrollbar-thumb { background:#d1d5db; border-radius:10px; }
 .lf-panel.lf-active { display:block; }
-.lf-inner { max-width:860px; margin:0 auto; padding:28px 32px; width:100%; min-height:100%; box-sizing:border-box; }
+.lf-inner { max-width:860px; margin:0 auto; padding:28px 32px; width:100%; }
 /* Focal wrapper — used for click_reveal / reflection so the card fills and centres the panel */
 .lf-inner--focal { padding:0 !important; min-height:100%; display:flex; flex-direction:column; max-width:100%; }
 /* Focal panel — do NOT use justify-content:center; it overflows the card UPWARD when the
@@ -1745,7 +1745,7 @@ function goToStep(n) {
     cur = n;
     if (AUTO_DONE.has(STEP_TYPES[n])) stepDone[n] = true;
     renderUI();
-    document.querySelector('.lf-panel.lf-active')?.scrollTo({ top: 0 });
+    requestAnimationFrame(() => { const ap = document.querySelector('.lf-panel.lf-active'); if (ap) ap.scrollTop = 0; });
     // Auto-play section audio when entering a block step
     if (typeof window.sapAutoPlay === 'function') setTimeout(() => sapAutoPlay(n), 250);
 }
