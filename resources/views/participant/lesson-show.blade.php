@@ -64,7 +64,7 @@
 /* ── Step bar ─────────────────────────────────────────────── */
 .lf-stepbar {
     flex-shrink:0; background:#fff; border-bottom:1px solid #e5e7eb;
-    display:flex; align-items:stretch; height:52px; position:relative; z-index:2;
+    display:flex; align-items:stretch; height:52px; position:relative;
 }
 .lf-sb-info {
     display:flex; align-items:center; gap:9px; padding:0 18px; flex-shrink:0;
@@ -110,10 +110,9 @@
 }
 
 /* ── Viewport & panels ────────────────────────────────────── */
-.lf-viewport { flex:1; overflow:hidden; position:relative; z-index:0; }
+.lf-viewport { flex:1; overflow:hidden; position:relative; }
 .lf-panel {
     position:absolute; inset:0; overflow-y:auto; overflow-x:hidden; display:none;
-    z-index:1;
 }
 .lf-panel::-webkit-scrollbar { width:5px; }
 .lf-panel::-webkit-scrollbar-thumb { background:#d1d5db; border-radius:10px; }
