@@ -117,7 +117,7 @@
         .sig-left,
         .sig-right {
             position: absolute;
-            top: 402pt;
+            top: 424pt;
             width: 160pt;
             text-align: center;
         }
@@ -150,7 +150,7 @@
 
         .center-assets {
             position: absolute;
-            top: 397pt;
+            top: 418pt;
             left: 0;
             width: 841.89pt;
             text-align: center;
@@ -175,7 +175,7 @@
         .meta-bar {
             position: absolute;
             left: 54pt;
-            bottom: 31pt;
+            bottom: 24pt;
             width: 733.89pt;
             min-height: 55pt;
             padding: 10pt 18pt 8pt 18pt;
