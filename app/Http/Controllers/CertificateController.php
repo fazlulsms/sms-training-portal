@@ -335,10 +335,10 @@ class CertificateController extends Controller
         $enrollment = Enrollment::with('trainingSchedule.course')->findOrFail($id);
 
         $template    = $enrollment->certificate_template ?? 'attendance';
-        $viewName    = $this->templateView($template);
+        $viewName    = $this->templatePdfView($template);
         $orientation = $this->templateOrientation($template);
 
-        $pdf = Pdf::loadView($viewName, compact('enrollment'))
+        $pdf = Pdf::loadView($viewName, compact('enrollment', 'template'))
             ->setPaper('a4', $orientation)
             ->setOption(['isRemoteEnabled' => true, 'dpi' => 150]);
 
@@ -380,6 +380,15 @@ class CertificateController extends Controller
             'auditor'    => 'certificates.auditor',
             'completion' => 'certificates.completion',
             default      => 'certificates.attendance',
+        };
+    }
+
+    // ── Resolve PDF-safe Blade view name for a template key ───────────────
+    private function templatePdfView(string $template): string
+    {
+        return match ($template) {
+            'attendance', 'completion' => 'certificates.pdf-landscape',
+            default                    => $this->templateView($template),
         };
     }
 
@@ -438,10 +447,10 @@ class CertificateController extends Controller
 
         // Build PDF attachment
         $template    = $enrollment->certificate_template ?? 'attendance';
-        $viewName    = $this->templateView($template);
+        $viewName    = $this->templatePdfView($template);
         $orientation = $this->templateOrientation($template);
 
-        $pdf        = Pdf::loadView($viewName, compact('enrollment'))
+        $pdf        = Pdf::loadView($viewName, compact('enrollment', 'template'))
             ->setPaper('a4', $orientation)
             ->setOption(['isRemoteEnabled' => true, 'dpi' => 150]);
         $pdfData    = $pdf->output();
