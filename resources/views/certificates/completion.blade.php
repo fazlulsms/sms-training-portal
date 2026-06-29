@@ -7,13 +7,19 @@
     <style>
         @page { size: A4 landscape; margin: 0; }
 
-       html, body {
-    margin: 0;
-    padding: 0;
-    width: 297mm;
-    height: 210mm;
-    font-family: DejaVu Sans, sans-serif;
-    color: #000;
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 297mm;
+            height: 210mm;
+            font-family: DejaVu Sans, sans-serif;
+            color: #000;
+            background: #fff;
+            overflow: hidden;
         }
 
         .certificate {
@@ -21,14 +27,15 @@
             width: 297mm;
             height: 210mm;
             background-color: #fff;
+            overflow: hidden;
         }
 
         .border {
             position: absolute;
             top: 7mm;
             left: 7mm;
-            right: 7mm;
-            bottom: 7mm;
+            width: 283mm;
+            height: 196mm;
             border: 6px solid #1d4ed8;
             box-sizing: border-box;
         }
@@ -157,13 +164,15 @@
 
         .meta-bar {
             position: absolute;
-            bottom: 8mm;
+            bottom: 11mm;
             left: 12mm;
-            right: 12mm;
+            width: 259mm;
+            min-height: 20mm;
             background: #FCFCFC;
-            padding: 3mm 5mm;
+            padding: 3mm 5mm 2mm 5mm;
             border-radius: 6px;
             text-align: center;
+            box-sizing: border-box;
         }
 
         .meta-company {
