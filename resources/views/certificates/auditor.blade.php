@@ -1,514 +1,518 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<title>Auditor / Lead Auditor Training Certificate</title>
+<title>Auditor Training Certificate</title>
 <style>
-@page { size: A4 portrait; margin: 0; }
+@page { size: A4 portrait; margin: 5mm; }
 *, *::before, *::after { box-sizing: border-box; }
+
 html, body {
-    margin: 0; padding: 0;
-    width: 210mm; height: 297mm;
-    font-family: 'DejaVu Sans', Arial, sans-serif;
-    background: #ffffff; color: #1e293b;
+    margin: 0;
+    padding: 0;
+    width: 200mm;
+    height: 286mm;
+    overflow: hidden;
+    background: #ffffff;
+    color: #0f172a;
+    font-family: "DejaVu Sans", Arial, Helvetica, sans-serif;
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   PAGE SHELL
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .page {
     position: relative;
-    width: 210mm; height: 297mm;
-    overflow: hidden; background: #ffffff;
+    width: 200mm;
+    height: 286mm;
+    overflow: hidden;
+    background: #ffffff;
+    page-break-after: avoid;
+    page-break-inside: avoid;
 }
 
-/* Gold outer frame */
-.frame-gold {
+.frame {
     position: absolute;
-    top: 4mm; left: 4mm; right: 4mm; bottom: 4mm;
-    border: 1px solid #c9a227; z-index: 3;
+    top: 8mm;
+    left: 7mm;
+    right: 7mm;
+    bottom: 8mm;
+    border: 2.8pt solid #082f5f;
 }
-/* Navy inner frame */
-.frame-navy {
-    position: absolute;
-    top: 6.5mm; left: 6.5mm; right: 6.5mm; bottom: 6.5mm;
-    border: 2px solid #0d1b4b; z-index: 3;
-}
-/* Corner ornaments */
-.co { position: absolute; width: 7mm; height: 7mm; border-color: #c9a227; border-style: solid; z-index: 5; }
-.co-tl { top: 8mm;    left: 8mm;   border-width: 2.5px 0 0 2.5px; }
-.co-tr { top: 8mm;    right: 8mm;  border-width: 2.5px 2.5px 0 0; }
-.co-bl { bottom: 8mm; left: 8mm;   border-width: 0 0 2.5px 2.5px; }
-.co-br { bottom: 8mm; right: 8mm;  border-width: 0 2.5px 2.5px 0; }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   HEADER BAND  (0 -> 58mm)  navy background
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-.hdr {
+.corner {
+    position: absolute;
+    width: 13mm;
+    height: 13mm;
+    border-color: #082f5f;
+    border-style: solid;
+}
+
+.corner-tl { top: 11mm; left: 10mm; border-width: 3.6pt 0 0 3.6pt; }
+.corner-tr { top: 11mm; right: 10mm; border-width: 3.6pt 3.6pt 0 0; }
+.corner-bl { bottom: 11mm; left: 10mm; border-width: 0 0 3.6pt 3.6pt; }
+.corner-br { bottom: 11mm; right: 10mm; border-width: 0 3.6pt 3.6pt 0; }
+
+.content {
+    position: absolute;
+    top: 16mm;
+    left: 19mm;
+    right: 19mm;
+    bottom: 31mm;
+    text-align: center;
+}
+
+.sms-logo {
+    height: 35mm;
+    margin-top: 1mm;
+    margin-bottom: 2mm;
+}
+
+.company {
+    font-size: 10.5pt;
+    font-weight: 800;
+    letter-spacing: 1.2pt;
+    color: #082f5f;
+    text-transform: uppercase;
+    margin-bottom: 5mm;
+}
+
+.cert-title {
+    font-size: 20pt;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: 1.2pt;
+    color: #082f5f;
+    text-transform: uppercase;
+    margin-bottom: 5mm;
+}
+
+.certify {
+    font-size: 12pt;
+    color: #475569;
+    margin-bottom: 3mm;
+}
+
+.participant {
+    width: 100%;
+    font-size: {{ strlen($enrollment->full_name ?? '') > 34 ? '24pt' : '29pt' }};
+    line-height: 1.08;
+    font-weight: 800;
+    color: #0f172a;
+    text-transform: uppercase;
+    margin-bottom: 5mm;
+    overflow-wrap: break-word;
+}
+
+.completed {
+    width: 157mm;
+    margin: 0 auto 4mm auto;
+    color: #334155;
+    font-size: 8.7pt;
+    line-height: 1.55;
+    text-align: justify;
+}
+
+.course-block {
+    width: 150mm;
+    margin: 0 auto 5mm auto;
+    color: #082f5f;
+    text-transform: uppercase;
+}
+
+.course-name {
+    font-size: {{ strlen($courseTitle ?? '') > 62 ? '12.5pt' : '15pt' }};
+    line-height: 1.22;
+    font-weight: 800;
+    letter-spacing: .5pt;
+}
+
+.description {
+    width: 157mm;
+    margin: 0 auto 5mm auto;
+    color: #334155;
+    font-size: 8.2pt;
+    line-height: 1.45;
+    text-align: center;
+}
+
+.details-wrap {
+    width: 157mm;
+    margin: 0 auto 4.5mm auto;
+    border: 1pt solid #cbd5e1;
+    background: rgba(248, 250, 252, .92);
     display: table;
-    width: 100%; height: 58mm;
-    background: #0d1b4b;
+    table-layout: fixed;
+}
+
+.details {
+    display: table-cell;
+    width: 113mm;
+    padding: 3mm 5mm 2.5mm 5mm;
+    vertical-align: middle;
+}
+
+.verify {
+    display: table-cell;
+    width: 44mm;
+    padding: 3mm 4mm 2.5mm 4mm;
+    vertical-align: middle;
+    text-align: center;
+    border-left: 1pt solid #d8e0ea;
+}
+
+.detail-row {
+    display: table;
+    width: 100%;
+    border-bottom: .55pt solid #dbe3ee;
+}
+
+.detail-row:last-child {
     border-bottom: 0;
 }
-/* subtle diagonal texture overlay */
-.hdr-texture {
-    position: absolute;
-    top: 0; left: 0; right: 0; height: 58mm;
-    opacity: 0.035;
-    background-image: repeating-linear-gradient(
-        45deg, #fff 0, #fff 1px, transparent 1px, transparent 12px
-    );
-    z-index: 1;
-}
-/* Left cell — logo */
-.hdr-left {
+
+.detail-label,
+.detail-value {
     display: table-cell;
-    width: 68mm; height: 58mm;
-    vertical-align: middle;
-    text-align: center;
-    border-right: 1px solid rgba(201,162,39,0.4);
-    position: relative; z-index: 2;
-    padding: 0 6mm;
+    padding: 1.15mm 0;
+    font-size: 8pt;
+    line-height: 1.15;
+    white-space: nowrap;
 }
-.hdr-left img { max-width: 52mm; max-height: 26mm; }
-/* Right cell — title */
-.hdr-right {
+
+.detail-label {
+    width: 31mm;
+    color: #475569;
+    font-weight: 600;
+}
+
+.detail-value {
+    color: #0f172a;
+    font-weight: 800;
+    text-align: right;
+}
+
+.qr-img {
+    width: 25mm;
+    height: 25mm;
+    padding: 1mm;
+    border: 1pt solid #082f5f;
+    background: #ffffff;
+    margin-bottom: 2mm;
+}
+
+.verify-title {
+    color: #082f5f;
+    font-size: 7.5pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 1mm;
+}
+
+.verify-url,
+.verify-id {
+    color: #475569;
+    font-size: 6.4pt;
+    line-height: 1.25;
+}
+
+.verify-id {
+    color: #475569;
+    font-weight: 400;
+}
+
+.credential-footer {
+    width: 157mm;
+    margin: 0 auto;
+    display: table;
+    table-layout: fixed;
+    border: 1pt solid #0f172a;
+    background: rgba(255, 255, 255, .96);
+}
+
+.credential-cell {
     display: table-cell;
-    width: auto; height: 58mm;
-    vertical-align: middle;
+    height: 34mm;
     text-align: center;
-    padding: 0 8mm;
-    position: relative; z-index: 2;
-}
-.hdr-co-name {
-    font-size: 13.5pt; font-weight: 800; color: #ffffff;
-    letter-spacing: 1.5px; text-transform: uppercase;
-    line-height: 1.2; margin-bottom: 1.5mm;
-}
-.hdr-co-sub {
-    font-size: 7pt; color: rgba(255,255,255,0.55);
-    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 3.5mm;
-}
-.hdr-gold-line {
-    height: 1px; margin: 0 8mm 3.5mm;
-    background: linear-gradient(to right, transparent, #c9a227, #f0d060, #c9a227, transparent);
-}
-.hdr-cert-title {
-    font-size: 15pt; font-weight: 700; color: #f0d060;
-    letter-spacing: 1.5px; text-transform: uppercase;
-    line-height: 1.25; margin-bottom: 1.5mm;
-}
-.hdr-cert-prog {
-    font-size: 7.5pt; color: rgba(255,255,255,0.65);
-    letter-spacing: 2.5px; text-transform: uppercase;
-}
-
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   GOLD RULE  (58 -> 61mm)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-.rule-gold {
-    height: 3mm;
-    background: linear-gradient(to right,
-        #0d1b4b 0%, #1a5fa8 12%, #c9a227 28%,
-        #f0d060 50%, #c9a227 72%, #1a5fa8 88%, #0d1b4b 100%);
-}
-
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   BODY  — all centre-aligned text
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-.body { padding: 7mm 16mm 0; text-align: center; }
-
-/* -- RECIPIENT -- */
-.present-line {
-    font-size: 9pt; color: #64748b; font-style: italic; margin-bottom: 2.5mm;
-}
-.rec-name {
-    font-size: 28pt; font-weight: 700; color: #0d1b4b;
-    letter-spacing: 0.3px; line-height: 1.1; margin-bottom: 2mm;
-}
-/* Flanking ornament line */
-.orn-wrap { text-align: center; margin-bottom: 5mm; }
-.orn-line-l {
-    display: inline-block; width: 28mm; height: 1px;
-    background: linear-gradient(to right, transparent, #c9a227);
     vertical-align: middle;
-}
-.orn-line-r {
-    display: inline-block; width: 28mm; height: 1px;
-    background: linear-gradient(to left, transparent, #c9a227);
-    vertical-align: middle;
-}
-.orn-dot {
-    display: inline-block; width: 2.5mm; height: 2.5mm;
-    background: #c9a227; vertical-align: middle; margin: 0 2.5mm;
-}
-
-/* -- COURSE -- */
-.completed-line {
-    font-size: 8.5pt; color: #64748b; font-style: italic; margin-bottom: 2mm;
-}
-.course-name {
-    font-size: 13pt; font-weight: 700; color: #0d1b4b;
-    line-height: 1.35; margin-bottom: 1.5mm;
-}
-.iso-tag {
-    font-size: 10pt; font-weight: 600; color: #1a4fa8; margin-bottom: 5mm;
-}
-
-/* -- BODY PARAGRAPH -- */
-.para {
-    font-size: 8pt; color: #374151; line-height: 1.65;
-    text-align: justify; margin-bottom: 3mm; padding: 0 1mm;
-}
-
-/* -- ACCREDITATION STRIP -- */
-.accred {
-    border-left: 3px solid #c9a227;
-    background: #f8fafc;
-    padding: 2.5mm 4mm;
-    margin: 0 1mm 5mm;
-    text-align: left;
-}
-.accred p { font-size: 7.5pt; color: #475569; line-height: 1.5; margin: 0; }
-
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   DETAILS PANEL
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-.det-panel {
-    background: #eef3fd;
-    border-top: 3px solid #0d1b4b;
-    border-left: 1px solid #c8d5ef;
-    border-right: 1px solid #c8d5ef;
-    border-bottom: 1px solid #c8d5ef;
-    border-radius: 0 0 3px 3px;
-    margin: 0 1mm 5mm;
-}
-/* outer table: fields (left) + QR (right) */
-.det-outer  { display: table; width: 100%; }
-.det-fields { display: table-cell; width: 74%; vertical-align: top; padding: 3mm 0 2mm 4mm; }
-.det-qr     {
-    display: table-cell; width: 26%; vertical-align: middle;
-    text-align: center;
-    border-left: 1px dashed #b8caec;
+    border-right: 1pt solid #0f172a;
     padding: 3mm 4mm;
 }
-/* inner 2-col grid */
-.det-grid   { display: table; width: 100%; }
-.det-row    { display: table-row; }
-.det-l      { display: table-cell; width: 50%; text-align: left;  padding: 1.5mm 3mm 1.5mm 0; vertical-align: top; }
-.det-r      { display: table-cell; width: 50%; text-align: right; padding: 1.5mm 0 1.5mm 3mm; vertical-align: top; border-left: 1px solid #c8d5ef; }
-.det-lbl    { font-size: 5.5pt; color: #64748b; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 0.5mm; }
-.det-val    { font-size: 8.5pt; font-weight: 700; color: #0d1b4b; line-height: 1.2; }
-.det-val-cert { font-size: 8.5pt; font-weight: 700; font-family: monospace; color: #b45309; }
-/* QR */
-.qr-img { width: 20mm; height: 20mm; border: 1px solid #b8caec; padding: 1mm; background: #fff; display: block; margin: 0 auto 1.5mm; }
-.qr-lbl { font-size: 5pt; font-weight: 700; color: #0d1b4b; text-transform: uppercase; letter-spacing: 0.8px; }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   SEPARATOR
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-.sep-gold {
-    height: 2px; margin: 0 1mm 5mm;
-    background: linear-gradient(to right, transparent, #c9a227 20%, #f0d060 50%, #c9a227 80%, transparent);
+.credential-cell:last-child {
+    border-right: 0;
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   SIGNATURE ROW — 3 columns
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-.sig-table { display: table; width: 100%; }
-
-/* Left & right: signature columns */
-.sig-col {
-    display: table-cell; width: 32%; vertical-align: bottom;
-    text-align: center; padding: 0 4mm;
-}
-/* Centre column */
-.sig-mid {
-    display: table-cell; width: 36%; vertical-align: middle;
-    text-align: center; padding: 0 4mm;
-}
-/* CEO signature image */
-.sig-img { height: 14mm; display: block; margin: 0 auto 1mm; }
-/* Signature underline */
-.sig-line { width: 44mm; border-top: 1.2px solid #0d1b4b; margin: 0 auto 1.5mm; }
-.sig-name { font-size: 9.5pt; font-weight: 700; color: #0d1b4b; }
-.sig-role { font-size: 7pt; color: #475569; line-height: 1.4; margin-top: 0.5mm; }
-
-/* Centre box: seal + logos */
-.mid-box {
-    display: inline-block;
-    border: 1px solid #c9a227;
-    border-top: 3px solid #0d1b4b;
-    background: #fefcf3;
-    padding: 3mm 4mm 2.5mm;
-    border-radius: 0 0 3px 3px;
-    text-align: center;
-}
-.seal-img  { height: 19mm; display: block; margin: 0 auto 2mm; }
-.logos-row { text-align: center; margin-bottom: 1.5mm; }
-.logos-row img { height: 8mm; vertical-align: middle; margin: 0 1.5mm; }
-.logos-lbl {
-    font-size: 5pt; font-weight: 700; color: #0d1b4b;
-    text-transform: uppercase; letter-spacing: 0.8px;
+.credential-signature {
+    width: 31%;
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   FOOTER  (absolute bottom)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+.credential-ascb {
+    width: 25%;
+}
+
+.credential-irqao {
+    width: 19%;
+}
+
+.credential-ceo {
+    width: 25%;
+}
+
+.signature-img {
+    height: 10mm;
+    max-width: 42mm;
+    margin-bottom: 1.4mm;
+}
+
+.signature-space {
+    height: 10mm;
+    margin-bottom: 1.4mm;
+}
+
+.sig-line {
+    border-top: 1pt solid #082f5f;
+    width: 38mm;
+    margin: 0 auto 2mm auto;
+}
+
+.sig-name {
+    color: #0f172a;
+    font-size: 9.2pt;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.sig-role {
+    color: #475569;
+    font-size: 7.2pt;
+    line-height: 1.25;
+}
+
+.accreditation-logo {
+    max-width: 100%;
+    vertical-align: middle;
+}
+
+.ascb-logo {
+    max-height: 18mm;
+}
+
+.irqao-logo {
+    max-height: 23mm;
+}
+
 .footer {
     position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 13mm; background: #0d1b4b;
-    text-align: center; padding-top: 3.5mm; z-index: 10;
+    left: 19mm;
+    right: 19mm;
+    bottom: 13mm;
+    padding-top: 2mm;
+    border-top: 1pt solid #d8e0ea;
+    color: #475569;
+    font-size: 6.8pt;
+    line-height: 1.45;
+    text-align: center;
 }
-.footer-addr {
-    font-size: 7pt; font-weight: 600;
-    color: rgba(255,255,255,0.85); letter-spacing: 0.2px;
-}
-.footer-links { font-size: 6.5pt; color: #93c5fd; margin-top: 1mm; }
 
-/* Rainbow strip — sits on top of footer */
-.rainbow {
-    position: absolute;
-    bottom: 0; left: 0; right: 0; height: 2.5mm; z-index: 11;
-    background: linear-gradient(to right,
-        #0d1b4b 0%, #1e40af 10%, #0ea5e9 20%, #06b6d4 30%,
-        #10b981 40%, #84cc16 50%, #f59e0b 60%,
-        #ef4444 70%, #ec4899 80%, #8b5cf6 90%, #0d1b4b 100%);
+@media screen {
+    body {
+        width: auto;
+        height: auto;
+        min-height: 100vh;
+        background: #e2e8f0;
+        padding: 24px;
+    }
+
+    .page {
+        margin: 0 auto;
+        box-shadow: 0 18px 55px rgba(15, 23, 42, .22);
+    }
 }
 </style>
 </head>
 <body>
-
 @php
     $schedule = $enrollment->trainingSchedule ?? null;
-    $course   = $schedule?->course ?? null;
-    $fullName = $course?->name ?? 'Professional Training Programme';
+    $course = $schedule?->course ?? null;
+    $trainer = $schedule?->trainer ?? null;
 
-    /* Dates */
-    $start  = $schedule?->start_date ? \Carbon\Carbon::parse($schedule->start_date)->format('d M Y') : 'N/A';
-    $end    = $schedule?->end_date   ? \Carbon\Carbon::parse($schedule->end_date)->format('d M Y')   : 'N/A';
-    $dates  = ($start === $end) ? $start : $start . ' – ' . $end;
-    $issued = !empty($enrollment->certificate_issue_date)
-                ? \Carbon\Carbon::parse($enrollment->certificate_issue_date)->format('d M Y') : 'N/A';
+    $courseTitle = $schedule?->training_title ?: ($course?->name ?? 'ISO 9001:2015 QMS Lead Auditor Training Course');
 
-    /* Duration */
-    $rawDur   = $schedule?->duration ?? '';
-    $duration = $rawDur
-                ? (preg_match('/\d/i', $rawDur) && !preg_match('/hour/i', $rawDur) ? $rawDur . ' Hours' : $rawDur)
-                : '—';
-
-    /* Split course name: base + ISO tag */
-    $courseBase = $fullName; $isoTag = '';
-    if (preg_match('/^(.*?)\s+to\s+(ISO\s[\d]+(?::\d+)?(?:\s*\([^)]+\))?)\s*$/i', $fullName, $m)) {
-        $courseBase = trim($m[1]); $isoTag = trim($m[2]);
-    } elseif (preg_match('/^(.*?)\s*(\(ISO\s[\d]+(?::\d+)?(?:\s*\([^)]+\))?\))\s*$/i', $fullName, $m)) {
-        $courseBase = trim($m[1]); $isoTag = trim($m[2]);
+    $standard = 'ISO 9001:2015';
+    if (preg_match('/ISO\s*[\d]+(?::\d+)?/i', $courseTitle, $match)) {
+        $standard = strtoupper(trim($match[0]));
     }
 
-    /* ISO scheme detection */
-    $systemLong = 'Management System'; $schemeName = 'IRQAO Auditor Certification Scheme';
-    if      (stripos($fullName,'45001')!==false){ $systemLong='Occupational Health &amp; Safety Management System'; $schemeName='IRQAO OHSMS Auditor Certification Scheme'; }
-    elseif  (stripos($fullName,'14001')!==false){ $systemLong='Environmental Management System';                     $schemeName='IRQAO EMS Auditor Certification Scheme'; }
-    elseif  (stripos($fullName,'9001') !==false){ $systemLong='Quality Management System';                           $schemeName='IRQAO QMS Auditor Certification Scheme'; }
-    elseif  (stripos($fullName,'50001')!==false){ $systemLong='Energy Management System';                            $schemeName='IRQAO EnMS Auditor Certification Scheme'; }
-    elseif  (stripos($fullName,'27001')!==false){ $systemLong='Information Security Management System';              $schemeName='IRQAO ISMS Auditor Certification Scheme'; }
+    $systemName = 'QUALITY MANAGEMENT SYSTEMS';
+    $schemeShort = 'QMS';
+    if (stripos($courseTitle, '14001') !== false) {
+        $systemName = 'ENVIRONMENTAL MANAGEMENT SYSTEMS';
+        $schemeShort = 'EMS';
+    } elseif (stripos($courseTitle, '45001') !== false) {
+        $systemName = 'OCCUPATIONAL HEALTH & SAFETY MANAGEMENT SYSTEMS';
+        $schemeShort = 'OHSMS';
+    } elseif (stripos($courseTitle, '27001') !== false) {
+        $systemName = 'INFORMATION SECURITY MANAGEMENT SYSTEMS';
+        $schemeShort = 'ISMS';
+    } elseif (stripos($courseTitle, '50001') !== false) {
+        $systemName = 'ENERGY MANAGEMENT SYSTEMS';
+        $schemeShort = 'EnMS';
+    }
 
-    $isoDisplay = $isoTag ?: $fullName;
+    $leadAuditorTitle = 'LEAD AUDITOR TRAINING COURSE';
+    if (stripos($courseTitle, 'internal auditor') !== false) {
+        $leadAuditorTitle = 'INTERNAL AUDITOR TRAINING COURSE';
+    } elseif (stripos($courseTitle, 'auditor') !== false && stripos($courseTitle, 'lead') === false) {
+        $leadAuditorTitle = 'AUDITOR TRAINING COURSE';
+    }
+
+    $start = $schedule?->start_date ? \Carbon\Carbon::parse($schedule->start_date)->format('d M Y') : 'N/A';
+    $end = $schedule?->end_date ? \Carbon\Carbon::parse($schedule->end_date)->format('d M Y') : $start;
+    $trainingDates = $start === $end ? $start : $start . ' - ' . $end;
+
+    $issueDate = !empty($enrollment->certificate_issue_date)
+        ? \Carbon\Carbon::parse($enrollment->certificate_issue_date)->format('d M Y')
+        : 'N/A';
+
+    $duration = $schedule?->duration ?: 'N/A';
+    $durationDisplay = $duration !== 'N/A' && preg_match('/^\d+$/', trim((string) $duration))
+        ? $duration . ' Hours'
+        : $duration;
 
     $courseNo = $schedule?->batch_code
-        ?: ('SMS/'.date('y', strtotime($schedule?->start_date ?? 'now')).'/'
-            .str_pad($enrollment->training_schedule_id ?? $enrollment->id, 3, '0', STR_PAD_LEFT));
+        ?: ('SMS/' . date('y', strtotime($schedule?->start_date ?? 'now')) . '/'
+            . str_pad($enrollment->training_schedule_id ?? $enrollment->id, 3, '0', STR_PAD_LEFT));
 
-    $verifyUrl = url('/verify-certificate/'.($enrollment->certificate_number ?? 'N/A'));
-    $qrUrl     = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data='.urlencode($verifyUrl);
+    $certificateNo = $enrollment->certificate_number ?? 'N/A';
+    $irqaoRegId = data_get($enrollment, 'irqao_reg_id')
+        ?: data_get($schedule, 'irqao_reg_id')
+        ?: $certificateNo;
+    $verificationId = $certificateNo;
 
-    $toB64 = fn($f) => file_exists(public_path($f))
-                ? 'data:image/png;base64,'.base64_encode(file_get_contents(public_path($f))) : null;
+    $verifyUrl = url('/verify-certificate/' . $certificateNo);
+    $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' . urlencode($verifyUrl);
 
-    $logo  = $toB64('sms-logo.png');
-    $sig   = $toB64('ceo-signature.png');
-    $seal  = $toB64('sms-seal.png');
-    $irqao = $toB64('Irqao-logo.png');
-    $ascb  = $toB64('ascb-logo.png');
+    $asset = fn (string $file) => file_exists(public_path($file))
+        ? 'data:image/png;base64,' . base64_encode(file_get_contents(public_path($file)))
+        : null;
+
+    $smsLogo = $asset('sms-logo.png');
+    $ascbLogo = $asset('ascb-logo.png');
+    $irqaoLogo = $asset('Irqao-logo.png');
+    $leadTrainerSignature = $asset('sign-elearning.png');
+    $ceoSignature = $asset('ceo-signature.png');
+
+    $leadTrainerName = $trainer?->name ?: 'Lead Trainer';
+    $ceoName = 'Abdul Alim';
 @endphp
 
 <div class="page">
+    <div class="frame"></div>
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
 
-    {{-- Border frames --}}
-    <div class="frame-gold"></div>
-    <div class="frame-navy"></div>
-    <div class="co co-tl"></div><div class="co co-tr"></div>
-    <div class="co co-bl"></div><div class="co co-br"></div>
-
-    {{-- â•â• HEADER BAND â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
-    <div class="hdr">
-        <div class="hdr-texture"></div>
-
-        {{-- Left: Logo --}}
-        <div class="hdr-left">
-            @if($logo)
-                <img src="{{ $logo }}">
-            @else
-                <span style="font-size:30pt;font-weight:900;color:#f0d060;letter-spacing:2px;">SMS</span>
-            @endif
-        </div>
-
-        {{-- Right: Title --}}
-        <div class="hdr-right">
-            <div class="hdr-co-name">Sustainable Management System Inc.</div>
-            <div class="hdr-co-sub">International Training Services &amp; Personnel Certifications</div>
-            <div class="hdr-gold-line"></div>
-            <div class="hdr-cert-title">Certificate of Successful<br>Completion</div>
-            <div class="hdr-cert-prog">Auditor / Lead Auditor Training Programme</div>
-        </div>
-    </div>
-
-    {{-- â•â• GOLD GRADIENT RULE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
-    <div class="rule-gold"></div>
-
-    {{-- â•â• BODY â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
-    <div class="body">
-
-        {{-- Recipient --}}
-        <div class="present-line" style="margin-top:5mm;">This is to certify that</div>
-        <div class="rec-name">{{ $enrollment->full_name }}</div>
-
-        {{-- Ornament line --}}
-        <div class="orn-wrap">
-            <span class="orn-line-l"></span>
-            <span class="orn-dot"></span>
-            <span class="orn-line-r"></span>
-        </div>
-
-        {{-- Course --}}
-        <div class="completed-line">has successfully completed all requirements for</div>
-        <div class="course-name">{{ $courseBase }}</div>
-        @if($isoTag)
-        <div class="iso-tag">Based on &nbsp;<strong>{{ $isoTag }}</strong></div>
+    <main class="content">
+        @if($smsLogo)
+            <img src="{{ $smsLogo }}" class="sms-logo" alt="SMS">
         @endif
 
-        {{-- Competency paragraph --}}
-        <div class="para">
-            and has demonstrated the knowledge, skills and competencies required to plan, conduct,
-            report and follow up management system audits in accordance with
-            <strong>{{ $isoDisplay }}</strong> and internationally accepted auditing principles.
-            The participant has fulfilled all training requirements to perform first-party,
-            second-party and third-party audits of a <strong>{{ $systemLong }}</strong>.
+        <div class="company">Sustainable Management System Inc.</div>
+        <div class="cert-title">Certificate of Completion</div>
+
+        <div class="certify">This is to certify that</div>
+        <div class="participant">{{ $enrollment->full_name }}</div>
+
+        <div class="completed">
+            has successfully completed all course requirements, including continuous assessments
+            and the final written examination, and has demonstrated the competencies required
+            for successful completion of the ASCB Certified
         </div>
 
-        {{-- Accreditation strip --}}
-        <div class="accred">
-            <p>This training programme is certified and accredited by <strong>ASCB(E) Certified Auditors</strong>
-            and satisfies the formal training requirements under the <strong>{{ $schemeName }}</strong>.</p>
+        <div class="course-block">
+            <div class="course-name">{{ $courseTitle }}</div>
         </div>
 
-        {{-- -- DETAILS PANEL -- --}}
-        <div class="det-panel">
-            <div class="det-outer">
-                {{-- Fields --}}
-                <div class="det-fields">
-                    <div class="det-grid">
-                        <div class="det-row">
-                            <div class="det-l">
-                                <div class="det-lbl">Course ID</div>
-                                <div class="det-val">{{ $courseNo }}</div>
-                            </div>
-                            <div class="det-r">
-                                <div class="det-lbl">Standard</div>
-                                <div class="det-val">{{ $isoTag ?: '—' }}</div>
-                            </div>
-                        </div>
-                        <div class="det-row">
-                            <div class="det-l">
-                                <div class="det-lbl">Training Duration</div>
-                                <div class="det-val">{{ $duration }}</div>
-                            </div>
-                            <div class="det-r">
-                                <div class="det-lbl">Course Dates</div>
-                                <div class="det-val">{{ $dates }}</div>
-                            </div>
-                        </div>
-                        <div class="det-row">
-                            <div class="det-l">
-                                <div class="det-lbl">Certificate Number</div>
-                                <div class="det-val-cert">{{ $enrollment->certificate_number ?? 'N/A' }}</div>
-                            </div>
-                            <div class="det-r">
-                                <div class="det-lbl">Issue Date</div>
-                                <div class="det-val">{{ $issued }}</div>
-                            </div>
-                        </div>
-                    </div>
+        <div class="description">
+            based on the auditing principles and guidance of ISO 19011:2026.
+        </div>
+
+        <div class="details-wrap">
+            <div class="details">
+                <div class="detail-row">
+                    <div class="detail-label">Course No.:</div>
+                    <div class="detail-value">{{ $courseNo }}</div>
                 </div>
-                {{-- QR --}}
-                <div class="det-qr">
-                    <img src="{{ $qrUrl }}" class="qr-img">
-                    <div class="qr-lbl">Scan to Verify</div>
+                <div class="detail-row">
+                    <div class="detail-label">Certificate No.:</div>
+                    <div class="detail-value">{{ $certificateNo }}</div>
                 </div>
+                <div class="detail-row">
+                    <div class="detail-label">Issue Date:</div>
+                    <div class="detail-value">{{ $issueDate }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Training Dates:</div>
+                    <div class="detail-value">{{ $trainingDates }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Duration:</div>
+                    <div class="detail-value">{{ $durationDisplay }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">IRQAO Reg. ID:</div>
+                    <div class="detail-value">{{ $irqaoRegId }}</div>
+                </div>
+            </div>
+
+            <div class="verify">
+                <img src="{{ $qrUrl }}" class="qr-img" alt="QR Code">
+                <div class="verify-title">SCAN TO VERIFY</div>
+                <div class="verify-url">www.smscert.com/verify</div>
+                <div class="verify-id">Verification ID: {{ $verificationId }}</div>
             </div>
         </div>
 
-        {{-- -- SEPARATOR -- --}}
-        <div class="sep-gold"></div>
-
-        {{-- -- SIGNATURES -- --}}
-        <div class="sig-table">
-
-            {{-- Left: CEO --}}
-            <div class="sig-col">
-                @if($sig)
-                    <img src="{{ $sig }}" class="sig-img">
+        <div class="credential-footer">
+            <div class="credential-cell credential-signature">
+                @if($leadTrainerSignature)
+                    <img src="{{ $leadTrainerSignature }}" class="signature-img" alt="">
                 @else
-                    <div style="height:14mm;"></div>
+                    <div class="signature-space"></div>
                 @endif
                 <div class="sig-line"></div>
-                <div class="sig-name">Abdul Alim</div>
-                <div class="sig-role">President &amp; Chief Executive Officer<br>Sustainable Management System Inc.</div>
+                <div class="sig-name">{{ $leadTrainerName }}</div>
+                <div class="sig-role">Lead Trainer</div>
             </div>
 
-            {{-- Centre: Seal + Logos --}}
-            <div class="sig-mid">
-                <div class="mid-box">
-                    @if($seal)
-                        <img src="{{ $seal }}" class="seal-img">
-                    @endif
-                    @if($irqao || $ascb)
-                    <div class="logos-row">
-                        @if($irqao)<img src="{{ $irqao }}">@endif
-                        @if($ascb)<img src="{{ $ascb }}">@endif
-                    </div>
-                    <div class="logos-lbl">Accredited Certification Provider</div>
-                    @endif
-                </div>
+            <div class="credential-cell credential-ascb">
+                @if($ascbLogo)
+                    <img src="{{ $ascbLogo }}" class="accreditation-logo ascb-logo" alt="ASCB">
+                @endif
             </div>
 
-            {{-- Right: Training Director --}}
-            <div class="sig-col">
-                <div style="height:14mm;"></div>
+            <div class="credential-cell credential-irqao">
+                @if($irqaoLogo)
+                    <img src="{{ $irqaoLogo }}" class="accreditation-logo irqao-logo" alt="IRQAO">
+                @endif
+            </div>
+
+            <div class="credential-cell credential-ceo">
+                @if($ceoSignature)
+                    <img src="{{ $ceoSignature }}" class="signature-img" alt="">
+                @else
+                    <div class="signature-space"></div>
+                @endif
                 <div class="sig-line"></div>
-                <div class="sig-name">Training Director</div>
-                <div class="sig-role">SMS Training Academy<br>Sustainable Management System Inc.</div>
+                <div class="sig-name">{{ $ceoName }}</div>
+                <div class="sig-role">President &amp; CEO</div>
             </div>
-
         </div>
+    </main>
 
-    </div>{{-- end .body --}}
-
-    {{-- â•â• FOOTER â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
-    <div class="footer">
-        <div class="footer-addr">
-            Sustainable Management System Inc. &nbsp;|&nbsp;
-            277 Cherry Street, Suite 12N, New York, NY 10002, United States of America
-        </div>
-        <div class="footer-links">
-            www.smscert.com/verify &nbsp;·&nbsp; www.irqao.com &nbsp;·&nbsp; info@smscert.com
-        </div>
-    </div>
-
-    {{-- Rainbow strip --}}
-    <div class="rainbow"></div>
-
+    <footer class="footer">
+        277 Cherry Street, Suite-12N, New York, New York 10002, USA<br>
+        info@smscert.com &nbsp; | &nbsp; www.smscert.com
+    </footer>
 </div>
 </body>
 </html>

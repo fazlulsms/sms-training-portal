@@ -25,7 +25,7 @@ class CertificateController extends Controller
     ];
 
     // ── Templates that render in portrait orientation ─────────────────────
-    private const PORTRAIT_TEMPLATES = []; // auditor is landscape
+    private const PORTRAIT_TEMPLATES = ['auditor'];
 
     // ─────────────────────────────────────────────────────────────────────
     // INDEX — main list with all filters
@@ -110,7 +110,7 @@ class CertificateController extends Controller
     // ─────────────────────────────────────────────────────────────────────
     public function generateForm($id)
     {
-        $enrollment = Enrollment::with('trainingSchedule.course')->findOrFail($id);
+        $enrollment = Enrollment::with('trainingSchedule.course', 'trainingSchedule.trainer')->findOrFail($id);
         $templates  = self::TEMPLATES;
         return view('certificates.generate', compact('enrollment', 'templates'));
     }
@@ -236,7 +236,7 @@ class CertificateController extends Controller
     // ─────────────────────────────────────────────────────────────────────
     public function emailCertificate(Request $request, $id)
     {
-        $enrollment = Enrollment::with('trainingSchedule.course')->findOrFail($id);
+        $enrollment = Enrollment::with('trainingSchedule.course', 'trainingSchedule.trainer')->findOrFail($id);
 
         if (!$enrollment->certificate_number) {
             return back()->with('error', 'No certificate generated yet for this participant.');
@@ -262,7 +262,7 @@ class CertificateController extends Controller
     // ─────────────────────────────────────────────────────────────────────
     public function preview(Request $request, $id)
     {
-        $enrollment = Enrollment::with('trainingSchedule.course')->findOrFail($id);
+        $enrollment = Enrollment::with('trainingSchedule.course', 'trainingSchedule.trainer')->findOrFail($id);
 
         // Allow ?template= to override so you can test any template on any enrollment
         $template = $request->query('template', $enrollment->certificate_template ?? 'auditor');
@@ -322,7 +322,7 @@ class CertificateController extends Controller
     // ─────────────────────────────────────────────────────────────────────
     public function view($id)
     {
-        $enrollment = Enrollment::with('trainingSchedule.course')->findOrFail($id);
+        $enrollment = Enrollment::with('trainingSchedule.course', 'trainingSchedule.trainer')->findOrFail($id);
         $viewName   = $this->templateView($enrollment->certificate_template ?? 'attendance');
         return view($viewName, compact('enrollment'));
     }
@@ -332,7 +332,7 @@ class CertificateController extends Controller
     // ─────────────────────────────────────────────────────────────────────
     public function pdf($id)
     {
-        $enrollment = Enrollment::with('trainingSchedule.course')->findOrFail($id);
+        $enrollment = Enrollment::with('trainingSchedule.course', 'trainingSchedule.trainer')->findOrFail($id);
 
         $template    = $enrollment->certificate_template ?? 'attendance';
         $viewName    = $this->templatePdfView($template);
@@ -340,7 +340,7 @@ class CertificateController extends Controller
 
         $pdf = Pdf::loadView($viewName, compact('enrollment', 'template'))
             ->setPaper('a4', $orientation)
-            ->setOption(['isRemoteEnabled' => true, 'dpi' => 150]);
+            ->setOption(['isRemoteEnabled' => true, 'dpi' => 300]);
 
         $safeFileName = str_replace(['/', '\\'], '-', $enrollment->certificate_number ?? 'certificate');
         return $pdf->download($safeFileName . '.pdf');
@@ -452,7 +452,7 @@ class CertificateController extends Controller
 
         $pdf        = Pdf::loadView($viewName, compact('enrollment', 'template'))
             ->setPaper('a4', $orientation)
-            ->setOption(['isRemoteEnabled' => true, 'dpi' => 150]);
+            ->setOption(['isRemoteEnabled' => true, 'dpi' => 300]);
         $pdfData    = $pdf->output();
         $fileName   = str_replace(['/', '\\'], '-', $certNumber ?? 'certificate') . '.pdf';
 
